@@ -60,13 +60,14 @@ describe('content rules registration', () => {
     registerContentRules();
   });
 
-  it('registers exactly the five content rules', () => {
+  it('registers exactly the content rules', () => {
     expect(getRules().map((r) => r.id)).toEqual([
       'join-paragraph-lines',
       'strip-strong',
       'replace-em-dash',
       'prose-list-to-sentences',
       'prose-list-to-sentences-fix',
+      'header-case',
     ]);
     expect(getRules().every((r) => r.category === 'content')).toBe(true);
   });

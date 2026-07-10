@@ -33,6 +33,9 @@ export function defaultLinterConfig(): LinterConfig {
         'alphabetize-property-values': {enabled: true},
         'h1-matches-stem': {enabled: true},
         'kebab-case-filename': {enabled: true},
+        // Enabled but a no-op until a heading level is assigned a style; the
+        // Headers settings section writes h1..h6 here.
+        'header-case': {enabled: true},
         // The code-check rules are on but no-op until an individual check in
         // the code-checks section is enabled (all built-ins default off).
         'code-checks': {enabled: true},

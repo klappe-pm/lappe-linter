@@ -1,5 +1,5 @@
 import {App, Notice, Setting, TFolder} from 'obsidian';
-import {getRules} from '@lappe-linter/core';
+import {getRules, HEADER_CASE_STYLES} from '@lappe-linter/core';
 import LinterPlugin from '../../../main';
 import {Tab} from './tab';
 import {ListSuggest, vaultYamlKeys, vaultYamlValues} from '../../../lappe/yaml-suggest';
@@ -53,6 +53,7 @@ export class LappeTab extends Tab {
 
     this.displayKeySortSection();
     this.displayKeptYamlRules();
+    this.displayHeadersSection();
     this.displayRuleToggles();
     this.displayCodeChecksSection();
     this.displayExcludedFoldersSection();
@@ -80,6 +81,62 @@ export class LappeTab extends Tab {
           .addToggle((toggle) => toggle.setValue(check.enabled).onChange(async (value) => {
             await service.setCodeCheckEnabled(check.id, value);
           }));
+    }
+  }
+
+  /**
+   * Headers section: per-level heading case (header-case rule, written to
+   * linter.yaml h1..h6) plus the kept upstream heading rules. H1 is normally
+   * driven by the filename via h1-matches-stem, so its dropdown notes that.
+   */
+  private displayHeadersSection(): void {
+    const service = this.plugin.lappeConfig;
+    new Setting(this.contentEl)
+        .setName('Headers')
+        .setDesc('Per-level heading case. Each level can be left alone or normalized to one style. H1 follows the filename (kebab-case) via the filename rules; set it here only to override.')
+        .setHeading();
+
+    const headerCaseStanza = service.config?.defaults?.rules?.['header-case'] ?? {};
+    for (let level = 1; level <= 6; level++) {
+      const key = `h${level}`;
+      const current = typeof headerCaseStanza[key] === 'string' ? headerCaseStanza[key] as string : '';
+      new Setting(this.contentEl.createDiv())
+          .setName(`H${level} case`)
+          .setDesc(level === 1 ? 'Default: follows the filename (kebab-case).' : '')
+          .addDropdown((dropdown) => {
+            dropdown.addOption('', 'Leave alone');
+            for (const style of HEADER_CASE_STYLES) {
+              dropdown.addOption(style, style);
+            }
+            dropdown.setValue(current);
+            dropdown.onChange(async (value) => {
+              await service.setDefaultRuleOption('header-case', key, value === '' ? null : value);
+            });
+          });
+    }
+
+    // Kept upstream heading rules, shipped on (opt-out).
+    for (const alias of ['header-increment', 'headings-start-line', 'trailing-spaces']) {
+      const rule = rulesDict[alias];
+      if (rule == null) {
+        continue;
+      }
+      const ruleDiv = this.contentEl.createDiv();
+      ruleDiv.id = `lappe-${rule.alias}`;
+      new Setting(ruleDiv).setHeading().nameEl.createEl('a', {href: rule.getURL(), text: rule.getName()});
+      let isFirstOption = true;
+      let hideOnLoad = false;
+      for (const option of rule.options) {
+        option.display(ruleDiv, this.plugin.settings, this.plugin);
+        if (isFirstOption) {
+          isFirstOption = false;
+          if (option instanceof BooleanOption) {
+            hideOnLoad = !this.plugin.settings.ruleConfigs[option.ruleAlias][option.configKey];
+          }
+        } else if (hideOnLoad) {
+          option.hide();
+        }
+      }
     }
   }
 

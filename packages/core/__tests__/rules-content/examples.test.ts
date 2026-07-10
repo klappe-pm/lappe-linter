@@ -1,5 +1,6 @@
 import {CoreRule} from '../../src/rule';
 import {
+  headerCase,
   joinParagraphLines,
   proseListToSentences,
   proseListToSentencesFix,
@@ -13,6 +14,7 @@ const rules: CoreRule[] = [
   replaceEmDash,
   proseListToSentences,
   proseListToSentencesFix,
+  headerCase,
 ];
 
 for (const rule of rules) {

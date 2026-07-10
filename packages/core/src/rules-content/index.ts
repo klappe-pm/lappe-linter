@@ -5,6 +5,7 @@
  */
 
 import {registerRule} from '../rule';
+import {headerCase} from './header-case';
 import {joinParagraphLines} from './join-paragraph-lines';
 import {proseListToSentences, proseListToSentencesFix} from './prose-list-to-sentences';
 import {replaceEmDash} from './replace-em-dash';
@@ -16,8 +17,11 @@ export function registerContentRules(): void {
   registerRule(replaceEmDash);
   registerRule(proseListToSentences);
   registerRule(proseListToSentencesFix);
+  registerRule(headerCase);
 }
 
+export {headerCase, formatHeadingText, HEADER_CASE_STYLES} from './header-case';
+export type {HeaderCaseStyle} from './header-case';
 export {joinParagraphLines} from './join-paragraph-lines';
 export {proseListToSentences, proseListToSentencesFix} from './prose-list-to-sentences';
 export {replaceEmDash, EM_DASH, EN_DASH} from './replace-em-dash';

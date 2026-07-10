@@ -219,6 +219,21 @@ export class LappeConfigService {
   }
 
   /**
+   * Set (or clear) a single option under a rule's defaults stanza in
+   * linter.yaml, comment-preserving. Passing null or '' deletes the key so
+   * the rule falls back to its compiled default for that option.
+   */
+  async setDefaultRuleOption(ruleId: string, optionKey: string, value: string | number | boolean | null): Promise<void> {
+    await this.writeConfigUpdate((doc) => {
+      if (value === null || value === '') {
+        doc.deleteIn(['defaults', 'rules', ruleId, optionKey]);
+      } else {
+        doc.setIn(['defaults', 'rules', ruleId, optionKey], value);
+      }
+    });
+  }
+
+  /**
    * Write the combined YAML key sort control back to linter.yaml: the ordered
    * key list plus optional per-key default values, comment-preserving.
    */

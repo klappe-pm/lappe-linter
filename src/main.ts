@@ -23,6 +23,7 @@ import {downloadMisspellings, readInMisspellingsFile} from './utils/auto-correct
 import {kitchenSinkFixture, lintText as lappeLintText, registerAllRules as registerLappeRules, ruleFixtures, testFilesReadme} from '@lappe-linter/core';
 import {LappeConfigService} from './lappe/config-service';
 import {ribbonFallback} from './lappe/ribbon-action';
+import {shouldLintOnRename} from './lappe/rename-trigger';
 
 // https://github.com/liamcain/obsidian-calendar-ui/blob/03ceecbf6d88ef260dadf223ee5e483d98d24ffc/src/localization.ts#L20-L43
 const langToMomentLocale = {
@@ -60,8 +61,15 @@ type FileChangeUpdateInfo = {
 }
 
 // Upstream rules Lappe ships enabled on first install (opt-out model). Kept in
-// sync with KEPT_YAML_RULE_ALIASES in lappe-tab.ts, which surfaces them.
-const LAPPE_DEFAULT_ON_RULES = new Set(['add-blank-line-after-yaml', 'dedupe-yaml-array-values', 'remove-yaml-keys']);
+// sync with the rules surfaced in the Lappe tab's YAML and Headers sections.
+const LAPPE_DEFAULT_ON_RULES = new Set([
+  'add-blank-line-after-yaml',
+  'dedupe-yaml-array-values',
+  'remove-yaml-keys',
+  'header-increment',
+  'headings-start-line',
+  'trailing-spaces',
+]);
 
 export default class LinterPlugin extends Plugin {
   settings: LinterSettings;
@@ -302,6 +310,16 @@ export default class LinterPlugin extends Plugin {
     eventRef = this.app.workspace.on('file-menu', (menu, file, source) => this.onMenuOpenCallback(menu, file, source));
     this.registerEvent(eventRef);
     this.eventRefs.push(eventRef);
+
+    // Format a note the moment it is first named (renamed away from the
+    // Untitled default): applies the filename and H1-matches-stem rules.
+    const renameRef = this.app.vault.on('rename', (file, oldPath) => {
+      if (file instanceof TFile && this.isMarkdownFile(file) && !this.shouldIgnoreFile(file) && shouldLintOnRename(oldPath, file.path)) {
+        void this.runLinterFile(file);
+      }
+    });
+    this.registerEvent(renameRef);
+    this.eventRefs.push(renameRef);
 
     this.lastActiveFile = this.app.workspace.getActiveFile();
     eventRef = this.app.workspace.on('active-leaf-change', () => this.onActiveLeafChange());

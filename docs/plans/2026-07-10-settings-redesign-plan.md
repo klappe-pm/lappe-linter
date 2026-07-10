@@ -62,10 +62,10 @@ Statuses: TODO, ACTIVE, DONE, BLOCKED (with reason in Notes).
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 2.1 | Core rule `header-case`: per-level style (camelCase, First letter, kebab-case, Title Case, underscore_formatted) | TODO | |
-| 2.2 | Headers tab (renamed from Heading) with per-level dropdowns, alphabetical option order | TODO | |
-| 2.3 | Filename flow: skip `Untitled*` until named; on rename, kebab-case the name (rename.mode gate) and sync H1 via h1-matches-stem | TODO | |
-| 2.4 | Keep header-increment, headings-start-line, trailing-spaces, default ON | TODO | |
+| 2.1 | Core rule `header-case`: per-level style (camelCase, First letter, kebab-case, Title Case, underscore_formatted) | DONE | packages/core/src/rules-content/header-case.ts + pure formatHeadingText + tests; registered, examples + idempotency covered |
+| 2.2 | Headers tab (renamed from Heading) with per-level dropdowns, alphabetical option order | DONE | Headers section in lappe-tab displayHeadersSection; H1..H6 dropdowns (styles listed alphabetically by HEADER_CASE_STYLES) writing via new config-service setDefaultRuleOption; header-case enabled in compiled defaults (no-op until a level set) |
+| 2.3 | Filename flow: skip `Untitled*` until named; on rename, kebab-case the name (rename.mode gate) and sync H1 via h1-matches-stem | DONE | pure shouldLintOnRename() + tests; vault rename handler in main.ts lints on the Untitled→real-name transition, applying kebab-case-filename (rename.mode gate) and h1-matches-stem |
+| 2.4 | Keep header-increment, headings-start-line, trailing-spaces, default ON | DONE | added to LAPPE_DEFAULT_ON_RULES and surfaced in the Headers section |
 
 ### Phase 3: Body and Special formatting
 
@@ -110,5 +110,6 @@ Statuses: TODO, ACTIVE, DONE, BLOCKED (with reason in Notes).
 ## Work log
 
 - 2026-07-10: plan written; diagnosis session verified engine via CLI; worktree `feat/settings-redesign` created.
+- 2026-07-10: Phase 2 done. New core rule `header-case` normalizes each ATX level to one of five styles via a pure, idempotent `formatHeadingText` (camelCase, First letter, kebab-case, Title Case, underscore_formatted), skipping code/math/table/frontmatter lines; unit + example + idempotency tests. Headers section added to the Lappe tab with H1..H6 style dropdowns writing to linter.yaml through a new `setDefaultRuleOption`, plus the kept upstream heading rules. Filename flow: a pure `shouldLintOnRename` fires a lint on the Untitled→real-name transition so kebab-case-filename and h1-matches-stem run when a note is first named. header-increment, headings-start-line, trailing-spaces added to the opt-out default-on set. Suite green: 109 suites, 1720 tests.
 - 2026-07-10: Phase 1 done. `DEFAULT_PRIORITY_KEYS`/`GLOBAL_KEY_ORDER_HEAD`/scaffold set to the 8 priority keys `preset`..`links` (aliases/tags pinned last, see decision); the key-sort list rows now drag to reorder through a pure tested `moveItem()` with up/down as a fallback, and aliases/tags render as fixed trailing rows so the full 10-key order is visible. Kept upstream YAML rules (blank-line-after-yaml, dedupe-array-values, remove-keys) surfaced in a Lappe "YAML formatting" group; yaml-title, title-alias, and footnote rules remain absent (dec-005 removed those tabs). Kept YAML rules ship enabled on first install via `LAPPE_DEFAULT_ON_RULES`, never overriding a returning user's opt-out. Suite green: 107 suites, 1687 tests.
 - 2026-07-10: Phase 0 done. Ribbon action extracted to a pure `ribbonFallback()` (editor-lint / whole-file-lint / notice) wired through `main.ts` `lintCurrentFile`, with a regression test; in reading view or with no note the wand now lints the whole file or shows a Notice instead of silently doing nothing. `test-vault` repaired: plugin folder renamed `obsidian-linter`→`lappe-linter`, `community-plugins.json` id fixed, esbuild dev-watch output path updated, and `scripts/install-test-vault.sh` added to build + copy `main.js`/`manifest.json`/`styles.css` and reconcile the enabled-plugin id. First-run onboarding: one-time Notice pointing at the create-linter.yaml command, gated by a persisted `lappeFirstRunNoticeShown` flag. Full suite green: 106 suites, 1682 tests.
