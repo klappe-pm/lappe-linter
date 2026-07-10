@@ -52,3 +52,6 @@ packages/*/dist/
 !**/__tests__/
 !**/__mocks__/
 !**/__integration__/
+
+# built plugin drop-in folder
+dist-plugin/
