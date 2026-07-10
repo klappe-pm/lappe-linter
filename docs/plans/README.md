@@ -4,7 +4,7 @@ category: obsidian-linter-fork
 sub-category: planning
 date-created: 2026-07-09
 date-revised: 2026-07-09
-repository: klappe-pm/obsidian-linter
+repository: klappe-pm/lappe-linter
 status: planned
 upstream: platers/obsidian-linter
 aliases:

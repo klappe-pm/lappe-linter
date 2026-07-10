@@ -30,7 +30,7 @@ Session-side hooks fail open: `lint-on-write.sh` exits 0 on every error path (mi
 
 ## HC-1 harness: pointer registry and naming registration
 
-Runs in: the harness repo. Execute the HC-1 prompt from [[harness-changes]] there. It registers this repo (`klappe-pm/obsidian-linter`) in the pointer-file registry with stable references for the `linter.yaml` config contract, the `packages/cli` JSON output contract (`output-version` 1), and `docs/passoffs/`, and registers the repo under naming convention v2.0.0. No artifact from `scripts/harness/` is copied; the registry entries point back at this repo's paths, and HC-6 later resolves the CLI bundle path through them.
+Runs in: the harness repo. Execute the HC-1 prompt from [[harness-changes]] there. It registers this repo (`klappe-pm/lappe-linter`) in the pointer-file registry with stable references for the `linter.yaml` config contract, the `packages/cli` JSON output contract (`output-version` 1), and `docs/passoffs/`, and registers the repo under naming convention v2.0.0. No artifact from `scripts/harness/` is copied; the registry entries point back at this repo's paths, and HC-6 later resolves the CLI bundle path through them.
 
 ## HC-2 .claude: PostToolUse lint hook
 

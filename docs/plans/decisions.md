@@ -58,3 +58,10 @@ Append-only decision log for the lappe-linter fork. Newest last. Each entry is `
 - context: Kevin asked for code linting for the coding projects integrated in the vault, modeled on the harness project's hooks and checks, delivered securely and safely.
 - decision: Code linting is declarative only. Checks are data in `linter.yaml` under `code-checks` (pattern, fence languages, path globs, message, optional fix.replacement), run by two core rules (`code-checks` report-only, `code-checks-fix` fixing) over fenced code blocks with bounded execution (2000-char line cap, 100-match file cap). No command execution, no eval, no dynamic loading, no network. Messages never echo matched text so secrets cannot leak into Notices, CLI output, or the spool. Three built-ins ship disabled: no-token-shaped-strings, no-gnu-only-flags-in-sh, no-trailing-whitespace-in-code. Invalid checks warn and skip; they never fail the config closed.
 - consequences: The harness hook idioms (deterministic, path-scoped, secret-safe) are expressed without granting vault config any execution capability. Whole-file linting of non-markdown sources via the CLI is a designed seam, not yet wired; docs/code-checks.md is the user contract.
+
+## dec-007
+
+- date: 2026-07-10
+- context: Kevin renamed the GitHub fork from klappe-pm/obsidian-linter to klappe-pm/lappe-linter, completing the dec-001 product rename at the repo level. GitHub redirects the old slug.
+- decision: origin now points at https://github.com/klappe-pm/lappe-linter.git and every living doc (plan specs, harness install guide, AGENTS) uses the new slug. Merged passoffs keep the old slug as point-in-time records. Supersedes the repo-slug clause of dec-001. The upstream remote (platers/obsidian-linter) is unchanged.
+- consequences: HC-1 registry entries and any future hook artifacts must use klappe-pm/lappe-linter. Nothing else breaks: workspace names, plugin id, and CLI bin already carried the lappe-linter name.

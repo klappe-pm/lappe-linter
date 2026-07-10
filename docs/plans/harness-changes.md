@@ -20,7 +20,7 @@ Executable change specifications for repos outside the linter fork: harness, .cl
 ## HC-1 harness: register repo in pointer registry and naming convention
 Repo: harness. Prompt to execute:
 ```text
-Add klappe-pm/obsidian-linter to the pointer-file registry with stable references for: linter.yaml (vault root config contract), packages/cli JSON output contract (output-version 1), and docs/passoffs/. Register the repo under naming convention v2.0.0. Update check-pointer-integrity.sh coverage to include the new registry entries. Do not modify any other registry entries.
+Add klappe-pm/lappe-linter to the pointer-file registry with stable references for: linter.yaml (vault root config contract), packages/cli JSON output contract (output-version 1), and docs/passoffs/. Register the repo under naming convention v2.0.0. Update check-pointer-integrity.sh coverage to include the new registry entries. Do not modify any other registry entries.
 ```
 Commit: `feat(registry): register obsidian-linter pointers and naming v2.0.0 entry`.
 

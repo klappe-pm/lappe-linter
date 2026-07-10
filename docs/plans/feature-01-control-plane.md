@@ -67,7 +67,7 @@ PR 1 (core): `feat(core): linter.yaml schema, loader, and validator`, `feat(core
 
 ## Agent prompt
 ```text
-Implement feature-01-control-plane.md tasks F01-T1 through F01-T7 in klappe-pm/obsidian-linter. linter.yaml at the vault root is the single source of truth for rule configuration; data.json may hold UI state only. Validation failures must disable linting entirely with a single user-facing Notice. UI edits must round-trip through the yaml document API preserving comments and unknown keys. Do not implement profile matching semantics; that is F02. Ship the schema with profiles and note-types keys present but pass-through.
+Implement feature-01-control-plane.md tasks F01-T1 through F01-T7 in klappe-pm/lappe-linter. linter.yaml at the vault root is the single source of truth for rule configuration; data.json may hold UI state only. Validation failures must disable linting entirely with a single user-facing Notice. UI edits must round-trip through the yaml document API preserving comments and unknown keys. Do not implement profile matching semantics; that is F02. Ship the schema with profiles and note-types keys present but pass-through.
 ```
 
 ## Dependencies

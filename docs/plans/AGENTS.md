@@ -14,7 +14,7 @@ tags:
 # AGENTS
 
 ## Scope
-These instructions govern any coding agent (Claude Code, Codex, or other) working in the klappe-pm/obsidian-linter fork. Tool-specific deltas live in [[CLAUDE]] and [[CODEX]]. This file is the shared contract.
+These instructions govern any coding agent (Claude Code, Codex, or other) working in the klappe-pm/lappe-linter fork. Tool-specific deltas live in [[CLAUDE]] and [[CODEX]]. This file is the shared contract.
 
 ## Repository facts
 Monorepo with npm workspaces. `packages/core` owns pure rules, the scope engine, the config loader, and note-type schemas. The Obsidian plugin stays at the repo root in the upstream layout (dec-004); there is no `packages/plugin` workspace. Root `src/` owns Obsidian integration only. `packages/cli` owns the headless runner only. Nothing in `core` may import from `obsidian`. Nothing in `plugin` or `cli` may implement a text transform; transforms live in `core` exclusively. TypeScript strict mode, esbuild for the plugin bundle, tsup or esbuild for the CLI, jest for tests (upstream convention).

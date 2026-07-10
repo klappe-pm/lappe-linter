@@ -20,7 +20,7 @@ tags:
 Fork and monorepo restructure.
 
 ## Objective
-Establish klappe-pm/obsidian-linter as a hard fork with npm workspaces and a `packages/core` that compiles with zero Obsidian imports, proving the shared TypeScript core is viable before any feature work begins.
+Establish klappe-pm/lappe-linter as a hard fork with npm workspaces and a `packages/core` that compiles with zero Obsidian imports, proving the shared TypeScript core is viable before any feature work begins.
 
 ## Components
 `packages/core` (rules, registry, option types, utils, lang shim), `packages/plugin` (main.ts, UI, vault integration, esbuild config), `packages/cli` (empty scaffold with entry point, filled by F06), root workspace config, upstream remote and sync documentation, CI workflow running build and tests on both packages.
@@ -48,7 +48,7 @@ PR 1 (structure): `chore(repo): convert to npm workspaces with plugin package`, 
 
 ## Agent prompt
 ```text
-You are working in klappe-pm/obsidian-linter on branch feat/monorepo. Execute tasks F00-T1 through F00-T8 from feature-00-fork-and-monorepo.md. Hard constraints: preserve upstream relative paths for every moved rule file; do not change any rule's behavior; the existing jest suite must pass with only import-path edits; packages/core must compile and run under plain Node with no obsidian module resolvable. Use the seeded commit subjects verbatim. Stop and report if any rule requires the Obsidian App beyond the conflict-disable callbacks; do not invent additional adapter surface.
+You are working in klappe-pm/lappe-linter on branch feat/monorepo. Execute tasks F00-T1 through F00-T8 from feature-00-fork-and-monorepo.md. Hard constraints: preserve upstream relative paths for every moved rule file; do not change any rule's behavior; the existing jest suite must pass with only import-path edits; packages/core must compile and run under plain Node with no obsidian module resolvable. Use the seeded commit subjects verbatim. Stop and report if any rule requires the Obsidian App beyond the conflict-disable callbacks; do not invent additional adapter surface.
 ```
 
 ## Dependencies
