@@ -6,6 +6,7 @@ import {ListSuggest, vaultYamlKeys, vaultYamlValues} from '../../../lappe/yaml-s
 import {moveItem} from '../../../lappe/reorder';
 import {rulesDict} from '../../../rules';
 import {BooleanOption, SearchOptionInfo} from '../../../option';
+import {LappePreviewModal} from '../../modals/lappe-preview-modal';
 
 // Kept upstream YAML formatting rules, surfaced in the Lappe YAML section.
 // yaml-title, yaml-title-alias, and every footnote rule are intentionally
@@ -93,10 +94,7 @@ export class LappeTab extends Tab {
    */
   private displayHeadersSection(): void {
     const service = this.plugin.lappeConfig;
-    new Setting(this.contentEl)
-        .setName('Headers')
-        .setDesc('Per-level heading case. Each level can be left alone or normalized to one style. H1 follows the filename (kebab-case) via the filename rules; set it here only to override.')
-        .setHeading();
+    this.sectionHeading('Headers', 'Per-level heading case. Each level can be left alone or normalized to one style. H1 follows the filename (kebab-case) via the filename rules; set it here only to override.');
 
     const headerCaseStanza = service.config?.defaults?.rules?.['header-case'] ?? {};
     for (let level = 1; level <= 6; level++) {
@@ -121,6 +119,17 @@ export class LappeTab extends Tab {
     for (const alias of ['header-increment', 'headings-start-line', 'trailing-spaces']) {
       this.renderUpstreamRule(alias);
     }
+  }
+
+  /** A section heading with a "Preview" button opening the live preview modal. */
+  private sectionHeading(name: string, desc: string): void {
+    new Setting(this.contentEl)
+        .setName(name)
+        .setDesc(desc)
+        .setHeading()
+        .addButton((button) => button.setButtonText('Preview').setTooltip('Preview these settings on a sample note').onClick(() => {
+          new LappePreviewModal(this.app, this.plugin).open();
+        }));
   }
 
   /**
@@ -161,10 +170,7 @@ export class LappeTab extends Tab {
    * not surfaced.
    */
   private displayKeptYamlRules(): void {
-    new Setting(this.contentEl)
-        .setName('YAML formatting')
-        .setDesc('Extra frontmatter cleanups applied on lint. These default on; turn any off to opt out.')
-        .setHeading();
+    this.sectionHeading('YAML formatting', 'Extra frontmatter cleanups applied on lint. These default on; turn any off to opt out.');
     for (const alias of KEPT_YAML_RULE_ALIASES) {
       this.renderUpstreamRule(alias);
     }
@@ -177,7 +183,7 @@ export class LappeTab extends Tab {
    */
   private displayBodySection(): void {
     const service = this.plugin.lappeConfig;
-    new Setting(this.contentEl).setName('Body').setDesc('Paragraph, list, and basic text styling applied on lint.').setHeading();
+    this.sectionHeading('Body', 'Paragraph, list, and basic text styling applied on lint.');
 
     const paraStanza = service.config?.defaults?.rules?.['paragraph-spacing'] ?? {};
     const currentBlank = typeof paraStanza['blank-lines'] === 'number' ? String(paraStanza['blank-lines']) : '1';
@@ -233,10 +239,7 @@ export class LappeTab extends Tab {
    * other sections; groups the upstream block-formatting rules.
    */
   private displaySpecialFormattingSection(): void {
-    new Setting(this.contentEl)
-        .setName('Special formatting')
-        .setDesc('Markdown block formatting: code fences, quotes, and tables.')
-        .setHeading();
+    this.sectionHeading('Special formatting', 'Markdown block formatting: code fences, quotes, and tables.');
     for (const alias of ['default-language-for-code-fences', 'empty-line-around-code-fences', 'blockquote-style', 'empty-line-around-blockquotes', 'empty-line-around-tables']) {
       this.renderUpstreamRule(alias);
     }

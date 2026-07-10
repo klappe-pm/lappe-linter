@@ -1,0 +1,50 @@
+/**
+ * A rich sample note exercising every surface the settings touch: frontmatter,
+ * H1-H3, paragraphs, bullet and numbered lists, bold/italic, code, quotes,
+ * tables, and a callout. Kept deliberately messy so the lint result visibly
+ * differs from the input. Used by the live preview modal; kept pure and
+ * Obsidian-free so the preview lint path is unit-testable.
+ */
+export const PREVIEW_SAMPLE = [
+  '---',
+  'tags: [Zebra, apple]',
+  'date-created: 2026-01-01',
+  'category: demo',
+  'domain: sample',
+  '---',
+  '',
+  '# my great note',
+  '',
+  'This paragraph was hard',
+  'wrapped by an old editor',
+  'across several lines.',
+  '',
+  '',
+  '',
+  '## Some Section Here',
+  '',
+  '* first bullet',
+  '',
+  '* second bullet',
+  '',
+  '### a sub heading',
+  '',
+  'Some **bold** and *italic* text.',
+  '',
+  '> a quote',
+  '> across lines',
+  '',
+  '| a | b |',
+  '| - | - |',
+  '| 1 | 2 |',
+  '',
+  '> [!note] A callout',
+  '> body of the callout',
+  '',
+  '```js',
+  'const x = 1',
+  '```',
+  '',
+].join('\n');
+
+export const PREVIEW_SAMPLE_PATH = 'preview/sample-note.md';
