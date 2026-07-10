@@ -59,6 +59,10 @@ type FileChangeUpdateInfo = {
   markdownInfo: MarkdownView | MarkdownFileInfo
 }
 
+// Upstream rules Lappe ships enabled on first install (opt-out model). Kept in
+// sync with KEPT_YAML_RULE_ALIASES in lappe-tab.ts, which surfaces them.
+const LAPPE_DEFAULT_ON_RULES = new Set(['add-blank-line-after-yaml', 'dedupe-yaml-array-values', 'remove-yaml-keys']);
+
 export default class LinterPlugin extends Plugin {
   settings: LinterSettings;
   settingsTab: SettingTab;
@@ -875,6 +879,12 @@ export default class LinterPlugin extends Plugin {
     for (const rule of rules) {
       const ruleDefaults = rule.getDefaultOptions();
       if (!this.settings.ruleConfigs[rule.alias]) {
+        // Lappe ships the kept YAML formatting rules on (opt-out model). This
+        // only fires the first time a rule is seeded, so a returning user who
+        // turned one off keeps their choice.
+        if (LAPPE_DEFAULT_ON_RULES.has(rule.alias)) {
+          ruleDefaults[rule.enabledOptionName()] = true;
+        }
         this.settings.ruleConfigs[rule.alias] = ruleDefaults;
         updateMade = true;
         continue;

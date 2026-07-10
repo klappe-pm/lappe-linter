@@ -3,13 +3,18 @@ import {YamlEntry} from './frontmatter';
 /**
  * Global default key order: these lead when the schema's key-order does not
  * claim them; unlisted keys sort alphabetically; aliases and tags go last.
+ * When a config lists aliases/tags in priority-keys they rank there instead
+ * (explicit wins in rankKey); this head only governs vaults with no config.
  */
 export const GLOBAL_KEY_ORDER_HEAD = [
+  'preset',
   'domain',
   'category',
   'sub-category',
+  'types',
   'date-created',
   'date-revised',
+  'links',
 ];
 
 export interface KeyRank {

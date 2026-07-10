@@ -3,6 +3,15 @@ import {getRules} from '@lappe-linter/core';
 import LinterPlugin from '../../../main';
 import {Tab} from './tab';
 import {ListSuggest, vaultYamlKeys, vaultYamlValues} from '../../../lappe/yaml-suggest';
+import {moveItem} from '../../../lappe/reorder';
+import {rulesDict} from '../../../rules';
+import {BooleanOption, SearchOptionInfo} from '../../../option';
+
+// Kept upstream YAML formatting rules, surfaced in the Lappe YAML section.
+// yaml-title, yaml-title-alias, and every footnote rule are intentionally
+// absent: they are hidden from the settings entirely (dec-005 removed the
+// upstream YAML and Footnote tabs; these are not re-surfaced).
+const KEPT_YAML_RULE_ALIASES = ['add-blank-line-after-yaml', 'dedupe-yaml-array-values', 'remove-yaml-keys'];
 
 /**
  * The Lappe settings tab: a view over linter.yaml (the source of truth).
@@ -43,6 +52,7 @@ export class LappeTab extends Tab {
     }
 
     this.displayKeySortSection();
+    this.displayKeptYamlRules();
     this.displayRuleToggles();
     this.displayCodeChecksSection();
     this.displayExcludedFoldersSection();
@@ -70,6 +80,43 @@ export class LappeTab extends Tab {
           .addToggle((toggle) => toggle.setValue(check.enabled).onChange(async (value) => {
             await service.setCodeCheckEnabled(check.id, value);
           }));
+    }
+  }
+
+  /**
+   * The kept upstream YAML formatting rules (blank line after YAML, dedupe
+   * array values, remove keys), rendered with their own option controls in
+   * the YAML section. These run in the upstream pass; the Lappe defaults ship
+   * them on. yaml-title, title alias, and footnote rules are not surfaced.
+   */
+  private displayKeptYamlRules(): void {
+    new Setting(this.contentEl)
+        .setName('YAML formatting')
+        .setDesc('Extra frontmatter cleanups applied on lint. These default on; turn any off to opt out.')
+        .setHeading();
+    for (const alias of KEPT_YAML_RULE_ALIASES) {
+      const rule = rulesDict[alias];
+      if (rule == null) {
+        continue;
+      }
+      const ruleDiv = this.contentEl.createDiv();
+      ruleDiv.id = `lappe-${rule.alias}`;
+      new Setting(ruleDiv).setHeading().nameEl.createEl('a', {href: rule.getURL(), text: rule.getName()});
+      const optionInfo: SearchOptionInfo[] = [];
+      let isFirstOption = true;
+      let hideOnLoad = false;
+      for (const option of rule.options) {
+        option.display(ruleDiv, this.plugin.settings, this.plugin);
+        optionInfo.push(option.getSearchInfo());
+        if (isFirstOption) {
+          isFirstOption = false;
+          if (option instanceof BooleanOption) {
+            hideOnLoad = !this.plugin.settings.ruleConfigs[option.ruleAlias][option.configKey];
+          }
+        } else if (hideOnLoad) {
+          option.hide();
+        }
+      }
     }
   }
 
@@ -161,9 +208,12 @@ export class LappeTab extends Tab {
   }
 
   /**
-   * Render only the ordered key list from fresh config state. Row edits call
-   * persistKeySort, which re-renders this list alone instead of rebuilding
-   * the whole tab, so scroll position and the add-row inputs survive edits.
+   * Render only the ordered key list from fresh config state. Rows drag to
+   * reorder (with up/down buttons as a keyboard-accessible fallback); row
+   * edits call persistKeySort, which re-renders this list alone instead of
+   * rebuilding the whole tab, so scroll position and the add-row inputs
+   * survive edits. aliases and tags are shown as pinned trailing rows: the
+   * core always sorts them last, so they are not part of the draggable order.
    */
   private renderKeySortList(listEl: HTMLElement): void {
     const state = this.plugin.lappeConfig.yamlKeySortState();
@@ -176,6 +226,8 @@ export class LappeTab extends Tab {
       if (defaultValue !== undefined) {
         row.setDesc(`default when missing: ${defaultValue}`);
       }
+      this.makeKeyRowDraggable(listEl, row.settingEl, state.keys, state.defaults, index);
+      row.addExtraButton((b) => b.setIcon('grip-vertical').setTooltip('Drag to reorder').setDisabled(true));
       row.addExtraButton((b) => b.setIcon('chevron-up').setTooltip('Move up').setDisabled(index === 0).onClick(() => {
         const keys = [...state.keys];
         [keys[index - 1], keys[index]] = [keys[index], keys[index - 1]];
@@ -192,6 +244,57 @@ export class LappeTab extends Tab {
         delete defaults[key];
         void this.persistKeySort(listEl, keys, defaults);
       }));
+    });
+
+    // aliases and tags always sort last; show them so the full key order is
+    // visible, but not draggable and not part of priority-keys.
+    ['aliases', 'tags'].forEach((key, offset) => {
+      const row = new Setting(listEl)
+          .setName(`${state.keys.length + offset + 1}. ${key}`)
+          .setDesc('always sorted last');
+      row.settingEl.style.opacity = '0.65';
+    });
+  }
+
+  /**
+   * Wire HTML5 drag events on one key-sort row. Dragging a row onto another
+   * moves it to that position and persists the new order. Uses a shared
+   * dataset marker on the list element to carry the dragged index without a
+   * closure over stale state.
+   */
+  private makeKeyRowDraggable(listEl: HTMLElement, rowEl: HTMLElement, keys: string[], defaults: Record<string, string>, index: number): void {
+    rowEl.draggable = true;
+    rowEl.style.cursor = 'grab';
+    rowEl.addEventListener('dragstart', (event) => {
+      listEl.dataset.dragFrom = String(index);
+      rowEl.style.opacity = '0.4';
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', String(index));
+      }
+    });
+    rowEl.addEventListener('dragend', () => {
+      rowEl.style.opacity = '';
+      delete listEl.dataset.dragFrom;
+    });
+    rowEl.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'move';
+      }
+      rowEl.style.borderTop = '2px solid var(--interactive-accent)';
+    });
+    rowEl.addEventListener('dragleave', () => {
+      rowEl.style.borderTop = '';
+    });
+    rowEl.addEventListener('drop', (event) => {
+      event.preventDefault();
+      rowEl.style.borderTop = '';
+      const from = Number(listEl.dataset.dragFrom ?? event.dataTransfer?.getData('text/plain'));
+      if (!Number.isInteger(from) || from === index) {
+        return;
+      }
+      void this.persistKeySort(listEl, moveItem(keys, from, index), defaults);
     });
   }
 

@@ -35,6 +35,7 @@ The plugin loads and the core engine works; the failures are at the entry points
 - Default YAML key order ships as: `preset`, `domain`, `category`, `sub-category`, `types`, `date-created`, `date-revised`, `links`, `aliases`, `tags`.
 - Kept toggles default ON (opt-out model) for the lappe-owned rules; upstream rule defaults in `data.json` are only flipped for rules surfaced in the new sections.
 - Backlink and alias scoping need the Obsidian metadata cache, so those matchers are plugin-side context passed into the core resolver; the CLI skips them.
+- `aliases` and `tags` are pinned last, not part of the reorderable `priority-keys` (which is the 8 keys `preset`..`links`). Reason: the core's `rankKey` always sorts aliases/tags last because their array values are visually bulky, and listing them in `priority-keys` would instead push unlisted keys (like `status`) below them, breaking a guarantee the user's notes rely on. The settings list still shows all 10 in order, with aliases/tags rendered as fixed trailing rows.
 
 ## Phase tracker
 
@@ -52,10 +53,10 @@ Statuses: TODO, ACTIVE, DONE, BLOCKED (with reason in Notes).
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 1.1 | `DEFAULT_PRIORITY_KEYS` becomes the 10-key default order | TODO | packages/core/src/config/defaults.ts |
-| 1.2 | Drag-and-drop reordering on the key-sort list, writing through `updateYamlKeySort`; remove the separate insert flow | TODO | lappe-tab.ts |
-| 1.3 | YAML section shows only kept options: blank-line-after-yaml, dedupe array values, remove-keys rows, timestamps; title alias, yaml-title, footnote options hidden | TODO | |
-| 1.4 | Kept YAML toggles default ON | TODO | |
+| 1.1 | `DEFAULT_PRIORITY_KEYS` becomes the 10-key default order | DONE | 8 priority keys (preset..links) in defaults.ts + key-rank HEAD + scaffold; aliases/tags stay pinned-last (see decision), scaffold+dec-005 tests updated. The visible 10-key order is priority-8 + aliases + tags. |
+| 1.2 | Drag-and-drop reordering on the key-sort list, writing through `updateYamlKeySort`; remove the separate insert flow | DONE | HTML5 drag rows in lappe-tab renderKeySortList; pure moveItem() in src/lappe/reorder.ts with test; up/down retained as a11y fallback; aliases/tags shown as pinned trailing rows |
+| 1.3 | YAML section shows only kept options: blank-line-after-yaml, dedupe array values, remove-keys rows, timestamps; title alias, yaml-title, footnote options hidden | DONE | Upstream YAML/Footnote tabs already removed (dec-005); kept rules surfaced in a Lappe "YAML formatting" group via displayKeptYamlRules() |
+| 1.4 | Kept YAML toggles default ON | DONE | LAPPE_DEFAULT_ON_RULES seeded enabled on first install in main.ts (opt-out; never overrides a returning user's choice) |
 
 ### Phase 2: Headers section
 
@@ -109,4 +110,5 @@ Statuses: TODO, ACTIVE, DONE, BLOCKED (with reason in Notes).
 ## Work log
 
 - 2026-07-10: plan written; diagnosis session verified engine via CLI; worktree `feat/settings-redesign` created.
+- 2026-07-10: Phase 1 done. `DEFAULT_PRIORITY_KEYS`/`GLOBAL_KEY_ORDER_HEAD`/scaffold set to the 8 priority keys `preset`..`links` (aliases/tags pinned last, see decision); the key-sort list rows now drag to reorder through a pure tested `moveItem()` with up/down as a fallback, and aliases/tags render as fixed trailing rows so the full 10-key order is visible. Kept upstream YAML rules (blank-line-after-yaml, dedupe-array-values, remove-keys) surfaced in a Lappe "YAML formatting" group; yaml-title, title-alias, and footnote rules remain absent (dec-005 removed those tabs). Kept YAML rules ship enabled on first install via `LAPPE_DEFAULT_ON_RULES`, never overriding a returning user's opt-out. Suite green: 107 suites, 1687 tests.
 - 2026-07-10: Phase 0 done. Ribbon action extracted to a pure `ribbonFallback()` (editor-lint / whole-file-lint / notice) wired through `main.ts` `lintCurrentFile`, with a regression test; in reading view or with no note the wand now lints the whole file or shows a Notice instead of silently doing nothing. `test-vault` repaired: plugin folder renamed `obsidian-linter`→`lappe-linter`, `community-plugins.json` id fixed, esbuild dev-watch output path updated, and `scripts/install-test-vault.sh` added to build + copy `main.js`/`manifest.json`/`styles.css` and reconcile the enabled-plugin id. First-run onboarding: one-time Notice pointing at the create-linter.yaml command, gated by a persisted `lappeFirstRunNoticeShown` flag. Full suite green: 106 suites, 1682 tests.

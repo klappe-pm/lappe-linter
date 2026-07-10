@@ -16,7 +16,7 @@ describe('scaffoldConfig', () => {
     expect(result.config.version).toBe(1);
     expect(result.config.defaults?.rules?.['yaml-key-sort']?.enabled).toBe(true);
     expect(result.config.defaults?.rules?.['yaml-key-sort']?.['priority-keys']).toEqual([
-      'domain', 'category', 'sub-category', 'date-created', 'date-revised',
+      'preset', 'domain', 'category', 'sub-category', 'types', 'date-created', 'date-revised', 'links',
     ]);
     expect(result.config.profiles?.['tasks-notes']).toBeDefined();
     expect(result.config['note-types']).toEqual({});

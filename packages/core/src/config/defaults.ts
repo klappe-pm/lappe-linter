@@ -8,12 +8,19 @@ import {parseLinterConfig} from './loader';
  * order, value alphabetization, kebab-case filenames, and h1-matches-stem are
  * on. A vault linter.yaml overrides any of this key by key.
  */
+// aliases and tags are intentionally omitted: they are pinned last by rankKey
+// (their array values are bulky and belong at the bottom), so listing them
+// here would instead rank them ahead of any unlisted key. The settings tab
+// still shows them as the final two rows of the visible key order.
 export const DEFAULT_PRIORITY_KEYS = [
+  'preset',
   'domain',
   'category',
   'sub-category',
+  'types',
   'date-created',
   'date-revised',
+  'links',
 ];
 
 export function defaultLinterConfig(): LinterConfig {

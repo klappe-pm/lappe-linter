@@ -16,7 +16,7 @@ defaults:
   rules: # rules applied to every file; each key is a rule id, set enabled true/false
     yaml-key-sort:
       enabled: true # sorts frontmatter keys; set false to leave key order alone
-      priority-keys: [domain, category, sub-category, date-created, date-revised] # these keys always sort first, in this order; edit the list to change your canonical order
+      priority-keys: [preset, domain, category, sub-category, types, date-created, date-revised, links] # keys sort in this order; aliases and tags always follow last; drag to reorder in the Lappe settings tab, or edit the list here
     yaml-timestamp:
       enabled: true # mandatory timestamps (dec-005): date-created on first lint, date-revised only when content changed; dates yyyy-MM-dd
     alphabetize-property-values:
