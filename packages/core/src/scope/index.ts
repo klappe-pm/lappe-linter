@@ -17,3 +17,11 @@ export {
   compileProfileMatch,
 } from './matchers';
 export {resolveProfile} from './resolver';
+export {
+  MatchContext,
+  ageBucket,
+  ageBucketForDays,
+  dateInRange,
+  isoToDayNumber,
+  listIncludesAny,
+} from './advanced-matchers';

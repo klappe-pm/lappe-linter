@@ -544,6 +544,30 @@ export default class LinterPlugin extends Plugin {
   }
 
   /**
+   * Backlink and alias facts for the file, read from the Obsidian metadata
+   * cache, for the backlink/alias scope matchers. The core has no cache
+   * access; the CLI omits this so those matchers never fire there.
+   */
+  private lappeScopeContext(file: TFile): {backlinks: string[]; aliases: string[]} {
+    const backlinks: string[] = [];
+    const backlinkApi = (this.app.metadataCache as unknown as {getBacklinksForFile?: (f: TFile) => {data?: Map<string, unknown> | Record<string, unknown>}}).getBacklinksForFile;
+    if (typeof backlinkApi === 'function') {
+      const data = backlinkApi.call(this.app.metadataCache, file)?.data;
+      const keys = data instanceof Map ? [...data.keys()] : data ? Object.keys(data) : [];
+      for (const sourcePath of keys) {
+        const stem = sourcePath.slice(sourcePath.lastIndexOf('/') + 1).replace(/\.md$/i, '');
+        backlinks.push(stem);
+      }
+    }
+    const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter as {aliases?: unknown; alias?: unknown} | undefined;
+    const rawAliases = frontmatter?.aliases ?? frontmatter?.alias;
+    const aliases = Array.isArray(rawAliases)
+      ? rawAliases.filter((a): a is string => typeof a === 'string')
+      : typeof rawAliases === 'string' ? [rawAliases] : [];
+    return {backlinks, aliases};
+  }
+
+  /**
    * Run the lappe core rules (scoped by linter.yaml profiles) after the
    * upstream pass. No config, invalid config (fail closed), or an ignored
    * path all mean the text passes through untouched. Report-only violations
@@ -560,6 +584,7 @@ export default class LinterPlugin extends Plugin {
         path: file.path,
         config,
         today: moment().format('YYYY-MM-DD'),
+        scopeContext: this.lappeScopeContext(file),
       });
       const reports = result.violations.filter((violation) => !violation.fixed);
       if (reports.length > 0 && this.settings.displayChanged) {

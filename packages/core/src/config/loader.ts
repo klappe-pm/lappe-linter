@@ -25,7 +25,7 @@ const TOP_LEVEL_KEYS = new Set([
   'code-checks',
 ]);
 
-const MATCH_KEYS = new Set(['path', 'extension', 'frontmatter', 'tag']);
+const MATCH_KEYS = new Set(['path', 'extension', 'frontmatter', 'tag', 'age', 'date-created', 'date-revised', 'backlink', 'alias']);
 const PROFILE_KEYS = new Set(['match', 'rules']);
 const NOTE_TYPE_KEYS = new Set(['required', 'key-order', 'values', 'date-keys', 'match']);
 const RENAME_MODES = new Set(['off', 'flag', 'rename']);
@@ -86,9 +86,23 @@ function validateMatch(v: Validation, value: unknown, path: string): void {
       v.warn(`unknown key "${path}.${key}" ignored`);
     }
   }
-  for (const listKey of ['path', 'extension', 'tag'] as const) {
+  for (const listKey of ['path', 'extension', 'tag', 'age', 'backlink', 'alias'] as const) {
     if (listKey in value && !isStringArray(value[listKey])) {
       v.error(`${path}.${listKey}`, 'must be a list of strings');
+    }
+  }
+  for (const rangeKey of ['date-created', 'date-revised'] as const) {
+    if (rangeKey in value) {
+      const range = value[rangeKey];
+      if (!isPlainObject(range)) {
+        v.error(`${path}.${rangeKey}`, 'must be a mapping with after and/or before');
+      } else {
+        for (const bound of ['after', 'before']) {
+          if (bound in range && typeof range[bound] !== 'string') {
+            v.error(`${path}.${rangeKey}.${bound}`, 'must be an ISO yyyy-MM-dd string');
+          }
+        }
+      }
     }
   }
   if ('frontmatter' in value) {

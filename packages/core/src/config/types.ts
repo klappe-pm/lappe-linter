@@ -24,6 +24,16 @@ export interface ProfileMatch {
   frontmatter?: Record<string, string | number | boolean | Array<string | number | boolean>>;
   /** Tag predicates matched against frontmatter tags. */
   tag?: string[];
+  /** Age buckets (e.g. ["1-5", "6-10"]) matched against today minus date-created. */
+  age?: string[];
+  /** date-created range (inclusive), ISO yyyy-MM-dd bounds. */
+  'date-created'?: {after?: string; before?: string};
+  /** date-revised range (inclusive), ISO yyyy-MM-dd bounds. */
+  'date-revised'?: {after?: string; before?: string};
+  /** Backlink predicates: note titles/paths that link to this file (host-provided context). */
+  backlink?: string[];
+  /** Alias predicates matched against this file's aliases (host-provided context). */
+  alias?: string[];
 }
 
 export interface ProfileConfig {
@@ -97,6 +107,12 @@ export interface FileFacts {
   path: string;
   /** Raw frontmatter YAML text (without --- fences), or null when absent. */
   frontmatter: string | null;
+  /** ISO yyyy-MM-dd "today", for age-based matchers. */
+  today?: string;
+  /** Note titles/paths linking to this file (host-provided; empty in the CLI). */
+  backlinks?: string[];
+  /** This file's aliases (host-provided; empty in the CLI). */
+  aliases?: string[];
 }
 
 /** The scope engine's output for one file (F02). */

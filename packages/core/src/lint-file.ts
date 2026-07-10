@@ -20,8 +20,16 @@ export interface LintTextInput {
   /**
    * Today's date as an ISO yyyy-MM-dd string. Injected as `options.today` for
    * note-type-date-keys; date keys are only written when the caller provides it.
+   * Also feeds age-based scope matchers.
    */
   today?: string;
+  /**
+   * Host-provided per-file facts the pure core cannot derive from text: the
+   * file's backlinks and aliases, for the backlink/alias scope matchers. The
+   * Obsidian plugin fills these from the metadata cache; the CLI omits them so
+   * those matchers never match.
+   */
+  scopeContext?: {backlinks?: string[]; aliases?: string[]};
 }
 
 export interface LintTextResult {
@@ -79,7 +87,13 @@ export function lintText(input: LintTextInput): LintTextResult {
 
   const doc = splitDocument(input.text);
   const resolved = resolveProfile(
-    {path: input.path, frontmatter: doc.has ? doc.yamlLines.join('\n') : null},
+    {
+      path: input.path,
+      frontmatter: doc.has ? doc.yamlLines.join('\n') : null,
+      today: input.today,
+      backlinks: input.scopeContext?.backlinks,
+      aliases: input.scopeContext?.aliases,
+    },
     merged,
   );
 

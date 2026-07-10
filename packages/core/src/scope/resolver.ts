@@ -75,10 +75,11 @@ function mergeRules(target: RulesConfig, layer: RulesConfig | undefined): void {
 export function resolveProfile(facts: FileFacts, config: LinterConfig): ResolvedProfile {
   const compiled = compiledFor(config);
   const frontmatter = parseFrontmatter(facts.frontmatter);
+  const context = {today: facts.today, backlinks: facts.backlinks, aliases: facts.aliases};
 
   const matched: Array<{profile: CompiledProfile; rank: number; pathDepth: number}> = [];
   for (const profile of compiled.profiles) {
-    const outcome = profile.match.evaluate(facts.path, frontmatter);
+    const outcome = profile.match.evaluate(facts.path, frontmatter, context);
     if (outcome.matched) {
       matched.push({profile, rank: profile.match.rank, pathDepth: outcome.pathDepth});
     }
@@ -106,7 +107,7 @@ export function resolveProfile(facts: FileFacts, config: LinterConfig): Resolved
 
   let noteType: string | undefined;
   for (const candidate of compiled.noteTypes) {
-    if (candidate.match.evaluate(facts.path, frontmatter).matched) {
+    if (candidate.match.evaluate(facts.path, frontmatter, context).matched) {
       noteType = candidate.name;
       break;
     }

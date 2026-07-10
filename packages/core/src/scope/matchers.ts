@@ -1,5 +1,6 @@
 import {ProfileMatch} from '../config/types';
 import {FlatFrontmatter} from './frontmatter';
+import {ageBucket, dateInRange, listIncludesAny, MatchContext} from './advanced-matchers';
 
 /**
  * Precedence rank of a compiled matcher, low to high. A profile whose match
@@ -25,7 +26,7 @@ export interface MatchEvaluation {
 
 export interface CompiledMatch {
   rank: MatcherRank;
-  evaluate(path: string, frontmatter: FlatFrontmatter | null): MatchEvaluation;
+  evaluate(path: string, frontmatter: FlatFrontmatter | null, context?: MatchContext): MatchEvaluation;
 }
 
 const NO_MATCH: MatchEvaluation = {matched: false, pathDepth: 0};
@@ -164,16 +165,23 @@ export function compileProfileMatch(match: ProfileMatch): CompiledMatch {
     ? Object.entries(match.frontmatter)
     : null;
   const wantedTags = match.tag?.length ? match.tag.map(normalizeTag) : null;
+  const wantedAges = match.age?.length ? match.age.slice() : null;
+  const createdRange = match['date-created'] ?? null;
+  const revisedRange = match['date-revised'] ?? null;
+  const wantedBacklinks = match.backlink?.length ? match.backlink.slice() : null;
+  const wantedAliases = match.alias?.length ? match.alias.slice() : null;
+  const hasFrontmatterKind =
+    frontmatterEntries || wantedTags || wantedAges || createdRange || revisedRange || wantedBacklinks || wantedAliases;
 
   const rank: MatcherRank =
-    frontmatterEntries || wantedTags ? RANK_FRONTMATTER :
+    hasFrontmatterKind ? RANK_FRONTMATTER :
     globs ? RANK_PATH :
     extensions ? RANK_EXTENSION :
     RANK_NONE;
 
   return {
     rank,
-    evaluate(path, frontmatter) {
+    evaluate(path, frontmatter, context) {
       if (rank === RANK_NONE) {
         return NO_MATCH;
       }
@@ -212,6 +220,24 @@ export function compileProfileMatch(match: ProfileMatch): CompiledMatch {
         if (!wantedTags.some((t) => present.includes(t))) {
           return NO_MATCH;
         }
+      }
+      if (wantedAges) {
+        const bucket = ageBucket(frontmatter?.['date-created'], context?.today);
+        if (bucket === null || !wantedAges.includes(bucket)) {
+          return NO_MATCH;
+        }
+      }
+      if (createdRange && !dateInRange(frontmatter?.['date-created'], createdRange)) {
+        return NO_MATCH;
+      }
+      if (revisedRange && !dateInRange(frontmatter?.['date-revised'], revisedRange)) {
+        return NO_MATCH;
+      }
+      if (wantedBacklinks && !listIncludesAny(wantedBacklinks, context?.backlinks)) {
+        return NO_MATCH;
+      }
+      if (wantedAliases && !listIncludesAny(wantedAliases, context?.aliases)) {
+        return NO_MATCH;
       }
       return {matched: true, pathDepth};
     },

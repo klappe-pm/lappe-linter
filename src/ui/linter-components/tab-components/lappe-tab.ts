@@ -7,6 +7,7 @@ import {moveItem} from '../../../lappe/reorder';
 import {rulesDict} from '../../../rules';
 import {BooleanOption, SearchOptionInfo} from '../../../option';
 import {LappePreviewModal} from '../../modals/lappe-preview-modal';
+import {buildMatch, ScopeSelection, SCOPE_TYPES} from '../../../lappe/scope-builder-model';
 
 // Kept upstream YAML formatting rules, surfaced in the Lappe YAML section.
 // yaml-title, yaml-title-alias, and every footnote rule are intentionally
@@ -555,38 +556,139 @@ export class LappeTab extends Tab {
 
   /** Read-only view of the scoping: profiles and note types from linter.yaml. */
   private displayScopesSummary(): void {
-    const config = this.plugin.lappeConfig.config;
-    new Setting(this.contentEl).setName('Scopes').setDesc('Profiles from linter.yaml decide which rules run where: by folder or path glob, by tag, by frontmatter property, or by extension. Edit them in linter.yaml.').setHeading();
+    const service = this.plugin.lappeConfig;
+    const config = service.config;
+    new Setting(this.contentEl)
+        .setName('Scopes')
+        .setDesc('Profiles decide which rules run where. Each profile inherits the base settings above and overrides only what you change; unset options stay linked to the template.')
+        .setHeading()
+        .addButton((button) => button.setButtonText('Push template defaults').setTooltip('Drop per-profile overrides that now equal the base settings, relinking them to the template').onClick(async () => {
+          const pruned = await service.pushDefaultsToProfiles();
+          new Notice(`lappe-linter: relinked ${pruned} override${pruned === 1 ? '' : 's'} to the template`);
+          this.display();
+        }));
+
+    this.renderScopeBuilder();
 
     const profiles = Object.entries(config?.profiles ?? {});
     if (profiles.length === 0) {
-      this.contentEl.createEl('div', {text: 'No profiles defined; the defaults apply to every file.'}).style.color = 'var(--text-muted)';
+      this.contentEl.createEl('div', {text: 'No profiles yet; the base settings apply to every file.'}).style.color = 'var(--text-muted)';
     }
     for (const [name, profile] of profiles) {
-      const parts: string[] = [];
       const match = profile.match ?? {};
-      if (match.path?.length) {
-        parts.push(`paths: ${match.path.join(', ')}`);
-      }
-      if (match.tag?.length) {
-        parts.push(`tags: ${match.tag.join(', ')}`);
-      }
-      if (match.frontmatter) {
-        parts.push(`properties: ${Object.entries(match.frontmatter).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(', ')}`);
-      }
-      if (match.extension?.length) {
-        parts.push(`extensions: ${match.extension.join(', ')}`);
-      }
-      new Setting(this.contentEl.createDiv())
+      const summary = Object.entries(match)
+          .map(([kind, value]) => `${kind}: ${typeof value === 'object' ? JSON.stringify(value) : String(value)}`)
+          .join(' | ');
+      const overrides = Object.keys(profile.rules ?? {});
+      const inheritance = overrides.length ? `; overrides ${overrides.join(', ')}` : ' (inherits everything)';
+      const row = new Setting(this.contentEl.createDiv())
           .setName(name)
-          .setDesc(parts.length ? parts.join(' | ') : 'reachable only via a linter-profile frontmatter key');
+          .setDesc(`${summary || 'linter-profile override only'}${inheritance}`);
+      row.addExtraButton((b) => b.setIcon('trash').setTooltip('Delete profile').onClick(async () => {
+        await service.deleteProfile(name);
+        this.display();
+      }));
     }
 
     const noteTypes = Object.keys(config?.['note-types'] ?? {});
     if (noteTypes.length > 0) {
-      new Setting(this.contentEl.createDiv())
-          .setName('Note types')
-          .setDesc(noteTypes.join(', '));
+      new Setting(this.contentEl.createDiv()).setName('Note types').setDesc(noteTypes.join(', '));
     }
+  }
+
+  /**
+   * The scope builder: pick one or more scope types, fill their values, name
+   * the profile, and create it. Selecting a type reveals its value field; the
+   * match is compiled from the pure scope-builder model and written to
+   * linter.yaml as a new profile that inherits the base settings.
+   */
+  private renderScopeBuilder(): void {
+    const service = this.plugin.lappeConfig;
+    const container = this.contentEl.createDiv({cls: 'lappe-scope-builder'});
+    container.style.border = '1px solid var(--background-modifier-border)';
+    container.style.borderRadius = '8px';
+    container.style.padding = '10px';
+    container.style.marginBottom = '10px';
+
+    const selections = new Map<string, ScopeSelection>();
+
+    const nameRow = container.createDiv();
+    nameRow.style.display = 'flex';
+    nameRow.style.gap = '8px';
+    nameRow.style.marginBottom = '8px';
+    const nameInput = nameRow.createEl('input', {type: 'text', placeholder: 'new profile name'});
+    nameInput.style.flex = '1';
+
+    const fieldsEl = container.createDiv();
+
+    new Setting(container)
+        .setName('Scope types')
+        .setDesc('Check the types this profile matches; a file must satisfy every checked type.');
+    const typesEl = container.createDiv();
+    typesEl.style.display = 'flex';
+    typesEl.style.flexWrap = 'wrap';
+    typesEl.style.gap = '10px';
+    typesEl.style.marginBottom = '8px';
+
+    const renderField = (scopeKey: string) => {
+      const scope = SCOPE_TYPES.find((t) => t.key === scopeKey);
+      if (scope == null) {
+        return;
+      }
+      const field = fieldsEl.createDiv({cls: `lappe-scope-field-${scopeKey}`});
+      field.style.display = 'flex';
+      field.style.gap = '8px';
+      field.style.alignItems = 'center';
+      field.style.margin = '4px 0';
+      field.createEl('label', {text: scope.label}).style.minWidth = '160px';
+      if (scope.kind === 'range') {
+        const after = field.createEl('input', {type: 'text', placeholder: 'after yyyy-MM-dd'});
+        const before = field.createEl('input', {type: 'text', placeholder: 'before yyyy-MM-dd'});
+        const update = () => selections.set(scopeKey, {type: scopeKey, range: {after: after.value.trim() || undefined, before: before.value.trim() || undefined}});
+        after.addEventListener('input', update);
+        before.addEventListener('input', update);
+      } else {
+        const input = field.createEl('input', {type: 'text', placeholder: scopeKey === 'property' ? 'key=value, key=value' : 'comma-separated values'});
+        input.style.flex = '1';
+        input.addEventListener('input', () => selections.set(scopeKey, {type: scopeKey, values: input.value.split(',').map((v) => v.trim()).filter(Boolean)}));
+      }
+    };
+
+    for (const scope of SCOPE_TYPES) {
+      const label = typesEl.createEl('label');
+      label.style.display = 'flex';
+      label.style.alignItems = 'center';
+      label.style.gap = '4px';
+      const checkbox = label.createEl('input', {type: 'checkbox'});
+      label.createEl('span', {text: scope.label});
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+          renderField(scope.key);
+        } else {
+          selections.delete(scope.key);
+          fieldsEl.querySelector(`.lappe-scope-field-${scope.key}`)?.remove();
+        }
+      });
+    }
+
+    new Setting(container).addButton((button) => button.setButtonText('Create profile').setCta().onClick(async () => {
+      const name = nameInput.value.trim();
+      if (name === '') {
+        new Notice('lappe-linter: name the profile first');
+        return;
+      }
+      if (service.profileNames().includes(name)) {
+        new Notice(`lappe-linter: profile "${name}" already exists`);
+        return;
+      }
+      const match = buildMatch([...selections.values()]);
+      if (Object.keys(match).length === 0) {
+        new Notice('lappe-linter: choose at least one scope type with a value');
+        return;
+      }
+      await service.upsertProfileMatch(name, match);
+      new Notice(`lappe-linter: created profile "${name}"`);
+      this.display();
+    }));
   }
 }

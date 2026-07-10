@@ -324,6 +324,69 @@ export class LappeConfigService {
     return run;
   }
 
+  /** Profile names currently defined in linter.yaml. */
+  profileNames(): string[] {
+    return Object.keys(this.current?.profiles ?? {}).sort();
+  }
+
+  /**
+   * Create or replace a named profile's match block in linter.yaml,
+   * comment-preserving. A profile with no rules yet gets an empty rules map so
+   * it is a valid, inheriting-everything scope.
+   */
+  async upsertProfileMatch(name: string, match: Record<string, unknown>): Promise<void> {
+    await this.writeConfigUpdate((doc) => {
+      doc.setIn(['profiles', name, 'match'], match);
+      if (doc.getIn(['profiles', name, 'rules']) == null) {
+        doc.setIn(['profiles', name, 'rules'], {});
+      }
+    });
+  }
+
+  /** Delete a named profile from linter.yaml. */
+  async deleteProfile(name: string): Promise<void> {
+    await this.writeConfigUpdate((doc) => {
+      doc.deleteIn(['profiles', name]);
+    });
+  }
+
+  /** Enable/disable one rule inside a named profile's rules block. */
+  async setProfileRuleEnabled(name: string, ruleId: string, enabled: boolean): Promise<void> {
+    await this.writeConfigUpdate((doc) => {
+      doc.setIn(['profiles', name, 'rules', ruleId, 'enabled'], enabled);
+    });
+  }
+
+  /**
+   * Template inheritance (F02): remove per-profile rule overrides whose value
+   * now equals the defaults, so those options fall back to (stay linked to)
+   * the base template. One comment-preserving write. Returns the count of
+   * pruned overrides.
+   */
+  async pushDefaultsToProfiles(): Promise<number> {
+    const defaults = this.current?.defaults?.rules ?? {};
+    const profiles = this.current?.profiles ?? {};
+    let pruned = 0;
+    await this.writeConfigUpdate((doc) => {
+      for (const [profileName, profile] of Object.entries(profiles)) {
+        const rules = profile.rules ?? {};
+        for (const [ruleId, override] of Object.entries(rules)) {
+          const base = defaults[ruleId];
+          if (base == null) {
+            continue;
+          }
+          for (const [optKey, optValue] of Object.entries(override)) {
+            if (JSON.stringify(base[optKey as keyof typeof base]) === JSON.stringify(optValue)) {
+              doc.deleteIn(['profiles', profileName, 'rules', ruleId, optKey]);
+              pruned++;
+            }
+          }
+        }
+      }
+    });
+    return pruned;
+  }
+
   /** True when the path is excluded by the config's ignore section. */
   isIgnored(path: string): boolean {
     const ignore = this.current?.ignore;
