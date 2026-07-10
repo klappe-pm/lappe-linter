@@ -1,4 +1,4 @@
-import {App, Editor, EventRef, MarkdownView, Menu, Notice, Plugin, TAbstractFile, TFile, TFolder, addIcon, htmlToMarkdown, EditorSelection, EditorChange, normalizePath, MarkdownFileInfo, debounce, Debouncer, getLanguage} from 'obsidian';
+import {App, Editor, EventRef, MarkdownView, Menu, Notice, Plugin, TAbstractFile, TFile, TFolder, addIcon, getIconIds, htmlToMarkdown, EditorSelection, EditorChange, normalizePath, MarkdownFileInfo, debounce, Debouncer, getLanguage} from 'obsidian';
 import {Options, RuleType, ruleTypeToRules, rules, sortRules} from './rules';
 import DiffMatchPatch from 'diff-match-patch';
 import dedent from 'ts-dedent';
@@ -110,6 +110,8 @@ export default class LinterPlugin extends Plugin {
 
     this.addCommands();
 
+    this.addLappeRibbonIcon();
+
     this.registerEventsAndSaveCallback();
 
     this.registerEditorSuggest(new RuleAliasSuggest(this));
@@ -175,6 +177,10 @@ export default class LinterPlugin extends Plugin {
         void that.runLinterEditor(editor);
       },
       icon: iconInfo.file.id,
+      // Default hotkey suggestion; upstream obsidian-linter registers no
+      // default hotkeys for any command, so this overrides nothing. Users can
+      // rebind or clear it in Settings -> Hotkeys.
+      hotkeys: [{modifiers: ['Mod', 'Alt'], key: 'l'}],
     });
 
     this.addCommand({
@@ -582,6 +588,20 @@ export default class LinterPlugin extends Plugin {
       callback: () => {
         void this.generateLappeTestFiles();
       },
+    });
+  }
+
+  /**
+   * Left-ribbon quick action running the same code path as the lint-file
+   * palette command (no copied lint logic). Obsidian ships lucide, but the
+   * bundled icon set varies by app version, so fall back when wand-sparkles
+   * is absent from this build.
+   */
+  private addLappeRibbonIcon() {
+    const iconIds = getIconIds();
+    const icon = iconIds.includes('lucide-wand-sparkles') || iconIds.includes('wand-sparkles') ? 'wand-sparkles' : 'sparkles';
+    this.addRibbonIcon(icon, 'Lappe Linter: lint current file', () => {
+      this.app.commands.executeCommandById('lappe-linter:lint-file');
     });
   }
 
