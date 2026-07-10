@@ -1,6 +1,7 @@
 import {App, Notice, TAbstractFile, TFile} from 'obsidian';
 import type {Document} from 'yaml';
 import {
+  BUILTIN_CODE_CHECKS,
   CANONICAL_CONFIG_FILENAME,
   CONFIG_FILENAME_ALIASES,
   LinterConfig,
@@ -231,6 +232,34 @@ export class LappeConfigService {
         doc.setIn(['defaults', 'rules', 'yaml-key-sort', 'defaults'], defaults);
       }
     });
+  }
+
+  /**
+   * Toggle one declarative code check (dec-006) in the linter.yaml
+   * code-checks section. Built-ins gain a stanza on first toggle.
+   */
+  async setCodeCheckEnabled(checkId: string, enabled: boolean): Promise<void> {
+    await this.writeConfigUpdate((doc) => {
+      doc.setIn(['code-checks', checkId, 'enabled'], enabled);
+    });
+  }
+
+  /** Effective code checks: built-ins merged under config, for the tab UI. */
+  codeCheckState(): Array<{id: string; description: string; enabled: boolean; builtin: boolean}> {
+    const configured = this.current?.['code-checks'] ?? {};
+    const merged: Record<string, {description?: string; enabled?: boolean}> = {};
+    for (const [id, check] of Object.entries(BUILTIN_CODE_CHECKS)) {
+      merged[id] = {...check};
+    }
+    for (const [id, check] of Object.entries(configured)) {
+      merged[id] = {...merged[id], ...check};
+    }
+    return Object.entries(merged).map(([id, check]) => ({
+      id,
+      description: check.description ?? '',
+      enabled: check.enabled === true,
+      builtin: id in BUILTIN_CODE_CHECKS,
+    })).sort((a, b) => a.id.localeCompare(b.id));
   }
 
   /** The current combined sort control state read from the config. */

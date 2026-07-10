@@ -34,6 +34,8 @@ profiles: # named per-scope overrides; a file matching a profile gets its rules 
 
 note-types: {} # frontmatter schemas per note type; add entries like "task:" with required keys, key-order, and allowed values
 
+code-checks: {} # declarative code linting over fenced code blocks (dec-006); enable built-ins like "no-token-shaped-strings: {enabled: true}" or define your own {pattern, languages, message}; patterns are bounded regex, never executed code
+
 rename:
   mode: flag # filename rule behavior: off = disabled, flag = report only, rename = fix filenames and update links
 

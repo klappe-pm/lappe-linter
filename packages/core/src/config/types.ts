@@ -65,6 +65,30 @@ export interface LinterConfig {
   ignore?: IgnoreConfig;
   /** Provider config namespaces (F08): providers.<namespace> mirrors defaults/profiles. */
   providers?: Record<string, {rules?: RulesConfig}>;
+  /**
+   * Declarative code checks (dec-006): pattern rules over fenced code blocks,
+   * harness-hook-inspired but never executed code, only bounded regex. Keyed
+   * by check id; built-ins merge underneath so user config wins.
+   */
+  'code-checks'?: Record<string, CodeCheckConfig>;
+}
+
+/** One declarative code check. Patterns are user-authored but execution is bounded. */
+export interface CodeCheckConfig {
+  enabled?: boolean;
+  description?: string;
+  /** Vault-relative path globs restricting where the check runs; absent = everywhere. */
+  paths?: string[];
+  /** Fence languages this check applies to (e.g. ["bash", "sh"]); absent = every fence. */
+  languages?: string[];
+  /** Regex source, compiled per line with length and match caps; invalid = check skipped. */
+  pattern?: string;
+  /** Regex flags; "g" is implied for fixing checks. */
+  flags?: string;
+  /** Violation message; must never echo matched text (secrets stay out of every output). */
+  message?: string;
+  /** Present = the check can fix by replacement when its fixing rule is enabled. */
+  fix?: {replacement: string};
 }
 
 /** Inputs the resolver needs for one file. Pure data, no vault access. */

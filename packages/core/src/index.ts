@@ -4,6 +4,7 @@
  * the filesystem. The plugin and the CLI both consume this surface.
  */
 
+import {registerCodeChecks} from './code-checks';
 import {registerFilenameRules} from './filename';
 import {registerNoteTypeRules} from './note-types';
 import {registerContentRules} from './rules-content';
@@ -21,6 +22,7 @@ export * from './filename';
 export * from './providers';
 export * from './lint-file';
 export * from './fixtures';
+export * from './code-checks';
 
 let allRulesRegistered = false;
 
@@ -38,5 +40,6 @@ export function registerAllRules(): void {
   registerContentRules();
   registerNoteTypeRules();
   registerFilenameRules();
+  registerCodeChecks();
   allRulesRegistered = true;
 }

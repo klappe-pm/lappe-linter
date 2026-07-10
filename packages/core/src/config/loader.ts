@@ -22,6 +22,7 @@ const TOP_LEVEL_KEYS = new Set([
   'rename',
   'ignore',
   'providers',
+  'code-checks',
 ]);
 
 const MATCH_KEYS = new Set(['path', 'extension', 'frontmatter', 'tag']);
@@ -246,6 +247,41 @@ function validateProviders(v: Validation, value: unknown, path: string): void {
   }
 }
 
+const CODE_CHECK_KEYS = new Set(['enabled', 'description', 'paths', 'languages', 'pattern', 'flags', 'message', 'fix']);
+
+/**
+ * Code checks are additive: a malformed individual check must not fail-close
+ * the whole config, so per-check problems are warnings and the check is
+ * skipped at build time. Only a non-mapping section is a hard error.
+ */
+function validateCodeChecks(v: Validation, value: unknown, path: string): void {
+  if (!isPlainObject(value)) {
+    v.error(path, 'must be a mapping of check id to check definition');
+    return;
+  }
+  for (const [id, check] of Object.entries(value)) {
+    const checkPath = `${path}.${id}`;
+    if (!isPlainObject(check)) {
+      v.warn(`"${checkPath}" skipped: must be a mapping`);
+      continue;
+    }
+    for (const key of Object.keys(check)) {
+      if (!CODE_CHECK_KEYS.has(key)) {
+        v.warn(`unknown key "${checkPath}.${key}" ignored`);
+      }
+    }
+    if ('pattern' in check && typeof check.pattern !== 'string') {
+      v.warn(`"${checkPath}" skipped: pattern must be a string`);
+    }
+    if ('languages' in check && !isStringArray(check.languages)) {
+      v.warn(`"${checkPath}" skipped: languages must be a list of strings`);
+    }
+    if ('paths' in check && !isStringArray(check.paths)) {
+      v.warn(`"${checkPath}" skipped: paths must be a list of strings`);
+    }
+  }
+}
+
 /**
  * Parse and validate a linter.yaml text against the LinterConfig contract.
  * Fail closed: any structural error yields {ok: false} with every error found,
@@ -306,6 +342,9 @@ export function parseLinterConfig(yamlText: string): LoadResult {
   }
   if ('providers' in raw) {
     validateProviders(v, raw.providers, 'providers');
+  }
+  if ('code-checks' in raw) {
+    validateCodeChecks(v, raw['code-checks'], 'code-checks');
   }
 
   if (v.errors.length > 0) {

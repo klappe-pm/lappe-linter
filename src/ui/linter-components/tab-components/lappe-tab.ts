@@ -44,10 +44,33 @@ export class LappeTab extends Tab {
 
     this.displayKeySortSection();
     this.displayRuleToggles();
+    this.displayCodeChecksSection();
     this.displayExcludedFoldersSection();
     this.displayTestFilesSection();
     this.displayStylesSection();
     this.displayScopesSummary();
+  }
+
+  /**
+   * Declarative code checks (dec-006): pattern rules over fenced code blocks,
+   * defined in linter.yaml, never executed code. Built-ins toggle here; custom
+   * checks defined in linter.yaml appear alongside them.
+   */
+  private displayCodeChecksSection(): void {
+    const service = this.plugin.lappeConfig;
+    new Setting(this.contentEl)
+        .setName('Code checks')
+        .setDesc('Pattern checks over fenced code blocks, defined in linter.yaml under code-checks. Checks are bounded regex over your own notes; they never run code. See docs/code-checks.md for authoring your own.')
+        .setHeading();
+
+    for (const check of service.codeCheckState()) {
+      new Setting(this.contentEl.createDiv())
+          .setName(check.id + (check.builtin ? '' : ' (custom)'))
+          .setDesc(check.description)
+          .addToggle((toggle) => toggle.setValue(check.enabled).onChange(async (value) => {
+            await service.setCodeCheckEnabled(check.id, value);
+          }));
+    }
   }
 
   /**

@@ -100,6 +100,21 @@ export function lintText(input: LintTextInput): LintTextResult {
     entry.options = {...entry.options, ...injected};
   }
 
+  // Code checks (dec-006): both rules read the config's code-checks section.
+  // Enabling any individual check is the enablement intent, so the carrier
+  // rules default on when a check is on; an explicit enabled: false in the
+  // resolved profile still wins.
+  if (merged['code-checks'] !== undefined) {
+    const anyCheckEnabled = Object.values(merged['code-checks']).some((check) => check?.enabled === true);
+    for (const id of ['code-checks', 'code-checks-fix']) {
+      const entry = rules[id] ?? (rules[id] = {});
+      entry.options = {...entry.options, checks: merged['code-checks']};
+      if (anyCheckEnabled && entry.enabled === undefined) {
+        entry.enabled = true;
+      }
+    }
+  }
+
   const schema = resolved.noteType !== undefined ? merged['note-types']?.[resolved.noteType] : undefined;
   if (schema) {
     for (const id of NOTE_TYPE_RULE_IDS) {
