@@ -1,6 +1,6 @@
 {
   "name": "lappe-linter",
-  "version": "1.32.0",
+  "version": "1.33.0",
   "private": true,
   "description": "lappe-linter: a hard fork of obsidian-linter restructured as a monorepo with a pure, Obsidian-free rule core (@lappe-linter/core) consumed by the Obsidian plugin and a headless CLI (@lappe-linter/cli) for token-free markdown linting in hooks and CI.",
   "main": "main.js",
