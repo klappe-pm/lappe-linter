@@ -22,6 +22,7 @@ import {ChangeSpec} from '@codemirror/state';
 import {downloadMisspellings, readInMisspellingsFile} from './utils/auto-correct-misspellings';
 import {kitchenSinkFixture, lintText as lappeLintText, registerAllRules as registerLappeRules, ruleFixtures, testFilesReadme} from '@lappe-linter/core';
 import {LappeConfigService} from './lappe/config-service';
+import {ribbonFallback} from './lappe/ribbon-action';
 
 // https://github.com/liamcain/obsidian-calendar-ui/blob/03ceecbf6d88ef260dadf223ee5e483d98d24ffc/src/localization.ts#L20-L43
 const langToMomentLocale = {
@@ -103,7 +104,7 @@ export default class LinterPlugin extends Plugin {
 
     this.lappeConfig = new LappeConfigService(this.app);
     this.app.workspace.onLayoutReady(() => {
-      void this.lappeConfig.load();
+      void this.lappeConfig.load().then(() => this.maybeShowFirstRunNotice());
     });
     this.lappeConfig.register(this);
     this.addLappeCommands();
@@ -595,14 +596,44 @@ export default class LinterPlugin extends Plugin {
    * Left-ribbon quick action running the same code path as the lint-file
    * palette command (no copied lint logic). Obsidian ships lucide, but the
    * bundled icon set varies by app version, so fall back when wand-sparkles
-   * is absent from this build.
+   * is absent from this build. The editor command only runs with an active
+   * markdown editor in editing mode; in reading view the active file is
+   * linted whole, and with no markdown file at all a Notice says so instead
+   * of the click silently doing nothing.
    */
   private addLappeRibbonIcon() {
     const iconIds = getIconIds();
     const icon = iconIds.includes('lucide-wand-sparkles') || iconIds.includes('wand-sparkles') ? 'wand-sparkles' : 'sparkles';
     this.addRibbonIcon(icon, 'Lappe Linter: lint current file', () => {
-      this.app.commands.executeCommandById('lappe-linter:lint-file');
+      void this.lintCurrentFile();
     });
+  }
+
+  /**
+   * First-run onboarding (F01): when no linter.yaml exists yet, show one
+   * dismissable Notice pointing at the create-config command, then never
+   * again. The compiled defaults already run without a config, so this only
+   * nudges users toward a git-tracked, editable file.
+   */
+  private maybeShowFirstRunNotice(): void {
+    if (this.settings.lappeFirstRunNoticeShown || this.lappeConfig.path != null) {
+      return;
+    }
+    this.settings.lappeFirstRunNoticeShown = true;
+    void this.saveSettings();
+    new Notice(getTextInLanguage('notice-text.first-run-create-config'), 12000);
+  }
+
+  /** Ribbon entry point: editor lint when possible, whole-file lint otherwise. */
+  async lintCurrentFile(): Promise<void> {
+    const ran = this.app.commands.executeCommandById('lappe-linter:lint-file');
+    const file = this.app.workspace.getActiveFile();
+    const action = ribbonFallback(ran, file, this.settings.additionalFileExtensions);
+    if (action === 'lint-file') {
+      await this.runLinterFile(file);
+    } else if (action === 'notice') {
+      new Notice(getTextInLanguage('notice-text.no-active-markdown-file'));
+    }
   }
 
   /**

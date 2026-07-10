@@ -106,6 +106,8 @@ export default {
     'characters-added': 'characters added',
     'characters-removed': 'characters removed',
     'copy-to-clipboard-failed': 'Failed to copy text to clipboard: ',
+    'no-active-markdown-file': 'Lappe Linter: open a markdown file to lint it.',
+    'first-run-create-config': 'Lappe Linter is active with compiled defaults. Run "Lappe Linter: Create linter.yaml at the vault root" to make your formatting rules git-tracked and editable.',
   },
 
   // rule-alias-suggester.ts

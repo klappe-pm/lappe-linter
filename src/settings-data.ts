@@ -33,6 +33,9 @@ export interface LinterSettings {
   suppressLintAllFilesConfirmationModal?: boolean;
   suppressLintAllFilesInFolderConfirmationModal?: boolean;
   settingsConvertedToConfigKeyValues: boolean;
+  // One-time onboarding: true once the first-run linter.yaml offer has shown,
+  // so the Notice never reappears on later loads.
+  lappeFirstRunNoticeShown?: boolean;
   recordLintOnSaveLogs: boolean;
   lintOnFileChange: boolean;
   displayLintOnFileChangeNotice: boolean;
@@ -59,6 +62,7 @@ export const DEFAULT_SETTINGS: Partial<LinterSettings> = {
   lintOnFileChange: false,
   displayLintOnFileChangeNotice: false,
   settingsConvertedToConfigKeyValues: false,
+  lappeFirstRunNoticeShown: false,
   additionalFileExtensions: [],
   foldersToIgnore: [],
   filesToIgnore: [],

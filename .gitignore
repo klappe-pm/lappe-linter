@@ -55,3 +55,6 @@ packages/*/dist/
 
 # built plugin drop-in folder
 dist-plugin/
+
+# Session rigor anchor (local only)
+.claude-session-scope
