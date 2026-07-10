@@ -47,3 +47,8 @@ yarn.lock
 
 # workspace build output
 packages/*/dist/
+
+# re-include jest test dirs caught by the global **/_*/ ignore
+!**/__tests__/
+!**/__mocks__/
+!**/__integration__/

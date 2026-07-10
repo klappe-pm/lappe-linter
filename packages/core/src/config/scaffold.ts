@@ -17,6 +17,14 @@ defaults:
     yaml-key-sort:
       enabled: true # sorts frontmatter keys; set false to leave key order alone
       priority-keys: [domain, category, sub-category, date-created, date-revised] # these keys always sort first, in this order; edit the list to change your canonical order
+    yaml-timestamp:
+      enabled: true # mandatory timestamps (dec-005): date-created on first lint, date-revised only when content changed; dates yyyy-MM-dd
+    alphabetize-property-values:
+      enabled: true # sorts the values of list properties (aliases, tags, links); never the keys
+    h1-matches-stem:
+      enabled: true # first H1 is kept equal to the filename stem, inserted when missing
+    kebab-case-filename:
+      enabled: true # reports filenames that are not kebab-case; rename.mode below controls fixing
 
 profiles: # named per-scope overrides; a file matching a profile gets its rules on top of defaults
   tasks-notes: # example profile, rename or delete it freely

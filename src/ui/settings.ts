@@ -10,6 +10,7 @@ import {RuleTab} from './linter-components/tab-components/rule-tab';
 import {CustomTab} from './linter-components/tab-components/custom-tab';
 import {TabSearcher} from './linter-components/tab-components/tab-searcher';
 import {DebugTab} from './linter-components/tab-components/debug-tab';
+import {LappeTab} from './linter-components/tab-components/lappe-tab';
 import {getTextInLanguage, LanguageStringKey} from '../lang/helpers';
 import {LinterSettingsKeys} from '../settings-data';
 import {NormalArrayFormats, SpecialArrayFormats, TagSpecificArrayFormats} from '../utils/yaml';
@@ -77,10 +78,13 @@ export class SettingTab extends PluginSettingTab {
 
   private addTabs(isMobile: boolean) {
     this.addTab(new GeneralTab(this.tabNavEl, this.settingsContentEl, isMobile, this.plugin, this.app));
+    this.addTab(new LappeTab(this.tabNavEl, this.settingsContentEl, isMobile, this.plugin, this.app));
 
-    for (const ruleType of Object.values(RuleType)) {
-      this.addTab(new RuleTab(this.tabNavEl, this.settingsContentEl, ruleType, ruleTypeToRules.get(ruleType), isMobile, this.plugin));
-    }
+    // dec-005: one Style tab for heading, content, and spacing rules; the
+    // YAML, Footnote, and Paste surfaces are removed (Lappe owns YAML).
+    const styleRules = [RuleType.HEADING, RuleType.CONTENT, RuleType.SPACING]
+        .flatMap((ruleType) => ruleTypeToRules.get(ruleType) ?? []);
+    this.addTab(new RuleTab(this.tabNavEl, this.settingsContentEl, 'Style', styleRules, isMobile, this.plugin));
 
     this.addTab(new CustomTab(this.tabNavEl, this.settingsContentEl, isMobile, this.app, this.plugin));
     this.addTab(new DebugTab(this.tabNavEl, this.settingsContentEl, isMobile, this.plugin));

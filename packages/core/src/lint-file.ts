@@ -89,6 +89,17 @@ export function lintText(input: LintTextInput): LintTextResult {
     rules[id] = enabled === undefined ? {options} : {enabled, options};
   }
 
+  // Mandatory timestamps (dec-005): the global yaml-timestamp rule needs the
+  // same churn-guard inputs as note-type-date-keys, on every file.
+  {
+    const entry = rules['yaml-timestamp'] ?? (rules['yaml-timestamp'] = {});
+    const injected: CoreRuleOptions = {originalText: input.text};
+    if (input.today !== undefined) {
+      injected['today'] = input.today;
+    }
+    entry.options = {...entry.options, ...injected};
+  }
+
   const schema = resolved.noteType !== undefined ? merged['note-types']?.[resolved.noteType] : undefined;
   if (schema) {
     for (const id of NOTE_TYPE_RULE_IDS) {

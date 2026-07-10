@@ -4,6 +4,7 @@
  */
 export * from './types';
 export * from './loader';
+export * from './defaults';
 export * from './schema';
 export * from './serializer';
 export * from './scaffold';

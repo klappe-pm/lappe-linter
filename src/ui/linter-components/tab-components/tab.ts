@@ -24,6 +24,8 @@ const tabNameToTabIconId: Record<string | RuleType, string> = {
   'Spacing': iconInfo.whitespace.id,
   'Paste': iconInfo.paste.id,
   'Debug': iconInfo.debug.id,
+  'Lappe': iconInfo.vault.id,
+  'Style': iconInfo.content.id,
 };
 
 const tabNameToTextKey: Record<string | RuleType, LanguageStringKey> = {
@@ -36,6 +38,8 @@ const tabNameToTextKey: Record<string | RuleType, LanguageStringKey> = {
   'Spacing': 'tabs.names.spacing',
   'Paste': 'tabs.names.paste',
   'Debug': 'tabs.names.debug',
+  'Lappe': 'tabs.names.lappe',
+  'Style': 'tabs.names.style',
 };
 
 export abstract class Tab {

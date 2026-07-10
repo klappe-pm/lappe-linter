@@ -154,6 +154,8 @@ export default {
       'spacing': 'Spacing',
       'paste': 'Paste',
       'debug': 'Debug',
+      'lappe': 'Lappe',
+      'style': 'Style',
     },
     // tab-searcher.ts
     'default-search-bar-text': 'Search all settings',

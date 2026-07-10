@@ -3,7 +3,13 @@ import {noteTypeDateKeys} from './note-type-date-keys';
 import {noteTypeInsertKeys} from './note-type-insert-keys';
 import {noteTypeKeySort} from './note-type-key-sort';
 import {noteTypeValidate} from './note-type-validate';
+import {yamlKeySort} from './yaml-key-sort';
+import {yamlTimestamp} from './yaml-timestamp';
+import {alphabetizePropertyValues} from './alphabetize-property-values';
 
+export {yamlKeySort} from './yaml-key-sort';
+export {yamlTimestamp} from './yaml-timestamp';
+export {alphabetizePropertyValues} from './alphabetize-property-values';
 export {noteTypeDateKeys} from './note-type-date-keys';
 export {noteTypeInsertKeys} from './note-type-insert-keys';
 export {noteTypeKeySort} from './note-type-key-sort';
@@ -17,7 +23,7 @@ export {validateNoteTypes} from './validate-config';
  * Idempotent so plugin and CLI can both call it safely.
  */
 export function registerNoteTypeRules(): void {
-  for (const rule of [noteTypeInsertKeys, noteTypeKeySort, noteTypeDateKeys, noteTypeValidate]) {
+  for (const rule of [yamlKeySort, alphabetizePropertyValues, yamlTimestamp, noteTypeInsertKeys, noteTypeKeySort, noteTypeDateKeys, noteTypeValidate]) {
     if (!getRule(rule.id)) {
       registerRule(rule);
     }

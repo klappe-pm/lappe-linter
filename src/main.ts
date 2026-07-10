@@ -20,6 +20,8 @@ import {warn} from 'loglevel';
 import {CustomAutoCorrectContent} from './ui/linter-components/auto-correct-files-picker-option';
 import {ChangeSpec} from '@codemirror/state';
 import {downloadMisspellings, readInMisspellingsFile} from './utils/auto-correct-misspellings';
+import {lintText as lappeLintText, registerAllRules as registerLappeRules} from '@lappe-linter/core';
+import {LappeConfigService} from './lappe/config-service';
 
 // https://github.com/liamcain/obsidian-calendar-ui/blob/03ceecbf6d88ef260dadf223ee5e483d98d24ffc/src/localization.ts#L20-L43
 const langToMomentLocale = {
@@ -59,6 +61,7 @@ type FileChangeUpdateInfo = {
 export default class LinterPlugin extends Plugin {
   settings: LinterSettings;
   settingsTab: SettingTab;
+  lappeConfig: LappeConfigService;
   private eventRefs: EventRef[] = [];
   private momentLocale: string;
   private isEnabled: boolean = true;
@@ -84,6 +87,7 @@ export default class LinterPlugin extends Plugin {
 
   async onload() {
     sortRules();
+    registerLappeRules();
 
     setLanguage(getLanguage());
     logInfo(getTextInLanguage('logs.plugin-load'));
@@ -96,6 +100,13 @@ export default class LinterPlugin extends Plugin {
     }
 
     await this.loadSettings();
+
+    this.lappeConfig = new LappeConfigService(this.app);
+    this.app.workspace.onLayoutReady(() => {
+      void this.lappeConfig.load();
+    });
+    this.lappeConfig.register(this);
+    this.addLappeCommands();
 
     this.addCommands();
 
@@ -503,9 +514,73 @@ export default class LinterPlugin extends Plugin {
     return file && (file.extension === 'md' || this.settings.additionalFileExtensions.includes(file.extension));
   }
 
+  /**
+   * Run the lappe core rules (scoped by linter.yaml profiles) after the
+   * upstream pass. No config, invalid config (fail closed), or an ignored
+   * path all mean the text passes through untouched. Report-only violations
+   * surface as one Notice without blocking.
+   */
+  applyLappe(text: string, file: TFile | null): string {
+    const config = this.lappeConfig?.config;
+    if (config == null || file == null || this.lappeConfig.isIgnored(file.path)) {
+      return text;
+    }
+    try {
+      const result = lappeLintText({
+        text,
+        path: file.path,
+        config,
+        today: moment().format('YYYY-MM-DD'),
+      });
+      const reports = result.violations.filter((violation) => !violation.fixed);
+      if (reports.length > 0 && this.settings.displayChanged) {
+        new Notice(`lappe-linter (${file.path}):\n` + reports.map((violation) => `${violation.rule}: ${violation.message}`).join('\n'), 8000);
+      }
+      return result.text;
+    } catch (error) {
+      logWarn(`lappe-linter: core lint failed for ${file.path}: ${String(error)}`);
+      return text;
+    }
+  }
+
+  private addLappeCommands() {
+    this.addCommand({
+      id: 'lappe-show-resolved-profile',
+      name: 'Show resolved Lappe profile for the active file',
+      callback: () => {
+        const file = this.app.workspace.getActiveFile();
+        const config = this.lappeConfig?.config;
+        if (file == null || config == null) {
+          new Notice('lappe-linter: no active file or no valid linter.yaml');
+          return;
+        }
+        void this.app.vault.read(file).then((text) => {
+          const result = lappeLintText({text: stripCr(text), path: file.path, config});
+          const lines = [
+            `profile chain: ${result.profileChain.join(' > ')}`,
+            `note type: ${result.noteType ?? 'none'}`,
+            `pending changes: ${result.changed ? 'yes' : 'no'}`,
+          ];
+          if (result.violations.length > 0) {
+            lines.push(...result.violations.map((violation) => `${violation.rule}${violation.fixed ? '' : ' (report)'}`));
+          }
+          new Notice(`lappe-linter (${file.path})\n${lines.join('\n')}`, 10000);
+        });
+      },
+    });
+    this.addCommand({
+      id: 'lappe-create-config',
+      name: 'Create linter.yaml at the vault root',
+      callback: () => {
+        void this.lappeConfig.ensureConfigFile();
+      },
+    });
+  }
+
   async runLinterFile(file: TFile, lintingLastActiveFile: boolean = false) {
     const oldText = stripCr(await this.app.vault.read(file));
-    const newText = this.rulesRunner.lintText(createRunLinterRulesOptions(oldText, file, this.momentLocale, this.settings, this.defaultAutoCorrectMisspellings));
+    let newText = this.rulesRunner.lintText(createRunLinterRulesOptions(oldText, file, this.momentLocale, this.settings, this.defaultAutoCorrectMisspellings));
+    newText = this.applyLappe(newText, file);
 
     if (oldText != newText) {
       await this.app.vault.modify(file, newText);
@@ -607,6 +682,7 @@ export default class LinterPlugin extends Plugin {
     let newText: string;
     try {
       newText = this.rulesRunner.lintText(createRunLinterRulesOptions(oldText, file, this.momentLocale, this.settings, this.defaultAutoCorrectMisspellings));
+      newText = this.applyLappe(newText, file);
     } catch (error) {
       this.handleLintError(file, error, getTextInLanguage('commands.lint-file.error-message') + ' \'{FILE_PATH}\'', false);
       return;

@@ -22,15 +22,18 @@ describe('starter note-type pipeline', () => {
     registerNoteTypeRules();
   });
 
-  it('registers exactly the four note-type rules, once, idempotently', () => {
+  it('registers the frontmatter and note-type rules, once, idempotently', () => {
     registerNoteTypeRules();
     expect(getRules().map((rule) => rule.id)).toEqual([
+      'yaml-key-sort',
+      'alphabetize-property-values',
+      'yaml-timestamp',
       'note-type-insert-keys',
       'note-type-key-sort',
       'note-type-date-keys',
       'note-type-validate',
     ]);
-    expect(getRules().every((rule) => rule.category === 'note-type')).toBe(true);
+    expect(getRules().every((rule) => rule.category === 'note-type' || rule.category === 'frontmatter')).toBe(true);
   });
 
   for (const type of TYPES) {
