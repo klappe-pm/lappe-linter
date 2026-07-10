@@ -4,12 +4,37 @@
  * the filesystem. The plugin and the CLI both consume this surface.
  */
 
+import {registerFilenameRules} from './filename';
+import {registerNoteTypeRules} from './note-types';
+import {registerContentRules} from './rules-content';
+
 export const CORE_VERSION = '1.32.0';
 
 export * from './rule';
 export * from './runner';
-export * from './config/types';
+export * from './config';
+export * from './scope';
+export * from './rules-content';
+export * from './note-types';
+export * from './filename';
+export * from './providers';
+export * from './lint-file';
 
-// Feature packages register their rules by importing this barrel and calling
-// registerRule(). F05 content rules, F03 note-type rules, and F04 filename
-// rules attach here; F01 config loader and F02 scope engine land alongside.
+let allRulesRegistered = false;
+
+/**
+ * Register every built-in rule exactly once. Registration order is run order:
+ * content transforms first, then note-type frontmatter rules (so date-keys
+ * observes content changes), then filename reports. Registering never enables
+ * a rule; enablement comes only from resolved config. Providers register
+ * separately via registerProvider().
+ */
+export function registerAllRules(): void {
+  if (allRulesRegistered) {
+    return;
+  }
+  registerContentRules();
+  registerNoteTypeRules();
+  registerFilenameRules();
+  allRulesRegistered = true;
+}
