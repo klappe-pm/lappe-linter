@@ -1,0 +1,6 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`--json output contract (output-version 1, R5) emits one JSON line per file with the versioned schema 1`] = `
+"{"path":"bad.md","profile":"defaults","violations":[{"rule":"strip-strong","line":null,"message":"Remove ** and __ strong emphasis, keeping the inner text; never edits inside code, math, YAML, tables, wikilinks, or URLs.","fixed":true},{"rule":"replace-em-dash","line":null,"message":"Replace em dashes and connector en dashes with a configured separator (default comma plus space), preserving numeric en dash ranges.","fixed":true}],"renamed_to":null,"output-version":1}
+{"path":"clean.md","profile":"defaults","violations":[],"renamed_to":null,"output-version":1}"
+`;
