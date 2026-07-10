@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/kevinlappe/Projects/linter-obsidian-fork/scripts/harness/lint-on-write.sh",
+            "command": "/Users/kevinlappe/Projects/lappe-linter/scripts/harness/lint-on-write.sh",
             "timeout": 10
           }
         ]
