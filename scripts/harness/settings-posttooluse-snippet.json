@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/kevinlappe/Projects/linter-obsidian-fork/scripts/harness/lint-on-write.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
