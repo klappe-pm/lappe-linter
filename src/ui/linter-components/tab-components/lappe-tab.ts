@@ -44,6 +44,7 @@ export class LappeTab extends Tab {
 
     this.displayKeySortSection();
     this.displayRuleToggles();
+    this.displayTestFilesSection();
     this.displayStylesSection();
     this.displayScopesSummary();
   }
@@ -202,6 +203,22 @@ export class LappeTab extends Tab {
             await service.setDefaultRuleEnabled(rule.id, value);
           }));
     }
+  }
+
+  /** Generate the disposable fixture folder demonstrating every core rule. */
+  private displayTestFilesSection(): void {
+    new Setting(this.contentEl)
+        .setName('Test files')
+        .setDesc('Writes a disposable fixture set to _archive/<date>-lappe-linter-test-files/: one messy file per core rule, a combined kitchen-sink.md, and a README. Lint them (lint-all or per file) to see each rule\'s effect. Leave _archive unchecked under Excluded folders so the fixtures actually lint.')
+        .setHeading()
+        .addButton((button) => button.setButtonText('Generate test files').onClick(async () => {
+          button.setDisabled(true);
+          try {
+            await this.plugin.generateLappeTestFiles();
+          } finally {
+            button.setDisabled(false);
+          }
+        }));
   }
 
   /**

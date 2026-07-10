@@ -20,6 +20,7 @@ export * from './note-types';
 export * from './filename';
 export * from './providers';
 export * from './lint-file';
+export * from './fixtures';
 
 let allRulesRegistered = false;
 

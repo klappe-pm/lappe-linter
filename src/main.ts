@@ -20,7 +20,7 @@ import {warn} from 'loglevel';
 import {CustomAutoCorrectContent} from './ui/linter-components/auto-correct-files-picker-option';
 import {ChangeSpec} from '@codemirror/state';
 import {downloadMisspellings, readInMisspellingsFile} from './utils/auto-correct-misspellings';
-import {lintText as lappeLintText, registerAllRules as registerLappeRules} from '@lappe-linter/core';
+import {kitchenSinkFixture, lintText as lappeLintText, registerAllRules as registerLappeRules, ruleFixtures, testFilesReadme} from '@lappe-linter/core';
 import {LappeConfigService} from './lappe/config-service';
 
 // https://github.com/liamcain/obsidian-calendar-ui/blob/03ceecbf6d88ef260dadf223ee5e483d98d24ffc/src/localization.ts#L20-L43
@@ -576,6 +576,42 @@ export default class LinterPlugin extends Plugin {
         void this.lappeConfig.ensureConfigFile();
       },
     });
+    this.addCommand({
+      id: 'lappe-generate-test-files',
+      name: 'Generate lappe-linter test files',
+      callback: () => {
+        void this.generateLappeTestFiles();
+      },
+    });
+  }
+
+  /**
+   * Write a disposable fixture set to _archive/<date>-lappe-linter-test-files/:
+   * one messy before-file per core rule with examples, a combined
+   * kitchen-sink.md, and a README. Content comes from the core fixtures
+   * module (shared with the CLI); this method only creates vault files.
+   * Returns the created folder path.
+   */
+  async generateLappeTestFiles(): Promise<string> {
+    const archive = '_archive';
+    if (this.app.vault.getFolderByPath(archive) == null) {
+      await this.app.vault.createFolder(archive);
+    }
+    const base = `${archive}/${moment().format('YYYY-MM-DD')}-lappe-linter-test-files`;
+    let folder = base;
+    // Never overwrite an existing run; suffix the folder instead.
+    for (let suffix = 2; this.app.vault.getAbstractFileByPath(folder) != null; suffix++) {
+      folder = `${base}-${suffix}`;
+    }
+    await this.app.vault.createFolder(folder);
+    const fixtures = ruleFixtures();
+    for (const fixture of fixtures) {
+      await this.app.vault.create(`${folder}/${fixture.name}`, fixture.content);
+    }
+    await this.app.vault.create(`${folder}/kitchen-sink.md`, kitchenSinkFixture());
+    await this.app.vault.create(`${folder}/README.md`, testFilesReadme(folder));
+    new Notice(`lappe-linter: wrote ${fixtures.length + 2} test files to ${folder}`);
+    return folder;
   }
 
   async runLinterFile(file: TFile, lintingLastActiveFile: boolean = false) {
