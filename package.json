@@ -1,8 +1,12 @@
 {
-  "name": "obsidian-linter",
+  "name": "lappe-linter",
   "version": "1.32.0",
-  "description": "Enforces consistent markdown styling for Obsidian (https://obsidian.md). It can be used to format YAML tags, aliases, arrays, and metadata; footnotes; headings; spacing; math blocks; regular markdown contents like list, italics, and bold styles; and more with the use of custom rule options as well.",
+  "private": true,
+  "description": "lappe-linter: a hard fork of obsidian-linter restructured as a monorepo with a pure, Obsidian-free rule core (@lappe-linter/core) consumed by the Obsidian plugin and a headless CLI (@lappe-linter/cli) for token-free markdown linting in hooks and CI.",
   "main": "main.js",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
@@ -58,6 +62,7 @@
     "unified-lint-rule": "^2.1.1"
   },
   "dependencies": {
+    "@lappe-linter/core": "*",
     "async-lock": "^1.4.1",
     "diff-match-patch": "^1.0.5",
     "loglevel": "^1.9.1",

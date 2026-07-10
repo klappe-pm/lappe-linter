@@ -1,0 +1,15 @@
+{
+  "name": "@lappe-linter/core",
+  "version": "1.32.0",
+  "description": "Pure, Obsidian-free rule core for lappe-linter: rules, scope engine, config loader, and note-type schemas as (text, options) => string functions.",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "jest"
+  },
+  "dependencies": {
+    "yaml": "^2.7.0"
+  }
+}
