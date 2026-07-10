@@ -23,20 +23,24 @@ export function changedMarkdownFiles(cwd: string): ChangedResult {
     return {ok: false, message: `--changed requires a git repository: ${(err as Error).message}`};
   }
 
+  // -z terminates entries with NUL and disables core.quotePath C-quoting, so
+  // paths with newlines, quotes, or non-ASCII bytes arrive verbatim instead
+  // of quoted (which would fail the .md filter and skip the file, letting it
+  // bypass the pre-commit lint gate).
   const names = new Set<string>();
   try {
-    for (const line of git(['diff', '--name-only', 'HEAD'], cwd).split('\n')) {
-      if (line !== '') {
-        names.add(line);
+    for (const entry of git(['diff', '--name-only', '-z', 'HEAD'], cwd).split('\0')) {
+      if (entry !== '') {
+        names.add(entry);
       }
     }
   } catch {
     // No HEAD yet (fresh repository): fall through to the staged diff only.
   }
   try {
-    for (const line of git(['diff', '--name-only', '--cached'], cwd).split('\n')) {
-      if (line !== '') {
-        names.add(line);
+    for (const entry of git(['diff', '--name-only', '-z', '--cached'], cwd).split('\0')) {
+      if (entry !== '') {
+        names.add(entry);
       }
     }
   } catch (err) {

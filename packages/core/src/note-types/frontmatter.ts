@@ -39,13 +39,20 @@ export interface YamlEntry {
   lines: string[];
 }
 
-const KEY_LINE = /^(?:"([^"]+)"|'([^']+)'|([^\s#:-][^:]*?))\s*:(?:\s|$)/;
+// The bare-key alternative must stay linear: an earlier lazy form
+// ([^:]*?) next to \s*: backtracked quadratically on long colon-free
+// whitespace runs, a ReDoS reachable from any note's frontmatter. The
+// (?:[^:]*[^\s:])? shape pins the key's last character to a non-space so
+// every failure position is checked once.
+const KEY_LINE = /^(?:"([^"]+)"|'([^']+)'|([^\s#:-](?:[^:]*[^\s:])?))\s*:(?:\s|$)/;
 
 export function splitEntries(yamlLines: string[]): YamlEntry[] {
   const entries: YamlEntry[] = [];
   let current: YamlEntry | null = null;
   for (const line of yamlLines) {
-    const match = line.match(KEY_LINE);
+    // Every KEY_LINE alternative requires a colon; indexOf is a cheap linear
+    // bail-out that keeps pathological colon-free lines away from the regex.
+    const match = line.indexOf(':') === -1 ? null : line.match(KEY_LINE);
     if (match) {
       if (current) {
         entries.push(current);

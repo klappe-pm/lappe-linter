@@ -66,6 +66,27 @@ describe('--changed git scoping', () => {
     );
   });
 
+  // SEC-004 regression: with core.quotePath=true (git default) a non-ASCII or
+  // quote-carrying path is emitted C-quoted by plain --name-only, fails the
+  // .md filter, and silently escapes the pre-commit lint gate. -z output must
+  // keep such files in scope.
+  it('targets changed .md files whose names git would quote', async () => {
+    const unicodeName = 'нотатка.md';
+    const quoteName = 'we"ird.md';
+    fs.writeFileSync(path.join(dir, unicodeName), `Unicode${EM_DASH}violating.\n`);
+    fs.writeFileSync(path.join(dir, quoteName), `Quoted${EM_DASH}violating.\n`);
+    git(dir, ['add', unicodeName, quoteName]);
+
+    const result = await runCli(['check', '--changed', '--json'], dir);
+    expect(result.code).toBe(1);
+    const paths = result.out
+      .trimEnd()
+      .split('\n')
+      .map((line) => (JSON.parse(line) as {path: string}).path)
+      .sort();
+    expect(paths).toEqual([quoteName, unicodeName].sort());
+  });
+
   it('exits 2 outside a git repository', async () => {
     const bare = makeTmpDir('lappe-cli-nogit-');
     fs.writeFileSync(path.join(bare, 'linter.yaml'), BASIC_CONFIG);

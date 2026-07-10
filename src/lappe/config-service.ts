@@ -1,4 +1,5 @@
 import {App, Notice, TAbstractFile, TFile} from 'obsidian';
+import type {Document} from 'yaml';
 import {
   CANONICAL_CONFIG_FILENAME,
   CONFIG_FILENAME_ALIASES,
@@ -183,18 +184,34 @@ export class LappeConfigService {
   }
 
   /**
+   * Read-modify-write of linter.yaml through the comment-preserving core
+   * serializer. Re-reads immediately before the write and re-applies the
+   * mutation when the file changed underneath (git pull, sync, hand edit in
+   * another editor), so a concurrent external edit is not silently clobbered
+   * by a stale UI write.
+   */
+  private async writeConfigUpdate(mutate: (doc: Document) => void): Promise<void> {
+    const path = await this.ensureConfigFile();
+    const text = await this.app.vault.adapter.read(path);
+    let updated = updateConfigText(text, mutate);
+    const latest = await this.app.vault.adapter.read(path);
+    if (latest !== text) {
+      logWarn(`lappe-linter: ${path} changed on disk during a settings edit; re-applying the edit to the fresh content`);
+      updated = updateConfigText(latest, mutate);
+    }
+    await this.app.vault.adapter.write(path, updated);
+    await this.load();
+  }
+
+  /**
    * Toggle a rule under defaults.rules in linter.yaml, preserving comments and
    * unknown keys. The file is the source of truth; the in-memory config
    * refreshes from the written text.
    */
   async setDefaultRuleEnabled(ruleId: string, enabled: boolean): Promise<void> {
-    const path = await this.ensureConfigFile();
-    const text = await this.app.vault.adapter.read(path);
-    const updated = updateConfigText(text, (doc) => {
+    await this.writeConfigUpdate((doc) => {
       doc.setIn(['defaults', 'rules', ruleId, 'enabled'], enabled);
     });
-    await this.app.vault.adapter.write(path, updated);
-    await this.load();
   }
 
   /**
@@ -202,9 +219,7 @@ export class LappeConfigService {
    * key list plus optional per-key default values, comment-preserving.
    */
   async updateYamlKeySort(orderedKeys: string[], defaults: Record<string, string>): Promise<void> {
-    const path = await this.ensureConfigFile();
-    const text = await this.app.vault.adapter.read(path);
-    const updated = updateConfigText(text, (doc) => {
+    await this.writeConfigUpdate((doc) => {
       doc.setIn(['defaults', 'rules', 'yaml-key-sort', 'enabled'], true);
       doc.setIn(['defaults', 'rules', 'yaml-key-sort', 'priority-keys'], orderedKeys);
       if (Object.keys(defaults).length === 0) {
@@ -213,8 +228,6 @@ export class LappeConfigService {
         doc.setIn(['defaults', 'rules', 'yaml-key-sort', 'defaults'], defaults);
       }
     });
-    await this.app.vault.adapter.write(path, updated);
-    await this.load();
   }
 
   /** The current combined sort control state read from the config. */

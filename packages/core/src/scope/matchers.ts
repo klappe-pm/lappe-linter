@@ -60,37 +60,53 @@ export interface CompiledGlob {
  * a segment). No brace expansion, extglobs, or character classes.
  */
 export function compileGlob(glob: string): CompiledGlob {
-  const parts: Array<RegExp | '**'> = glob
-    .split('/')
-    .map((seg) => (seg === '**' ? '**' : segmentToRegExp(seg)));
-
-  function matchFrom(pi: number, segments: string[], si: number): boolean {
-    while (pi < parts.length) {
-      const part = parts[pi];
-      if (part === '**') {
-        if (pi === parts.length - 1) {
-          return true;
-        }
-        for (let skip = si; skip <= segments.length; skip++) {
-          if (matchFrom(pi + 1, segments, skip)) {
-            return true;
-          }
-        }
-        return false;
-      }
-      if (si >= segments.length || !part.test(segments[si])) {
-        return false;
-      }
-      pi++;
-      si++;
+  // Consecutive ** segments are redundant (a/**/**/b matches exactly what
+  // a/**/b matches); collapsing them keeps the matcher's worst case small.
+  const parts: Array<RegExp | '**'> = [];
+  for (const seg of glob.split('/')) {
+    const part = seg === '**' ? '**' : segmentToRegExp(seg);
+    if (part === '**' && parts[parts.length - 1] === '**') {
+      continue;
     }
-    return si === segments.length;
+    parts.push(part);
+  }
+
+  // Greedy two-pointer wildcard match (backtrack only to the most recent **),
+  // O(segments * parts). The previous recursive form re-tried every skip
+  // offset per **, which went exponential on globs stacking several **
+  // segments, a hang reachable from linter.yaml / style-file match.path.
+  function matchSegments(segments: string[]): boolean {
+    let si = 0;
+    let pi = 0;
+    let starPi = -1;
+    let starSi = 0;
+    while (si < segments.length) {
+      const part = pi < parts.length ? parts[pi] : null;
+      if (part === '**') {
+        starPi = pi;
+        starSi = si;
+        pi++;
+      } else if (part !== null && part.test(segments[si])) {
+        pi++;
+        si++;
+      } else if (starPi >= 0) {
+        starSi++;
+        si = starSi;
+        pi = starPi + 1;
+      } else {
+        return false;
+      }
+    }
+    while (pi < parts.length && parts[pi] === '**') {
+      pi++;
+    }
+    return pi === parts.length;
   }
 
   return {
     glob,
     depth: glob.split('/').length,
-    test: (path) => matchFrom(0, path.split('/'), 0),
+    test: (path) => matchSegments(path.split('/')),
   };
 }
 
