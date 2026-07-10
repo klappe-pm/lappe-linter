@@ -324,6 +324,19 @@ export class LappeConfigService {
     return run;
   }
 
+  /** The effective global rule-order list from the config, or []. */
+  ruleOrder(): string[] {
+    const order = this.current?.['rule-order'];
+    return Array.isArray(order) ? order.filter((id): id is string => typeof id === 'string') : [];
+  }
+
+  /** Write the global rule run order to linter.yaml, comment-preserving. */
+  async setRuleOrder(order: string[]): Promise<void> {
+    await this.writeConfigUpdate((doc) => {
+      doc.setIn(['rule-order'], order);
+    });
+  }
+
   /** Profile names currently defined in linter.yaml. */
   profileNames(): string[] {
     return Object.keys(this.current?.profiles ?? {}).sort();

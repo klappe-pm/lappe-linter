@@ -58,6 +58,7 @@ export class LappeTab extends Tab {
     this.displayHeadersSection();
     this.displayBodySection();
     this.displaySpecialFormattingSection();
+    this.displayRuleOrderSection();
     this.displayRuleToggles();
     this.displayCodeChecksSection();
     this.displayExcludedFoldersSection();
@@ -436,6 +437,98 @@ export class LappeTab extends Tab {
     }
     listEl.empty();
     this.renderKeySortList(listEl);
+  }
+
+  /**
+   * Rule run order (F ordering). The first rule (yaml-key-sort) is locked
+   * first with a lock icon; the rest reorder by drag (manual) or an
+   * Alphabetical action, persisted to linter.yaml rule-order and honored by
+   * the runner globally and, when a profile sets its own, per scope.
+   */
+  private displayRuleOrderSection(): void {
+    const service = this.plugin.lappeConfig;
+    const LOCKED = 'yaml-key-sort';
+
+    // Effective order: stored order first, then any core rules not yet listed,
+    // with the locked rule pinned to the front.
+    const allIds = getRules().map((rule) => rule.id);
+    const stored = service.ruleOrder().filter((id) => allIds.includes(id));
+    const effective = [LOCKED, ...stored.filter((id) => id !== LOCKED)];
+    for (const id of allIds) {
+      if (!effective.includes(id)) {
+        effective.push(id);
+      }
+    }
+
+    new Setting(this.contentEl)
+        .setName('Rule order')
+        .setDesc('The order rules run in. The first rule is locked; drag the rest to reorder, or sort them alphabetically. Applies globally; a profile may set its own order.')
+        .setHeading()
+        .addButton((button) => button.setButtonText('Alphabetical').setTooltip('Sort all but the locked first rule alphabetically').onClick(async () => {
+          const rest = effective.filter((id) => id !== LOCKED).sort((a, b) => a.localeCompare(b));
+          await service.setRuleOrder([LOCKED, ...rest]);
+          this.display();
+        }));
+
+    const listEl = this.contentEl.createDiv({cls: 'lappe-rule-order-list'});
+    listEl.style.border = '1px solid var(--background-modifier-border)';
+    listEl.style.borderRadius = '8px';
+    listEl.style.padding = '8px';
+    listEl.style.marginBottom = '8px';
+
+    effective.forEach((id, index) => {
+      const locked = id === LOCKED;
+      const row = new Setting(listEl).setName(`${index + 1}. ${id}`);
+      if (locked) {
+        row.setDesc('locked first');
+        row.addExtraButton((b) => b.setIcon('lock').setTooltip('This rule always runs first').setDisabled(true));
+        row.settingEl.style.opacity = '0.8';
+        return;
+      }
+      this.makeRuleOrderRowDraggable(listEl, row.settingEl, effective, index, LOCKED);
+      row.addExtraButton((b) => b.setIcon('grip-vertical').setTooltip('Drag to reorder').setDisabled(true));
+      row.addExtraButton((b) => b.setIcon('chevron-up').setTooltip('Move up').setDisabled(index <= 1).onClick(async () => {
+        await service.setRuleOrder(moveItem(effective, index, index - 1));
+        this.display();
+      }));
+      row.addExtraButton((b) => b.setIcon('chevron-down').setTooltip('Move down').setDisabled(index === effective.length - 1).onClick(async () => {
+        await service.setRuleOrder(moveItem(effective, index, index + 1));
+        this.display();
+      }));
+    });
+  }
+
+  private makeRuleOrderRowDraggable(listEl: HTMLElement, rowEl: HTMLElement, order: string[], index: number, locked: string): void {
+    rowEl.draggable = true;
+    rowEl.style.cursor = 'grab';
+    rowEl.addEventListener('dragstart', (event) => {
+      listEl.dataset.dragFrom = String(index);
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', String(index));
+      }
+    });
+    rowEl.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      rowEl.style.borderTop = '2px solid var(--interactive-accent)';
+    });
+    rowEl.addEventListener('dragleave', () => {
+      rowEl.style.borderTop = '';
+    });
+    rowEl.addEventListener('drop', (event) => {
+      event.preventDefault();
+      rowEl.style.borderTop = '';
+      const from = Number(listEl.dataset.dragFrom ?? event.dataTransfer?.getData('text/plain'));
+      // Never move onto the locked slot (index 0) or a no-op.
+      if (!Number.isInteger(from) || from === index || index === 0) {
+        return;
+      }
+      const next = moveItem(order, from, index);
+      if (next[0] !== locked) {
+        return;
+      }
+      void this.plugin.lappeConfig.setRuleOrder(next).then(() => this.display());
+    });
   }
 
   /** Enable/disable toggles for every registered core rule. */

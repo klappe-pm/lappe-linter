@@ -4,7 +4,7 @@ category: obsidian-linter-fork
 sub-category: plan
 date-created: 2026-07-10
 date-revised: 2026-07-10
-status: ACTIVE
+status: DONE
 aliases:
   - lappe-linter settings redesign plan
 tags:
@@ -99,7 +99,7 @@ Statuses: TODO, ACTIVE, DONE, BLOCKED (with reason in Notes).
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| 6.1 | Priority-order control: first rule locked (lock icon), manual drag or alphabetical ordering, global and per scope, persisted in linter.yaml | TODO | |
+| 6.1 | Priority-order control: first rule locked (lock icon), manual drag or alphabetical ordering, global and per scope, persisted in linter.yaml | DONE | runner applyOrder reorders enabled rules by config rule-order; ProfileConfig + top-level rule-order in types/loader (validated); resolver picks profile order over global; lint-file passes resolved.ruleOrder. UI: Rule order section, yaml-key-sort locked first with a lock icon, drag + up/down (manual) and an Alphabetical action, persisted via setRuleOrder. Core resolve + lint tests |
 
 ## Verification gates
 
@@ -110,6 +110,8 @@ Statuses: TODO, ACTIVE, DONE, BLOCKED (with reason in Notes).
 ## Work log
 
 - 2026-07-10: plan written; diagnosis session verified engine via CLI; worktree `feat/settings-redesign` created.
+- 2026-07-10: Phase 6 done. Rule ordering: the runner gained an `order` option (applyOrder reorders the enabled set without changing enablement); LinterConfig and ProfileConfig carry `rule-order` (validated by the loader); the resolver resolves the effective order (profile override, else global) into ResolvedProfile.ruleOrder, which lint-file passes to the runner. UI: a Rule order section with yaml-key-sort locked first (lock icon), drag plus up/down for manual ordering, and an Alphabetical action, persisted via setRuleOrder. Core resolve + lint tests. Full suite green: 116 suites, 1779 tests. Smoke: build + install into test-vault via scripts/install-test-vault.sh succeeded.
+- All six phases complete. Known follow-ups: a non-blocking live preview split (4.2), vault-value autocomplete in scope-builder fields and a per-option profile override editor (5.4/5.6), and the pre-existing repo lint noise (valid-jsdoc wants @param tags on the whole lappe layer, red at baseline; not a regression).
 - 2026-07-10: Phase 5 done. Core scope engine gained age (5-day buckets, created-today rounds to 1), date-created/date-revised range, and backlink/alias matchers, all in a pure advanced-matchers module with tests; evaluate takes an optional MatchContext {today, backlinks, aliases}, threaded through FileFacts, resolveProfile, and lintText's scopeContext; the loader validates the new match keys. The plugin fills backlinks/aliases from the metadata cache (lappeScopeContext); the CLI passes none so parity holds. UI: a pure buildMatch model + scope-builder section (checkbox multi-select scope types revealing per-type fields; Create writes a profile), a scope list showing inherit-vs-override state with delete, and a Push-template-defaults action (pushDefaultsToProfiles prunes overrides equal to the base). project is a first-class scope type. Suite green: 115 suites, 1775 tests. Follow-ups noted: vault-value autocomplete in scope fields and a per-option profile override editor.
 - 2026-07-10: Phase 4 done (4.2 partial). LappePreviewModal shows a rich sample note before and after linting with the live resolved config and re-renders when linter.yaml changes on disk; a Preview button sits on each section heading. The sample is a pure module (`preview-sample.ts`) with a lint + idempotency test proving the preview path. 4.2 is a snapshot modal rather than a live-while-editing split (a modal blocks the settings tab); a non-blocking workspace-leaf split is deferred and recorded in the tracker. Suite green: 112 suites, 1755 tests.
 - 2026-07-10: Phase 3 done. Two new core rules: `paragraph-spacing` (normalize blank-line runs to 0/1/2, default 1, preserving masked blocks and trimming file ends) and `list-style` (normalize unordered markers to `-`/`*`, tighten lists by removing inter-item blanks, leaving ordered lists and thematic breaks alone); both with example + edge-case tests and enabled in the compiled defaults. Lappe tab gains Body (paragraph spacing, bullet marker, tight-lists, remove-artificial-line-breaks via join-paragraph-lines, plus a Basic styling subgroup for emphasis/strong) and Special formatting (code, quote, table upstream rules) sections; upstream-rule rendering deduplicated into a shared renderUpstreamRule helper, and the Body/Headers-managed core rules excluded from the generic toggles. Suite green: 111 suites, 1753 tests. Fixed a doubled-trailing-newline bug in list-style during development (caught by the idempotency test).

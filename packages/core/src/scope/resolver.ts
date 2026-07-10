@@ -113,10 +113,23 @@ export function resolveProfile(facts: FileFacts, config: LinterConfig): Resolved
     }
   }
 
+  // Rule order: the last profile in the chain that sets rule-order wins;
+  // otherwise the global config order, if any.
+  let ruleOrder = config['rule-order'];
+  for (const profile of chain) {
+    const profileOrder = config.profiles?.[profile.name]?.['rule-order'];
+    if (profileOrder) {
+      ruleOrder = profileOrder;
+    }
+  }
+
   const resolved: ResolvedProfile = {
     chain: ['defaults', ...chain.map((p) => p.name)],
     rules,
   };
+  if (ruleOrder !== undefined) {
+    resolved.ruleOrder = ruleOrder;
+  }
   if (noteType !== undefined) {
     resolved.noteType = noteType;
   }

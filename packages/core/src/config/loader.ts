@@ -17,6 +17,7 @@ export const CONFIG_FILENAME_ALIASES: readonly string[] = [
 const TOP_LEVEL_KEYS = new Set([
   'version',
   'defaults',
+  'rule-order',
   'profiles',
   'note-types',
   'rename',
@@ -26,7 +27,7 @@ const TOP_LEVEL_KEYS = new Set([
 ]);
 
 const MATCH_KEYS = new Set(['path', 'extension', 'frontmatter', 'tag', 'age', 'date-created', 'date-revised', 'backlink', 'alias']);
-const PROFILE_KEYS = new Set(['match', 'rules']);
+const PROFILE_KEYS = new Set(['match', 'rules', 'rule-order']);
 const NOTE_TYPE_KEYS = new Set(['required', 'key-order', 'values', 'date-keys', 'match']);
 const RENAME_MODES = new Set(['off', 'flag', 'rename']);
 
@@ -140,6 +141,9 @@ function validateProfiles(v: Validation, value: unknown, path: string): void {
     }
     if ('rules' in profile) {
       validateRules(v, profile.rules, `${profilePath}.rules`);
+    }
+    if ('rule-order' in profile && !isStringArray(profile['rule-order'])) {
+      v.error(`${profilePath}.rule-order`, 'must be a list of rule ids');
     }
   }
 }
@@ -340,6 +344,10 @@ export function parseLinterConfig(yamlText: string): LoadResult {
         validateRules(v, defaults.rules, 'defaults.rules');
       }
     }
+  }
+
+  if ('rule-order' in raw && !isStringArray(raw['rule-order'])) {
+    v.error('rule-order', 'must be a list of rule ids');
   }
 
   if ('profiles' in raw) {

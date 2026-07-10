@@ -39,6 +39,8 @@ export interface ProfileMatch {
 export interface ProfileConfig {
   match?: ProfileMatch;
   rules?: RulesConfig;
+  /** Per-scope rule run order override; same shape as the top-level rule-order. */
+  'rule-order'?: string[];
 }
 
 /** One note type's frontmatter schema (F03). */
@@ -69,6 +71,8 @@ export interface IgnoreConfig {
 export interface LinterConfig {
   version: 1;
   defaults?: {rules?: RulesConfig};
+  /** Global rule run order: listed ids run first in this order, the rest keep registry order. */
+  'rule-order'?: string[];
   profiles?: Record<string, ProfileConfig>;
   'note-types'?: Record<string, NoteTypeSchema>;
   rename?: RenameConfig;
@@ -121,6 +125,8 @@ export interface ResolvedProfile {
   chain: string[];
   /** Final per-rule config after precedence merge. */
   rules: RulesConfig;
+  /** Effective rule run order for this file (profile override, else global), when set. */
+  ruleOrder?: string[];
   /** Note type resolved from note-types matchers, when any. */
   noteType?: string;
 }

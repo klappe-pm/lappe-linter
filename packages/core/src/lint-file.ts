@@ -152,7 +152,7 @@ export function lintText(input: LintTextInput): LintTextResult {
     ctx.noteType = resolved.noteType;
   }
 
-  const run = runRules(input.text, {rules, ctx});
+  const run = runRules(input.text, {rules, ctx, order: resolved.ruleOrder});
   const result: LintTextResult = {
     text: run.text,
     violations: run.violations,

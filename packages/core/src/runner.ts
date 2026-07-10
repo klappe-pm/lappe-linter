@@ -25,6 +25,28 @@ export interface RunOptions {
   ctx?: CoreRuleContext;
   /** Restrict the run to these rule ids, in this order. Defaults to registry order. */
   only?: string[];
+  /**
+   * Reorder the enabled rules: ids listed here run first in this order, the
+   * rest keep registry order. Enablement is unchanged (unlike `only`). Ignored
+   * when `only` is set.
+   */
+  order?: string[];
+}
+
+/** Stable reorder: `order` ids first in that order, remaining rules keep their relative order. */
+function applyOrder(rules: CoreRule[], order: string[] | undefined): CoreRule[] {
+  if (!order || order.length === 0) {
+    return rules;
+  }
+  const rank = new Map(order.map((id, index) => [id, index]));
+  return rules
+      .map((rule, index) => ({rule, index}))
+      .sort((a, b) => {
+        const ra = rank.has(a.rule.id) ? rank.get(a.rule.id)! : order.length + a.index;
+        const rb = rank.has(b.rule.id) ? rank.get(b.rule.id)! : order.length + b.index;
+        return ra - rb || a.index - b.index;
+      })
+      .map((entry) => entry.rule);
 }
 
 function optionsFor(rule: CoreRule, cfg: ResolvedRuleConfig): CoreRuleOptions {
@@ -41,10 +63,9 @@ function isEnabled(rule: CoreRule, cfg: ResolvedRuleConfig): boolean {
  */
 export function runRules(text: string, opts: RunOptions = {}): RunResult {
   const cfg = opts.rules ?? {};
-  const rules = (opts.only
+  const rules = opts.only
     ? opts.only.map((id) => getRule(id)).filter((r): r is CoreRule => Boolean(r))
-    : getRules()
-  ).filter((rule) => (opts.only ? true : isEnabled(rule, cfg)));
+    : applyOrder(getRules().filter((rule) => isEnabled(rule, cfg)), opts.order);
 
   const original = text;
   const violations: RuleViolation[] = [];
