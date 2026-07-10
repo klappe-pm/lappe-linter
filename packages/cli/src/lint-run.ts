@@ -75,9 +75,9 @@ export function isIgnored(config: LinterConfig, relPath: string): boolean {
 }
 
 export function configFor(fileAbs: string, flags: CliFlags, io: CliIo, cache: ConfigCache): ConfigResult {
-  return flags.config !== undefined
-    ? cache.loadPath(flags.config, io.cwd)
-    : cache.forDir(path.dirname(fileAbs));
+  return flags.config !== undefined ?
+    cache.loadPath(flags.config, io.cwd) :
+    cache.forDir(path.dirname(fileAbs));
 }
 
 export function reportConfigErrors(messages: string[], io: CliIo): void {

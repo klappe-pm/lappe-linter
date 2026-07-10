@@ -41,10 +41,10 @@ describe('--changed git scoping', () => {
     const result = await runCli(['check', '--changed', '--json'], dir);
     expect(result.code).toBe(1);
     const paths = result.out
-      .trimEnd()
-      .split('\n')
-      .map((line) => (JSON.parse(line) as {path: string}).path)
-      .sort();
+        .trimEnd()
+        .split('\n')
+        .map((line) => (JSON.parse(line) as {path: string}).path)
+        .sort();
     expect(paths).toEqual(['modified.md', 'staged-new.md']);
   });
 
@@ -62,7 +62,7 @@ describe('--changed git scoping', () => {
     expect(result.out).toBe('modified.md\n');
     expect(fs.readFileSync(path.join(dir, 'modified.md'), 'utf8')).toBe('Now, violating.\n');
     expect(fs.readFileSync(path.join(dir, 'untouched.md'), 'utf8')).toBe(
-      `Committed${EM_DASH}dirty but unchanged.\n`,
+        `Committed${EM_DASH}dirty but unchanged.\n`,
     );
   });
 
@@ -80,10 +80,10 @@ describe('--changed git scoping', () => {
     const result = await runCli(['check', '--changed', '--json'], dir);
     expect(result.code).toBe(1);
     const paths = result.out
-      .trimEnd()
-      .split('\n')
-      .map((line) => (JSON.parse(line) as {path: string}).path)
-      .sort();
+        .trimEnd()
+        .split('\n')
+        .map((line) => (JSON.parse(line) as {path: string}).path)
+        .sort();
     expect(paths).toEqual([quoteName, unicodeName].sort());
   });
 

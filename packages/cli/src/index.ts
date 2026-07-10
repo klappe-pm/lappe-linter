@@ -96,18 +96,18 @@ export async function run(argv: string[], io: CliIo = realIo()): Promise<number>
     files = [...new Set([...files, ...changed.files])];
   }
 
-  return command === 'check'
-    ? runCheck(files, flags, io, cache, today)
-    : runFix(files, flags, io, cache, today);
+  return command === 'check' ?
+    runCheck(files, flags, io, cache, today) :
+    runFix(files, flags, io, cache, today);
 }
 
 // Only auto-run when invoked as a binary, not when imported by tests.
 if (require.main === module) {
   run(process.argv).then(
-    (code) => process.exit(code),
-    (err: Error) => {
-      process.stderr.write(`lappe-linter: ${err.stack ?? err.message}\n`);
-      process.exit(2);
-    },
+      (code) => process.exit(code),
+      (err: Error) => {
+        process.stderr.write(`lappe-linter: ${err.stack ?? err.message}\n`);
+        process.exit(2);
+      },
   );
 }

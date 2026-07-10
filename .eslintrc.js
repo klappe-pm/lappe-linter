@@ -1,6 +1,7 @@
 module.exports = {
   'env': {
     'browser': true,
+    'node': true,
     'es2021': true,
     'jest/globals': true,
   },
@@ -30,6 +31,9 @@ module.exports = {
     'no-unreachable-loop': 'error',
     'no-unused-private-class-members': 'error',
     'require-jsdoc': 'off',
+    // valid-jsdoc is deprecated and redundant with TypeScript's own parameter
+    // and return types; disabled to match the existing require-jsdoc: off.
+    'valid-jsdoc': 'off',
     'unicorn/template-indent': 'error',
     'no-unused-vars': 'off',
     '@typescript-eslint/no-floating-promises': 'error',

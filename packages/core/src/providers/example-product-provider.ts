@@ -45,24 +45,24 @@ const epicRequiresParentProject: CoreRule = {
 
 const productNoteTypes: Record<string, NoteTypeSchema> = {
   project: {
-    required: {status: 'NEW'},
+    'required': {status: 'NEW'},
     'key-order': ['status'],
-    match: {frontmatter: {type: 'project'}},
+    'match': {frontmatter: {type: 'project'}},
   },
   epic: {
-    required: {'parent-project': null, status: 'NEW'},
+    'required': {'parent-project': null, 'status': 'NEW'},
     'key-order': ['parent-project', 'status'],
-    match: {frontmatter: {type: 'epic'}},
+    'match': {frontmatter: {type: 'epic'}},
   },
   feature: {
-    required: {'parent-epic': null, status: 'NEW'},
+    'required': {'parent-epic': null, 'status': 'NEW'},
     'key-order': ['parent-epic', 'status'],
-    match: {frontmatter: {type: 'feature'}},
+    'match': {frontmatter: {type: 'feature'}},
   },
   task: {
-    required: {'parent-feature': null, status: 'NEW'},
+    'required': {'parent-feature': null, 'status': 'NEW'},
     'key-order': ['parent-feature', 'status'],
-    match: {frontmatter: {type: 'task'}},
+    'match': {frontmatter: {type: 'task'}},
   },
 };
 

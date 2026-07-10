@@ -12,9 +12,9 @@ const LIST_LIKE = /^[ \t]*([-*+]|\d{1,9}[.)])([ \t]|$)/;
 function joinItems(items: string[]): string {
   const parts = items.map((s) => s.replace(/[.,;]+$/, '').trim());
   const sentence =
-    parts.length === 2
-      ? `${parts[0]} and ${parts[1]}`
-      : `${parts.slice(0, -1).join(', ')}, and ${parts[parts.length - 1]}`;
+    parts.length === 2 ?
+      `${parts[0]} and ${parts[1]}` :
+      `${parts.slice(0, -1).join(', ')}, and ${parts[parts.length - 1]}`;
   return /[.!?]$/.test(sentence) ? sentence : `${sentence}.`;
 }
 

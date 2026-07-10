@@ -108,8 +108,8 @@ export function formatScalar(value: FlatScalar): string {
  * non-empty arrays as two-space-indented block sequences.
  */
 export function formatEntryLines(
-  key: string,
-  value: FlatScalar | Array<FlatScalar> | null,
+    key: string,
+    value: FlatScalar | Array<FlatScalar> | null,
 ): string[] {
   if (value === null) {
     return [`${key}:`];

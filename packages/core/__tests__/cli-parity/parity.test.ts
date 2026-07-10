@@ -132,12 +132,12 @@ describe('CLI/plugin parity over the fixture corpus (R1)', () => {
     expect(line.path).toBe(rel);
     expect(line.profile).toBe(expected.profileChain[expected.profileChain.length - 1]);
     expect(line.violations).toEqual(
-      expected.violations.map((v) => ({
-        rule: v.rule,
-        line: v.line ?? null,
-        message: v.message,
-        fixed: v.fixed,
-      })),
+        expected.violations.map((v) => ({
+          rule: v.rule,
+          line: v.line ?? null,
+          message: v.message,
+          fixed: v.fixed,
+        })),
     );
   });
 

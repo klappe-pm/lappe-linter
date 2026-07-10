@@ -22,9 +22,9 @@ function shuffled<T>(items: T[], rand: () => number): T[] {
 }
 
 const config: LinterConfig = {
-  version: 1,
-  defaults: {rules: {base: {enabled: true, from: 'defaults'}}},
-  profiles: {
+  'version': 1,
+  'defaults': {rules: {base: {enabled: true, from: 'defaults'}}},
+  'profiles': {
     md: {match: {extension: ['md']}, rules: {base: {from: 'md'}, extra: {enabled: true}}},
     notes: {match: {path: ['notes/**']}, rules: {base: {from: 'notes'}}},
     projects: {match: {path: ['notes/projects/**']}, rules: {base: {from: 'projects'}}},
@@ -55,7 +55,7 @@ const inputs: FileFacts[] = [
 describe('resolveProfile determinism', () => {
   it('100 shuffled runs over the same inputs produce identical output', () => {
     const baseline = new Map<FileFacts, string>(
-      inputs.map((facts) => [facts, JSON.stringify(resolveProfile(facts, config))]),
+        inputs.map((facts) => [facts, JSON.stringify(resolveProfile(facts, config))]),
     );
     const rand = mulberry32(0xf02);
     for (let run = 0; run < 100; run++) {

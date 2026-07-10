@@ -83,8 +83,8 @@ describe('lintText', () => {
 
   it('threads the resolved note-type schema and today into note-type rules', () => {
     const config: LinterConfig = {
-      version: 1,
-      defaults: {
+      'version': 1,
+      'defaults': {
         rules: {
           'note-type-insert-keys': {enabled: true},
           'note-type-date-keys': {enabled: true},
@@ -92,8 +92,8 @@ describe('lintText', () => {
       },
       'note-types': {
         task: {
-          match: {frontmatter: {type: 'task'}},
-          required: {status: 'NEW'},
+          'match': {frontmatter: {type: 'task'}},
+          'required': {status: 'NEW'},
           'key-order': ['type', 'status'],
           'date-keys': {created: 'date-created', revised: 'date-revised'},
         },
@@ -117,8 +117,8 @@ describe('lintText', () => {
 
   it('writes no date keys when the caller provides no today', () => {
     const config: LinterConfig = {
-      version: 1,
-      defaults: {
+      'version': 1,
+      'defaults': {
         rules: {
           'note-type-insert-keys': {enabled: true},
           'note-type-date-keys': {enabled: true},
@@ -126,8 +126,8 @@ describe('lintText', () => {
       },
       'note-types': {
         task: {
-          match: {frontmatter: {type: 'task'}},
-          required: {status: 'NEW'},
+          'match': {frontmatter: {type: 'task'}},
+          'required': {status: 'NEW'},
           'date-keys': {created: 'date-created', revised: 'date-revised'},
         },
       },
@@ -140,8 +140,8 @@ describe('lintText', () => {
 
   it('bumps date-revised when an earlier content rule changed the body', () => {
     const config: LinterConfig = {
-      version: 1,
-      defaults: {
+      'version': 1,
+      'defaults': {
         rules: {
           'strip-strong': {enabled: true},
           'note-type-date-keys': {enabled: true},
@@ -149,7 +149,7 @@ describe('lintText', () => {
       },
       'note-types': {
         task: {
-          match: {frontmatter: {type: 'task'}},
+          'match': {frontmatter: {type: 'task'}},
           'date-keys': {revised: 'date-revised'},
         },
       },
@@ -176,7 +176,7 @@ describe('lintText', () => {
   it('rule options from config reach the rule alongside injected ones', () => {
     const config: LinterConfig = {
       version: 1,
-      defaults: {rules: {'strip-strong': {enabled: true, 'keep-heading-strong': true}}},
+      defaults: {rules: {'strip-strong': {'enabled': true, 'keep-heading-strong': true}}},
     };
     const result = lintText({
       text: '## A **bold** heading\n\nbody **bold** text\n',
@@ -230,8 +230,8 @@ describe('lintText with a provider', () => {
 
   it('lets a file note-type override a provider note-type of the same name', () => {
     const config: LinterConfig = {
-      version: 1,
-      defaults: {rules: {'note-type-insert-keys': {enabled: true}}},
+      'version': 1,
+      'defaults': {rules: {'note-type-insert-keys': {enabled: true}}},
       'note-types': {
         epic: {
           match: {frontmatter: {type: 'epic'}},

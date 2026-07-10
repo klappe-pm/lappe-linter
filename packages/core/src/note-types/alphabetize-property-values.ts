@@ -15,7 +15,7 @@ function compareValues(a: string, b: string): number {
 
 /** Split a flow array body on top-level commas; null when it looks nested. */
 function splitFlowItems(body: string): string[] | null {
-  if (body.includes('[') || body.includes(']') || body.includes('"') || body.includes("'")) {
+  if (body.includes('[') || body.includes(']') || body.includes('"') || body.includes('\'')) {
     return null;
   }
   if (body.trim() === '') {

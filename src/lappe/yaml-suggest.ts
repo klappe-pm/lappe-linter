@@ -46,7 +46,7 @@ export class ListSuggest extends AbstractInputSuggest<string> {
   private cached: string[] | null = null;
 
   constructor(
-    app: App,
+      app: App,
     private input: HTMLInputElement,
     private candidates: () => string[],
     private onPick?: (value: string) => void,

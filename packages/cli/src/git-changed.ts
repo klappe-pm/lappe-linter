@@ -48,9 +48,9 @@ export function changedMarkdownFiles(cwd: string): ChangedResult {
   }
 
   const files = [...names]
-    .filter((name) => name.endsWith('.md'))
-    .map((name) => path.join(root, ...name.split('/')))
-    .filter((abs) => fs.existsSync(abs))
-    .sort();
+      .filter((name) => name.endsWith('.md'))
+      .map((name) => path.join(root, ...name.split('/')))
+      .filter((abs) => fs.existsSync(abs))
+      .sort();
   return {ok: true, files};
 }

@@ -10,9 +10,9 @@ function isWordChar(ch: string | undefined): boolean {
 
 function stripOnce(text: string, keepHeadingStrong: boolean): string {
   const zones = computeIgnoreZones(text);
-  const headingLines = keepHeadingStrong
-    ? lineSpans(text).filter((l) => HEADING_LINE.test(l.text))
-    : [];
+  const headingLines = keepHeadingStrong ?
+    lineSpans(text).filter((l) => HEADING_LINE.test(l.text)) :
+    [];
   const onHeadingLine = (index: number): boolean =>
     headingLines.some((l) => l.start <= index && index <= l.end);
 

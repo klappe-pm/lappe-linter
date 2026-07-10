@@ -39,7 +39,7 @@ describe('strip-strong', () => {
     const input =
       'code `**x**` math $**y**$ table below\n\n| **a** | b |\n| ----- | - |\n\nlink [[**Note**]] url https://e.io/a__b__c\n';
     expect(apply(input)).toBe(
-      'code `**x**` math $**y**$ table below\n\n| **a** | b |\n| ----- | - |\n\nlink [[**Note**]] url https://e.io/a__b__c\n',
+        'code `**x**` math $**y**$ table below\n\n| **a** | b |\n| ----- | - |\n\nlink [[**Note**]] url https://e.io/a__b__c\n',
     );
   });
 

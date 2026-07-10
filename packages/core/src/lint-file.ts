@@ -87,14 +87,14 @@ export function lintText(input: LintTextInput): LintTextResult {
 
   const doc = splitDocument(input.text);
   const resolved = resolveProfile(
-    {
-      path: input.path,
-      frontmatter: doc.has ? doc.yamlLines.join('\n') : null,
-      today: input.today,
-      backlinks: input.scopeContext?.backlinks,
-      aliases: input.scopeContext?.aliases,
-    },
-    merged,
+      {
+        path: input.path,
+        frontmatter: doc.has ? doc.yamlLines.join('\n') : null,
+        today: input.today,
+        backlinks: input.scopeContext?.backlinks,
+        aliases: input.scopeContext?.aliases,
+      },
+      merged,
   );
 
   const rules: ResolvedRuleConfig = {};

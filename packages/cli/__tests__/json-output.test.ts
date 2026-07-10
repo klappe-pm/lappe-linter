@@ -27,7 +27,7 @@ describe('--json output contract (output-version 1, R5)', () => {
     expect(bad['output-version']).toBe(1);
     const violations = bad['violations'] as Array<Record<string, unknown>>;
     expect(violations.map((v) => Object.keys(v))).toEqual(
-      violations.map(() => ['rule', 'line', 'message', 'fixed']),
+        violations.map(() => ['rule', 'line', 'message', 'fixed']),
     );
     expect(violations.map((v) => v['rule']).sort()).toEqual(['replace-em-dash', 'strip-strong']);
 
@@ -39,17 +39,17 @@ describe('--json output contract (output-version 1, R5)', () => {
 
   it('fix --json reports renamed_to under --allow-rename with rename.mode rename', async () => {
     fs.writeFileSync(
-      path.join(dir, 'linter.yaml'),
-      [
-        'version: 1',
-        'defaults:',
-        '  rules:',
-        '    kebab-case-filename:',
-        '      enabled: true',
-        'rename:',
-        '  mode: rename',
-        '',
-      ].join('\n'),
+        path.join(dir, 'linter.yaml'),
+        [
+          'version: 1',
+          'defaults:',
+          '  rules:',
+          '    kebab-case-filename:',
+          '      enabled: true',
+          'rename:',
+          '  mode: rename',
+          '',
+        ].join('\n'),
     );
     fs.writeFileSync(path.join(dir, 'My Note.md'), 'Body.\n');
 

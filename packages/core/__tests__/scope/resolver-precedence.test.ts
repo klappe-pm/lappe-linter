@@ -131,8 +131,8 @@ describe('resolveProfile precedence', () => {
 
   it('overridden profile that also matched is applied once, at the end', () => {
     const resolved = resolveProfile(
-      {path: 'a.md', frontmatter: 'linter-profile: ext-a'},
-      config,
+        {path: 'a.md', frontmatter: 'linter-profile: ext-a'},
+        config,
     );
     expect(resolved.chain).toEqual(['defaults', 'ext-b', 'ext-a']);
     expect(resolved.rules.marker).toEqual({enabled: true, winner: 'ext-a'});
@@ -141,7 +141,7 @@ describe('resolveProfile precedence', () => {
 
 describe('resolveProfile note types', () => {
   const withNoteTypes: LinterConfig = {
-    version: 1,
+    'version': 1,
     'note-types': {
       project: {match: {frontmatter: {type: 'project'}}},
       task: {match: {frontmatter: {type: 'task'}}},

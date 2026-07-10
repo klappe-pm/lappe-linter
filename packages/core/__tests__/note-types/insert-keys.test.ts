@@ -12,7 +12,7 @@ describe('note-type-insert-keys', () => {
     const before = '---\ndomain: development\n---\n# t\n\nBody.\n';
     const after = apply(before, schema);
     expect(after).toBe(
-      '---\ndomain: development\ntype: task\nstatus: NEW\naliases:\ntags:\n---\n# t\n\nBody.\n',
+        '---\ndomain: development\ntype: task\nstatus: NEW\naliases:\ntags:\n---\n# t\n\nBody.\n',
     );
   });
 

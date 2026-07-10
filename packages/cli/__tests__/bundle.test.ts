@@ -22,9 +22,9 @@ function runBundle(args: string[], cwd: string): {status: number | null; stdout:
 describe('single-file bundle', () => {
   beforeAll(() => {
     execFileSync(
-      ESBUILD,
-      ['src/index.ts', '--bundle', '--platform=node', '--outfile=dist/lappe-linter-bundle.cjs', '--log-level=error'],
-      {cwd: CLI_DIR},
+        ESBUILD,
+        ['src/index.ts', '--bundle', '--platform=node', '--outfile=dist/lappe-linter-bundle.cjs', '--log-level=error'],
+        {cwd: CLI_DIR},
     );
   }, 60000);
 

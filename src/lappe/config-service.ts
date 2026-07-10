@@ -280,9 +280,9 @@ export class LappeConfigService {
   /** The current combined sort control state read from the config. */
   yamlKeySortState(): {keys: string[]; defaults: Record<string, string>} {
     const stanza = this.current?.defaults?.rules?.['yaml-key-sort'] ?? {};
-    const keys = Array.isArray(stanza['priority-keys'])
-      ? (stanza['priority-keys'] as unknown[]).filter((k): k is string => typeof k === 'string')
-      : [];
+    const keys = Array.isArray(stanza['priority-keys']) ?
+      (stanza['priority-keys'] as unknown[]).filter((k): k is string => typeof k === 'string') :
+      [];
     const rawDefaults = stanza['defaults'];
     const defaults: Record<string, string> = {};
     if (rawDefaults && typeof rawDefaults === 'object' && !Array.isArray(rawDefaults)) {

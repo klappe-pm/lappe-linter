@@ -20,11 +20,11 @@ describe('new-rule scaffolding (dec-003)', () => {
     const barrelPath = path.join(dir, 'packages', 'core', 'src', 'rules-custom', 'index.ts');
 
     const rule = fs.readFileSync(rulePath, 'utf8');
-    expect(rule).toContain("id: 'no-trailing-space'");
+    expect(rule).toContain('id: \'no-trailing-space\'');
     expect(rule).toContain('export const noTrailingSpaceRule: CoreRule');
 
     const test = fs.readFileSync(testPath, 'utf8');
-    expect(test).toContain("from '../../src/rules-custom/no-trailing-space'");
+    expect(test).toContain('from \'../../src/rules-custom/no-trailing-space\'');
 
     const barrel = fs.readFileSync(barrelPath, 'utf8');
     expect(barrel).toContain('registerCustomRules');
@@ -46,7 +46,7 @@ describe('new-rule scaffolding (dec-003)', () => {
     const result = await runCli(['new-rule', 'second-rule'], nested);
     expect(result.code).toBe(0);
     expect(fs.readFileSync(barrelPath, 'utf8')).toBe(existingBarrel);
-    expect(result.out).toContain("import {secondRuleRule} from './second-rule';");
+    expect(result.out).toContain('import {secondRuleRule} from \'./second-rule\';');
   });
 
   it('rejects non-kebab-case names with a hint', async () => {

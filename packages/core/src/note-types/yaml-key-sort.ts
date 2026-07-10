@@ -24,13 +24,13 @@ export const yamlKeySort: CoreRule = {
   description: 'Sort frontmatter keys into the configured order (priority-keys first, remaining alphabetical, aliases and tags last), inserting configured default keys when absent.',
   defaultOptions: {'priority-keys': [], 'defaults': {}},
   apply: (text, options) => {
-    const priorityKeys = Array.isArray(options['priority-keys'])
-      ? (options['priority-keys'] as string[]).filter((key) => typeof key === 'string')
-      : [];
+    const priorityKeys = Array.isArray(options['priority-keys']) ?
+      (options['priority-keys'] as string[]).filter((key) => typeof key === 'string') :
+      [];
     const defaults =
-      options['defaults'] && typeof options['defaults'] === 'object' && !Array.isArray(options['defaults'])
-        ? (options['defaults'] as Record<string, FlatScalar | Array<FlatScalar> | null>)
-        : {};
+      options['defaults'] && typeof options['defaults'] === 'object' && !Array.isArray(options['defaults']) ?
+        (options['defaults'] as Record<string, FlatScalar | Array<FlatScalar> | null>) :
+        {};
 
     const doc = splitDocument(text);
     if (!doc.has) {
@@ -43,15 +43,15 @@ export const yamlKeySort: CoreRule = {
 
     const loose = splitEntries(doc.yamlLines).filter((entry) => entry.key === null);
     const keyed = splitEntries(doc.yamlLines)
-      .map((entry, index) => ({entry, index}))
-      .filter(({entry}) => entry.key !== null);
+        .map((entry, index) => ({entry, index}))
+        .filter(({entry}) => entry.key !== null);
     let sorted = [...keyed]
-      .sort(
-        (a, b) =>
-          compareRank(rankKey(a.entry.key as string, priorityKeys), rankKey(b.entry.key as string, priorityKeys)) ||
+        .sort(
+            (a, b) =>
+              compareRank(rankKey(a.entry.key as string, priorityKeys), rankKey(b.entry.key as string, priorityKeys)) ||
           a.index - b.index,
-      )
-      .map(({entry}) => entry);
+        )
+        .map(({entry}) => entry);
 
     for (const [key, value] of Object.entries(defaults)) {
       if (Object.prototype.hasOwnProperty.call(data, key)) {

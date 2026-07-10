@@ -30,11 +30,11 @@ export const noteTypeKeySort: CoreRule = {
     const entries = splitEntries(doc.yamlLines);
     const loose = entries.filter((entry) => entry.key === null);
     const keyed = entries
-      .map((entry, index) => ({entry, index}))
-      .filter(({entry}) => entry.key !== null);
+        .map((entry, index) => ({entry, index}))
+        .filter(({entry}) => entry.key !== null);
     const sorted = [...keyed].sort(
-      (a, b) =>
-        compareRank(rankKey(a.entry.key as string, keyOrder), rankKey(b.entry.key as string, keyOrder)) ||
+        (a, b) =>
+          compareRank(rankKey(a.entry.key as string, keyOrder), rankKey(b.entry.key as string, keyOrder)) ||
         a.index - b.index,
     );
     const yamlLines = entriesToLines([...loose, ...sorted.map(({entry}) => entry)]);

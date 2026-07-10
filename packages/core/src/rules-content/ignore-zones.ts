@@ -228,7 +228,7 @@ export function computeIgnoreZones(text: string): IgnoreZone[] {
   const lines = lineSpans(text);
   const blocks = blockZones(lines);
   return [...blocks, ...inlineZones(lines, blocks)].sort(
-    (a, b) => a.start - b.start || a.end - b.end,
+      (a, b) => a.start - b.start || a.end - b.end,
   );
 }
 
@@ -240,7 +240,7 @@ export function inZone(zones: IgnoreZone[], start: number, end: number = start +
 /** True when the line lies inside a whole-line (block) zone. */
 export function isLineBlockMasked(zones: IgnoreZone[], line: LineSpan): boolean {
   return zones.some(
-    (z) => BLOCK_KINDS.has(z.kind) && z.start <= line.start && z.end >= line.end,
+      (z) => BLOCK_KINDS.has(z.kind) && z.start <= line.start && z.end >= line.end,
   );
 }
 
@@ -250,10 +250,10 @@ export function isLineBlockMasked(zones: IgnoreZone[], line: LineSpan): boolean 
  * `replace` leaves that occurrence unchanged.
  */
 export function replaceOutsideZones(
-  text: string,
-  pattern: RegExp,
-  replace: (match: RegExpExecArray) => string,
-  zones: IgnoreZone[] = computeIgnoreZones(text),
+    text: string,
+    pattern: RegExp,
+    replace: (match: RegExpExecArray) => string,
+    zones: IgnoreZone[] = computeIgnoreZones(text),
 ): string {
   const flags = pattern.flags.includes('g') ? pattern.flags : pattern.flags + 'g';
   const re = new RegExp(pattern.source, flags);

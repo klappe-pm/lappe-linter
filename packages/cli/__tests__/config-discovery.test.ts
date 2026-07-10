@@ -65,26 +65,26 @@ describe('config discovery', () => {
 
   it('explain shows the profile chain and note type', async () => {
     fs.writeFileSync(
-      path.join(dir, 'linter.yaml'),
-      [
-        'version: 1',
-        'defaults:',
-        '  rules:',
-        '    strip-strong:',
-        '      enabled: true',
-        'profiles:',
-        '  tasks:',
-        '    match:',
-        '      frontmatter: {category: task}',
-        '    rules:',
-        '      strip-strong:',
-        '        enabled: false',
-        'note-types:',
-        '  task:',
-        '    match:',
-        '      frontmatter: {category: task}',
-        '',
-      ].join('\n'),
+        path.join(dir, 'linter.yaml'),
+        [
+          'version: 1',
+          'defaults:',
+          '  rules:',
+          '    strip-strong:',
+          '      enabled: true',
+          'profiles:',
+          '  tasks:',
+          '    match:',
+          '      frontmatter: {category: task}',
+          '    rules:',
+          '      strip-strong:',
+          '        enabled: false',
+          'note-types:',
+          '  task:',
+          '    match:',
+          '      frontmatter: {category: task}',
+          '',
+        ].join('\n'),
     );
     fs.writeFileSync(path.join(dir, 'todo.md'), '---\ncategory: task\n---\n\nBody.\n');
     const result = await runCli(['explain', 'todo.md'], dir);

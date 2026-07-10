@@ -16,10 +16,10 @@ import {isIgnored, reportConfigErrors} from './lint-run';
 export const DEFAULT_STDIN_PATH = 'stdin.md';
 
 export async function runStdinFix(
-  flags: CliFlags,
-  io: CliIo,
-  cache: ConfigCache,
-  today: string,
+    flags: CliFlags,
+    io: CliIo,
+    cache: ConfigCache,
+    today: string,
 ): Promise<number> {
   const input = await io.readStdin();
   const cfg = flags.config !== undefined ? cache.loadPath(flags.config, io.cwd) : cache.forDir(io.cwd);

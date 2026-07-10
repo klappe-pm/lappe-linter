@@ -33,7 +33,7 @@ export const replaceEmDash: CoreRule = {
   category: 'content',
   description:
     'Replace em dashes and connector en dashes with a configured separator (default comma plus space), preserving numeric en dash ranges.',
-  defaultOptions: {replacement: ', ', 'word-joining': false},
+  defaultOptions: {'replacement': ', ', 'word-joining': false},
   apply: (text, options: CoreRuleOptions) => {
     const replacement = typeof options.replacement === 'string' ? options.replacement : ', ';
     const wordJoining = options['word-joining'] === true;

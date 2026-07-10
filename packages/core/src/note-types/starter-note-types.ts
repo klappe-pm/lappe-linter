@@ -17,22 +17,22 @@ export const STARTER_STATUS_VALUES = ['NEW', 'DRAFT', 'INPRG', 'REVIEW', 'DONE',
 
 function starterSchema(type: string): NoteTypeSchema {
   return {
-    required: {
-      domain: null,
-      category: null,
+    'required': {
+      'domain': null,
+      'category': null,
       'sub-category': null,
       type,
-      status: 'NEW',
-      aliases: [],
-      tags: [],
+      'status': 'NEW',
+      'aliases': [],
+      'tags': [],
     },
     'key-order': [...STARTER_KEY_ORDER],
-    values: {
+    'values': {
       type: [type],
       status: [...STARTER_STATUS_VALUES],
     },
     'date-keys': {created: 'date-created', revised: 'date-revised'},
-    match: {frontmatter: {type}},
+    'match': {frontmatter: {type}},
   };
 }
 

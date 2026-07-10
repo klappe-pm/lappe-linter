@@ -19,7 +19,7 @@ describe('kebabCaseName', () => {
     ['  __hello__  ', 'hello'],
     ['---edge---', 'edge'],
     ['!!!Hello, World!!!', 'hello-world'],
-    ["Kevin's Notes", 'kevins-notes'],
+    ['Kevin\'s Notes', 'kevins-notes'],
     ['v3.0.0', 'v300'],
     ['', ''],
     ['📓', ''],

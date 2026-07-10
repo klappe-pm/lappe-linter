@@ -25,10 +25,10 @@ export const DEFAULT_PRIORITY_KEYS = [
 
 export function defaultLinterConfig(): LinterConfig {
   return {
-    version: 1,
-    defaults: {
+    'version': 1,
+    'defaults': {
       rules: {
-        'yaml-key-sort': {enabled: true, 'priority-keys': [...DEFAULT_PRIORITY_KEYS]},
+        'yaml-key-sort': {'enabled': true, 'priority-keys': [...DEFAULT_PRIORITY_KEYS]},
         'yaml-timestamp': {enabled: true},
         'alphabetize-property-values': {enabled: true},
         'h1-matches-stem': {enabled: true},
@@ -38,7 +38,7 @@ export function defaultLinterConfig(): LinterConfig {
         'header-case': {enabled: true},
         // Body defaults (dec-005): one blank line between blocks, dash bullets,
         // tight lists. Users adjust these in the Body settings section.
-        'paragraph-spacing': {enabled: true, 'blank-lines': 1},
+        'paragraph-spacing': {'enabled': true, 'blank-lines': 1},
         'list-style': {enabled: true, marker: '-', tighten: true},
         // The code-check rules are on but no-op until an individual check in
         // the code-checks section is enabled (all built-ins default off).
@@ -46,10 +46,10 @@ export function defaultLinterConfig(): LinterConfig {
         'code-checks-fix': {enabled: true},
       },
     },
-    profiles: {},
+    'profiles': {},
     'note-types': {},
-    rename: {mode: 'flag'},
-    ignore: {folders: [], files: []},
+    'rename': {mode: 'flag'},
+    'ignore': {folders: [], files: []},
   };
 }
 

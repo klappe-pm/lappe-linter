@@ -137,9 +137,9 @@ function tagsOf(frontmatter: FlatFrontmatter): string[] {
   const raw = frontmatter['tags'] ?? frontmatter['tag'];
   if (Array.isArray(raw)) {
     return raw
-      .filter((v): v is Scalar =>
-        typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean')
-      .map(normalizeTag);
+        .filter((v): v is Scalar =>
+          typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean')
+        .map(normalizeTag);
   }
   if (typeof raw === 'string') {
     return raw.split(/[,\s]+/).filter(Boolean).map(normalizeTag);
@@ -157,13 +157,13 @@ function tagsOf(frontmatter: FlatFrontmatter): string[] {
  * applies only via the explicit `linter-profile` frontmatter override.
  */
 export function compileProfileMatch(match: ProfileMatch): CompiledMatch {
-  const extensions = match.extension?.length
-    ? new Set(match.extension.map((e) => e.toLowerCase()))
-    : null;
+  const extensions = match.extension?.length ?
+    new Set(match.extension.map((e) => e.toLowerCase())) :
+    null;
   const globs = match.path?.length ? match.path.map(compileGlob) : null;
-  const frontmatterEntries = match.frontmatter && Object.keys(match.frontmatter).length
-    ? Object.entries(match.frontmatter)
-    : null;
+  const frontmatterEntries = match.frontmatter && Object.keys(match.frontmatter).length ?
+    Object.entries(match.frontmatter) :
+    null;
   const wantedTags = match.tag?.length ? match.tag.map(normalizeTag) : null;
   const wantedAges = match.age?.length ? match.age.slice() : null;
   const createdRange = match['date-created'] ?? null;

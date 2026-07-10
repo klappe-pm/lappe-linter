@@ -26,7 +26,7 @@ export const noteTypeInsertKeys: CoreRule = {
       return text;
     }
     const inserts = Object.entries(required).filter(
-      ([key, defaultValue]) => defaultValue !== null && !(key in data),
+        ([key, defaultValue]) => defaultValue !== null && !(key in data),
     );
     if (inserts.length === 0) {
       return text;

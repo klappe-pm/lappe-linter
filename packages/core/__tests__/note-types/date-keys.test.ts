@@ -18,7 +18,7 @@ describe('note-type-date-keys', () => {
     const before = '---\ndomain: d\ntype: task\nstatus: NEW\n---\nBody.\n';
     const after = apply(before, before);
     expect(after).toBe(
-      `---\ndomain: d\ndate-created: ${TODAY}\ndate-revised: ${TODAY}\ntype: task\nstatus: NEW\n---\nBody.\n`,
+        `---\ndomain: d\ndate-created: ${TODAY}\ndate-revised: ${TODAY}\ntype: task\nstatus: NEW\n---\nBody.\n`,
     );
   });
 

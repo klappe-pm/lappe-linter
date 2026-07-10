@@ -108,7 +108,7 @@ describe('mixed adversarial document through the full fix pipeline', () => {
     expect(text).toContain(`[[Wiki ${EM_DASH} **Page**]]`);
 
     expect(text).toContain(
-      'This intro paragraph was hard-wrapped, it also has bold and strong text across three lines.',
+        'This intro paragraph was hard-wrapped, it also has bold and strong text across three lines.',
     );
     expect(text).toContain('- outer one\n  - inner one\n- outer two');
     expect(text).toContain('Pack: rope, water, and a map.');

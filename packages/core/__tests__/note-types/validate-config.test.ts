@@ -2,7 +2,7 @@ import {LinterConfig} from '../../src/config/types';
 import {starterNoteTypes, validateNoteTypes} from '../../src/note-types';
 
 const config = (noteTypes: unknown): LinterConfig =>
-  ({version: 1, 'note-types': noteTypes} as LinterConfig);
+  ({'version': 1, 'note-types': noteTypes} as LinterConfig);
 
 describe('validateNoteTypes', () => {
   it('accepts the starter note types', () => {

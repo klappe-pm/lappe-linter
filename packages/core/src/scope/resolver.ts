@@ -32,12 +32,12 @@ function compiledFor(config: LinterConfig): CompiledConfig {
     return cached;
   }
   const profiles: CompiledProfile[] = Object.entries(config.profiles ?? {}).map(
-    ([name, profile], index) => ({
-      name,
-      index,
-      match: profile.match ? compileProfileMatch(profile.match) : EMPTY_MATCH,
-      rules: profile.rules,
-    }),
+      ([name, profile], index) => ({
+        name,
+        index,
+        match: profile.match ? compileProfileMatch(profile.match) : EMPTY_MATCH,
+        rules: profile.rules,
+      }),
   );
   const compiled: CompiledConfig = {
     profiles,
@@ -85,8 +85,8 @@ export function resolveProfile(facts: FileFacts, config: LinterConfig): Resolved
     }
   }
   matched.sort(
-    (a, b) =>
-      a.rank - b.rank || a.pathDepth - b.pathDepth || a.profile.index - b.profile.index,
+      (a, b) =>
+        a.rank - b.rank || a.pathDepth - b.pathDepth || a.profile.index - b.profile.index,
   );
 
   let chain = matched.map((m) => m.profile);

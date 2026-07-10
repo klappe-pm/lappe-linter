@@ -50,14 +50,14 @@ function rewriteMdTarget(target: string, renames: Map<string, string>): string {
 
 function rewriteSegment(segment: string, renames: Map<string, string>): string {
   return segment
-    .replace(WIKILINK_RE, (whole, inner: string) => {
-      const next = rewriteWikiInner(inner, renames);
-      return next === inner ? whole : `[[${next}]]`;
-    })
-    .replace(MD_LINK_RE, (whole, label: string, target: string) => {
-      const next = rewriteMdTarget(target, renames);
-      return next === target ? whole : `[${label}](${next})`;
-    });
+      .replace(WIKILINK_RE, (whole, inner: string) => {
+        const next = rewriteWikiInner(inner, renames);
+        return next === inner ? whole : `[[${next}]]`;
+      })
+      .replace(MD_LINK_RE, (whole, label: string, target: string) => {
+        const next = rewriteMdTarget(target, renames);
+        return next === target ? whole : `[${label}](${next})`;
+      });
 }
 
 /**
@@ -72,15 +72,15 @@ export function rewriteLinks(text: string, renames: Map<string, string>): string
   }
   const fence = createFenceState();
   return text
-    .split('\n')
-    .map((rawLine) => {
-      const line = rawLine.replace(/\r$/, '');
-      const wasInFence = fence.open !== null;
-      const isDelimiter = consumeFenceLine(line, fence);
-      if (wasInFence || isDelimiter) {
-        return rawLine;
-      }
-      return mapOutsideInlineCode(rawLine, (segment) => rewriteSegment(segment, renames));
-    })
-    .join('\n');
+      .split('\n')
+      .map((rawLine) => {
+        const line = rawLine.replace(/\r$/, '');
+        const wasInFence = fence.open !== null;
+        const isDelimiter = consumeFenceLine(line, fence);
+        if (wasInFence || isDelimiter) {
+          return rawLine;
+        }
+        return mapOutsideInlineCode(rawLine, (segment) => rewriteSegment(segment, renames));
+      })
+      .join('\n');
 }

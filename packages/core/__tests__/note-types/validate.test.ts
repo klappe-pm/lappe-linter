@@ -52,14 +52,14 @@ describe('collectNoteTypeViolations', () => {
   it('reports nested maps in managed keys', () => {
     const text = clean.replace('status: NEW', 'status:\n  state: NEW');
     expect(collectNoteTypeViolations(text, schema)).toContain(
-      'status: nested maps are not allowed in managed keys',
+        'status: nested maps are not allowed in managed keys',
     );
   });
 
   it('reports list items that are not flat scalars', () => {
     const text = clean.replace('  - project', '  - nested: map');
     expect(collectNoteTypeViolations(text, schema)).toContain(
-      'tags: list items must be flat scalars',
+        'tags: list items must be flat scalars',
     );
   });
 

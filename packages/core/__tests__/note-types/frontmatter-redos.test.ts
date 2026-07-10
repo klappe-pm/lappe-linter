@@ -43,7 +43,7 @@ describe('splitEntries ReDoS resistance (SEC-001)', () => {
       'plain: value',
       'spaced key : value',
       '"quoted: key": value',
-      "'single: key': value",
+      '\'single: key\': value',
       'trailer  :',
       '  indented: not a top-level key',
       '- list item',

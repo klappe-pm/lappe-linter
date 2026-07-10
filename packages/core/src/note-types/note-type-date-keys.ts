@@ -47,9 +47,9 @@ export const noteTypeDateKeys: CoreRule = {
       const data = parseFrontmatterData(doc.yamlLines);
       if (data !== null && !(created in data)) {
         const entries = insertRanked(
-          splitEntries(doc.yamlLines),
-          {key: created, lines: [`${created}: ${today}`]},
-          keyOrder,
+            splitEntries(doc.yamlLines),
+            {key: created, lines: [`${created}: ${today}`]},
+            keyOrder,
         );
         out = joinDocument({has: true, yamlLines: entriesToLines(entries), bodyLines: doc.bodyLines});
       }

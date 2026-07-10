@@ -33,8 +33,8 @@ export const BUILTIN_CODE_CHECKS: Record<string, CodeCheckConfig> = {
     enabled: false,
     description: 'Flag GNU-only shell idioms that break on macOS BSD userland.',
     languages: ['sh', 'bash', 'zsh', 'shell'],
-    pattern: "sed\\s+-i(?!\\s+'')(?=\\s|$)|\\breadlink\\s+-f\\b|\\bflock\\b|(?<![.\\w-])timeout\\s+\\d",
-    message: "GNU-only shell idiom; use sed -i '' and python3 equivalents for portability",
+    pattern: 'sed\\s+-i(?!\\s+\'\')(?=\\s|$)|\\breadlink\\s+-f\\b|\\bflock\\b|(?<![.\\w-])timeout\\s+\\d',
+    message: 'GNU-only shell idiom; use sed -i \'\' and python3 equivalents for portability',
   },
   'no-trailing-whitespace-in-code': {
     enabled: false,
@@ -56,8 +56,8 @@ interface CompiledCheck {
 
 /** Merge built-ins under user config (user wins) and compile the enabled ones. */
 export function compileCodeChecks(
-  configured: Record<string, CodeCheckConfig> | undefined,
-  wantFixing: boolean,
+    configured: Record<string, CodeCheckConfig> | undefined,
+    wantFixing: boolean,
 ): CompiledCheck[] {
   const merged: Record<string, CodeCheckConfig> = {...BUILTIN_CODE_CHECKS};
   for (const [id, check] of Object.entries(configured ?? {})) {
@@ -153,9 +153,9 @@ function checkAppliesTo(check: CompiledCheck, language: string, path: string | u
  * detail (the runner's violations carry only the rule description).
  */
 export function collectCodeCheckViolations(
-  text: string,
-  configured: Record<string, CodeCheckConfig> | undefined,
-  path?: string,
+    text: string,
+    configured: Record<string, CodeCheckConfig> | undefined,
+    path?: string,
 ): CodeCheckViolation[] {
   const checks = compileCodeChecks(configured, false);
   if (checks.length === 0) {
@@ -187,9 +187,9 @@ export function collectCodeCheckViolations(
 
 /** Apply fixing checks (those with fix.replacement) inside fences only. */
 function applyFixingChecks(
-  text: string,
-  configured: Record<string, CodeCheckConfig> | undefined,
-  path?: string,
+    text: string,
+    configured: Record<string, CodeCheckConfig> | undefined,
+    path?: string,
 ): string {
   const checks = compileCodeChecks(configured, true);
   if (checks.length === 0) {

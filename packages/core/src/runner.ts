@@ -63,9 +63,9 @@ function isEnabled(rule: CoreRule, cfg: ResolvedRuleConfig): boolean {
  */
 export function runRules(text: string, opts: RunOptions = {}): RunResult {
   const cfg = opts.rules ?? {};
-  const rules = opts.only
-    ? opts.only.map((id) => getRule(id)).filter((r): r is CoreRule => Boolean(r))
-    : applyOrder(getRules().filter((rule) => isEnabled(rule, cfg)), opts.order);
+  const rules = opts.only ?
+    opts.only.map((id) => getRule(id)).filter((r): r is CoreRule => Boolean(r)) :
+    applyOrder(getRules().filter((rule) => isEnabled(rule, cfg)), opts.order);
 
   const original = text;
   const violations: RuleViolation[] = [];

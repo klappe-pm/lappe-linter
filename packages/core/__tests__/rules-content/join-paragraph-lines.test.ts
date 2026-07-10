@@ -13,7 +13,7 @@ describe('join-paragraph-lines', () => {
     const input =
       'A paragraph that was\nwrapped by hand.\n- item one\n  - nested item\n- item two\n';
     expect(apply(input)).toBe(
-      'A paragraph that was wrapped by hand.\n- item one\n  - nested item\n- item two\n',
+        'A paragraph that was wrapped by hand.\n- item one\n  - nested item\n- item two\n',
     );
   });
 
@@ -31,7 +31,7 @@ describe('join-paragraph-lines', () => {
     const input =
       'intro line\nstill intro\n\n| col a | col b |\n| ----- | ----- |\n| text that was | wrapped |\n| by hand | here |\n';
     expect(apply(input)).toBe(
-      'intro line still intro\n\n| col a | col b |\n| ----- | ----- |\n| text that was | wrapped |\n| by hand | here |\n',
+        'intro line still intro\n\n| col a | col b |\n| ----- | ----- |\n| text that was | wrapped |\n| by hand | here |\n',
     );
   });
 

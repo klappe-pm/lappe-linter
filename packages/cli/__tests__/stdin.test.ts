@@ -26,20 +26,20 @@ describe('fix --stdin filter mode', () => {
 
   it('scope-resolves via --stdin-path', async () => {
     fs.writeFileSync(
-      path.join(dir, 'linter.yaml'),
-      [
-        BASIC_CONFIG,
-        'profiles:',
-        '  raw:',
-        '    match:',
-        '      path: ["raw/**"]',
-        '    rules:',
-        '      replace-em-dash:',
-        '        enabled: false',
-        '      strip-strong:',
-        '        enabled: false',
-        '',
-      ].join('\n'),
+        path.join(dir, 'linter.yaml'),
+        [
+          BASIC_CONFIG,
+          'profiles:',
+          '  raw:',
+          '    match:',
+          '      path: ["raw/**"]',
+          '    rules:',
+          '      replace-em-dash:',
+          '        enabled: false',
+          '      strip-strong:',
+          '        enabled: false',
+          '',
+        ].join('\n'),
     );
     const input = `Alpha${EM_DASH}beta.\n`;
     const scoped = await runCli(['fix', '--stdin', '--stdin-path', 'raw/x.md'], dir, input);

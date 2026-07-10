@@ -78,8 +78,8 @@ describe('exit code matrix (R4)', () => {
 
   it('files under ignore folders are skipped entirely', async () => {
     fs.writeFileSync(
-      path.join(dir, 'linter.yaml'),
-      `${BASIC_CONFIG}ignore:\n  folders: [templates]\n  files: [scratch.md]\n`,
+        path.join(dir, 'linter.yaml'),
+        `${BASIC_CONFIG}ignore:\n  folders: [templates]\n  files: [scratch.md]\n`,
     );
     writeFileEnsuringDir(path.join(dir, 'templates', 'tpl.md'), `Alpha${EM_DASH}beta.\n`);
     fs.writeFileSync(path.join(dir, 'scratch.md'), `Alpha${EM_DASH}beta.\n`);

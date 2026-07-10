@@ -34,15 +34,15 @@ export function kebabCaseName(stem: string): string {
     return stem;
   }
   return stem
-    .replace(/(\p{Lu}+)(\p{Lu}\p{Ll})/gu, '$1-$2')
-    .replace(/([\p{Ll}\p{Nd}])(\p{Lu})/gu, '$1-$2')
-    .normalize('NFKD')
-    .replace(/\p{M}+/gu, '')
-    .toLowerCase()
-    .replace(/[\s_]+/g, '-')
-    .replace(/[^\p{L}\p{N}-]+/gu, '')
-    .replace(/-{2,}/g, '-')
-    .replace(/^-+|-+$/g, '');
+      .replace(/(\p{Lu}+)(\p{Lu}\p{Ll})/gu, '$1-$2')
+      .replace(/([\p{Ll}\p{Nd}])(\p{Lu})/gu, '$1-$2')
+      .normalize('NFKD')
+      .replace(/\p{M}+/gu, '')
+      .toLowerCase()
+      .replace(/[\s_]+/g, '-')
+      .replace(/[^\p{L}\p{N}-]+/gu, '')
+      .replace(/-{2,}/g, '-')
+      .replace(/^-+|-+$/g, '');
 }
 
 /**

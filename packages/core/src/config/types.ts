@@ -1,5 +1,3 @@
-import {CoreRuleOptions} from '../rule';
-
 /**
  * Shared contract types for the linter.yaml control plane (F01), the scope
  * engine (F02), note-type schemas (F03), and the provider API (F08). Every

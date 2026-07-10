@@ -47,14 +47,14 @@ export const linterConfigJsonSchema: Record<string, unknown> = {
   type: 'object',
   required: ['version'],
   properties: {
-    version: {const: 1, description: 'Config schema version. Only 1 is valid.'},
-    defaults: {
+    'version': {const: 1, description: 'Config schema version. Only 1 is valid.'},
+    'defaults': {
       type: 'object',
       description: 'Rule configuration applied to every file unless a profile overrides it.',
       properties: {rules},
       additionalProperties: false,
     },
-    profiles: {
+    'profiles': {
       type: 'object',
       description: 'Named rule overrides applied when a file matches.',
       additionalProperties: {
@@ -69,7 +69,7 @@ export const linterConfigJsonSchema: Record<string, unknown> = {
       additionalProperties: {
         type: 'object',
         properties: {
-          required: {
+          'required': {
             type: 'object',
             description: 'Required keys; value is the default inserted when absent (null = no default).',
             additionalProperties: {
@@ -81,7 +81,7 @@ export const linterConfigJsonSchema: Record<string, unknown> = {
             items: {type: 'string'},
             description: 'Key order; unlisted keys sort alphabetically after these.',
           },
-          values: {
+          'values': {
             type: 'object',
             description: 'Allowed value sets per key.',
             additionalProperties: {type: 'array', items: scalar},
@@ -100,7 +100,7 @@ export const linterConfigJsonSchema: Record<string, unknown> = {
         additionalProperties: false,
       },
     },
-    rename: {
+    'rename': {
       type: 'object',
       description: 'Filename rule behavior.',
       required: ['mode'],
@@ -112,7 +112,7 @@ export const linterConfigJsonSchema: Record<string, unknown> = {
       },
       additionalProperties: false,
     },
-    ignore: {
+    'ignore': {
       type: 'object',
       description: 'Paths the linter never touches.',
       properties: {
@@ -121,7 +121,7 @@ export const linterConfigJsonSchema: Record<string, unknown> = {
       },
       additionalProperties: false,
     },
-    providers: {
+    'providers': {
       type: 'object',
       description: 'Provider config namespaces; each mirrors defaults.',
       additionalProperties: {

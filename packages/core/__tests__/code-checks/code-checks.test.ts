@@ -32,7 +32,7 @@ describe('code-checks engine', () => {
   });
 
   it('portable sed -i with the empty BSD arg passes', () => {
-    const text = "```bash\nsed -i '' 's/a/b/' file.txt\n```\n";
+    const text = '```bash\nsed -i \'\' \'s/a/b/\' file.txt\n```\n';
     expect(collectCodeCheckViolations(text, enabled('no-gnu-only-flags-in-sh'))).toHaveLength(0);
   });
 
@@ -81,7 +81,7 @@ describe('code-checks enablement through lintText', () => {
     const {lintText, registerAllRules} = require('../../src/index');
     registerAllRules();
     const config = {
-      version: 1 as const,
+      'version': 1 as const,
       'code-checks': {'no-gnu-only-flags-in-sh': {...BUILTIN_CODE_CHECKS['no-gnu-only-flags-in-sh'], enabled: true}},
     };
     const result = lintText({

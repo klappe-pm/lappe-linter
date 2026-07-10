@@ -63,7 +63,7 @@ export function insertRanked(entries: YamlEntry[], entry: YamlEntry, keyOrder: s
   }
   const newRank = rankKey(entry.key, keyOrder);
   const index = entries.findIndex(
-    (existing) => existing.key !== null && compareRank(rankKey(existing.key, keyOrder), newRank) > 0,
+      (existing) => existing.key !== null && compareRank(rankKey(existing.key, keyOrder), newRank) > 0,
   );
   const out = [...entries];
   out.splice(index === -1 ? out.length : index, 0, entry);

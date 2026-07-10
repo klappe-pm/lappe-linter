@@ -561,9 +561,9 @@ export default class LinterPlugin extends Plugin {
     }
     const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter as {aliases?: unknown; alias?: unknown} | undefined;
     const rawAliases = frontmatter?.aliases ?? frontmatter?.alias;
-    const aliases = Array.isArray(rawAliases)
-      ? rawAliases.filter((a): a is string => typeof a === 'string')
-      : typeof rawAliases === 'string' ? [rawAliases] : [];
+    const aliases = Array.isArray(rawAliases) ?
+      rawAliases.filter((a): a is string => typeof a === 'string') :
+      typeof rawAliases === 'string' ? [rawAliases] : [];
     return {backlinks, aliases};
   }
 
