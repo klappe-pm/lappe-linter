@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "node esbuild.config.mjs",
-    "build": "node esbuild.config.mjs production",
+    "build": "npm run build -w @lappe-linter/core && node esbuild.config.mjs production",
     "test": "jest",
     "test-suite": "jest -t \"$1\"",
     "docs": "node docs.js",

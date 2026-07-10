@@ -40,6 +40,11 @@ export function vaultYamlValues(app: App, key: string): string[] {
  * in the list are always allowed; commit happens on Enter in the input itself.
  */
 export class ListSuggest extends AbstractInputSuggest<string> {
+  // Candidates can rescan the whole vault (vaultYamlKeys/vaultYamlValues), so
+  // cache them for the lifetime of one popover open instead of recomputing on
+  // every keystroke; close() drops the cache so the next focus refreshes.
+  private cached: string[] | null = null;
+
   constructor(
     app: App,
     private input: HTMLInputElement,
@@ -51,7 +56,13 @@ export class ListSuggest extends AbstractInputSuggest<string> {
 
   protected getSuggestions(inputStr: string): string[] {
     const lower = inputStr.toLowerCase();
-    return this.candidates().filter((value) => value.toLowerCase().contains(lower));
+    this.cached ??= this.candidates();
+    return this.cached.filter((value) => value.toLowerCase().contains(lower));
+  }
+
+  close(): void {
+    this.cached = null;
+    super.close();
   }
 
   renderSuggestion(value: string, el: HTMLElement): void {

@@ -78,6 +78,12 @@ const createEsbuildArgs = function(banner, entryPoint, outfile, extraPlugins) {
       ...extraPlugins,
     ],
     bundle: true,
+    // Compile core from its TS sources instead of the tsc CJS dist: esbuild
+    // can tree-shake the ESM sources, and the bundle can never pick up a
+    // stale packages/core/dist that a root build did not refresh.
+    alias: {
+      '@lappe-linter/core': './packages/core/src/index.ts',
+    },
     external: [
       'obsidian',
       ...builtins],

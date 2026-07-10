@@ -9,7 +9,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "bundle": "esbuild src/index.ts --bundle --platform=node --outfile=dist/lappe-linter-bundle.cjs",
+    "bundle": "tsc -p ../core/tsconfig.json && esbuild src/index.ts --bundle --platform=node --minify --outfile=dist/lappe-linter-bundle.cjs",
     "start": "node --loader ts-node/esm src/index.ts",
     "test": "jest"
   },

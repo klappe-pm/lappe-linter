@@ -1,5 +1,5 @@
 import {App, Notice, Setting} from 'obsidian';
-import {getRules, registerAllRules} from '@lappe-linter/core';
+import {getRules} from '@lappe-linter/core';
 import LinterPlugin from '../../../main';
 import {Tab} from './tab';
 import {ListSuggest, vaultYamlKeys, vaultYamlValues} from '../../../lappe/yaml-suggest';
@@ -17,7 +17,6 @@ export class LappeTab extends Tab {
 
   display(): void {
     this.contentEl.empty();
-    registerAllRules();
     const service = this.plugin.lappeConfig;
 
     // Config status header.
@@ -56,7 +55,6 @@ export class LappeTab extends Tab {
    */
   private displayKeySortSection(): void {
     const service = this.plugin.lappeConfig;
-    const state = service.yamlKeySortState();
 
     const section = this.contentEl.createDiv({cls: 'lappe-key-sort'});
     new Setting(section)
@@ -72,37 +70,7 @@ export class LappeTab extends Tab {
     listEl.style.maxHeight = '340px';
     listEl.style.overflowY = 'auto';
 
-    const persist = async (keys: string[], defaults: Record<string, string>) => {
-      await service.updateYamlKeySort(keys, defaults);
-      this.display();
-    };
-
-    if (state.keys.length === 0) {
-      listEl.createEl('div', {text: 'No keys yet. Add the first one below.'}).style.color = 'var(--text-muted)';
-    }
-    state.keys.forEach((key, index) => {
-      const row = new Setting(listEl).setName(`${index + 1}. ${key}`);
-      const defaultValue = state.defaults[key];
-      if (defaultValue !== undefined) {
-        row.setDesc(`default when missing: ${defaultValue}`);
-      }
-      row.addExtraButton((b) => b.setIcon('chevron-up').setTooltip('Move up').setDisabled(index === 0).onClick(() => {
-        const keys = [...state.keys];
-        [keys[index - 1], keys[index]] = [keys[index], keys[index - 1]];
-        void persist(keys, state.defaults);
-      }));
-      row.addExtraButton((b) => b.setIcon('chevron-down').setTooltip('Move down').setDisabled(index === state.keys.length - 1).onClick(() => {
-        const keys = [...state.keys];
-        [keys[index], keys[index + 1]] = [keys[index + 1], keys[index]];
-        void persist(keys, state.defaults);
-      }));
-      row.addExtraButton((b) => b.setIcon('x').setTooltip('Remove').onClick(() => {
-        const keys = state.keys.filter((k) => k !== key);
-        const defaults = {...state.defaults};
-        delete defaults[key];
-        void persist(keys, defaults);
-      }));
-    });
+    this.renderKeySortList(listEl);
 
     // Add row: key + optional default value, both autocomplete, Enter adds.
     const addRow = section.createDiv({cls: 'lappe-key-sort-add'});
@@ -115,7 +83,10 @@ export class LappeTab extends Tab {
     const valueInput = addRow.createEl('input', {type: 'text', placeholder: 'default value (optional)'});
     valueInput.style.flex = '2';
 
-    new ListSuggest(this.app, keyInput, () => vaultYamlKeys(this.app).filter((k) => !state.keys.includes(k)));
+    new ListSuggest(this.app, keyInput, () => {
+      const listed = service.yamlKeySortState().keys;
+      return vaultYamlKeys(this.app).filter((k) => !listed.includes(k));
+    });
     new ListSuggest(this.app, valueInput, () => keyInput.value.trim() === '' ? [] : vaultYamlValues(this.app, keyInput.value.trim()));
 
     const commit = () => {
@@ -123,16 +94,21 @@ export class LappeTab extends Tab {
       if (key === '') {
         return;
       }
-      if (state.keys.includes(key)) {
+      // Read fresh state: the list may have been edited since this closure
+      // was built, and the section is no longer rebuilt on every persist.
+      const current = service.yamlKeySortState();
+      if (current.keys.includes(key)) {
         new Notice(`lappe-linter: "${key}" is already in the list`);
         return;
       }
-      const defaults = {...state.defaults};
+      const defaults = {...current.defaults};
       const value = valueInput.value.trim();
       if (value !== '') {
         defaults[key] = value;
       }
-      void persist([...state.keys, key], defaults);
+      keyInput.value = '';
+      valueInput.value = '';
+      void this.persistKeySort(listEl, [...current.keys, key], defaults);
     };
 
     for (const input of [keyInput, valueInput]) {
@@ -156,7 +132,56 @@ export class LappeTab extends Tab {
         }));
     new Setting(section.createDiv())
         .setName('Timestamps')
-        .setDesc('date-created and date-revised are managed automatically (yyyy-MM-dd, time HHmm): created is set on first lint, revised bumps only when content actually changed. This is always on.');
+        .setDesc('date-created and date-revised are managed automatically as yyyy-MM-dd dates: created is set on first lint, revised bumps only when content actually changed. This is always on.');
+  }
+
+  /**
+   * Render only the ordered key list from fresh config state. Row edits call
+   * persistKeySort, which re-renders this list alone instead of rebuilding
+   * the whole tab, so scroll position and the add-row inputs survive edits.
+   */
+  private renderKeySortList(listEl: HTMLElement): void {
+    const state = this.plugin.lappeConfig.yamlKeySortState();
+    if (state.keys.length === 0) {
+      listEl.createEl('div', {text: 'No keys yet. Add the first one below.'}).style.color = 'var(--text-muted)';
+    }
+    state.keys.forEach((key, index) => {
+      const row = new Setting(listEl).setName(`${index + 1}. ${key}`);
+      const defaultValue = state.defaults[key];
+      if (defaultValue !== undefined) {
+        row.setDesc(`default when missing: ${defaultValue}`);
+      }
+      row.addExtraButton((b) => b.setIcon('chevron-up').setTooltip('Move up').setDisabled(index === 0).onClick(() => {
+        const keys = [...state.keys];
+        [keys[index - 1], keys[index]] = [keys[index], keys[index - 1]];
+        void this.persistKeySort(listEl, keys, state.defaults);
+      }));
+      row.addExtraButton((b) => b.setIcon('chevron-down').setTooltip('Move down').setDisabled(index === state.keys.length - 1).onClick(() => {
+        const keys = [...state.keys];
+        [keys[index], keys[index + 1]] = [keys[index + 1], keys[index]];
+        void this.persistKeySort(listEl, keys, state.defaults);
+      }));
+      row.addExtraButton((b) => b.setIcon('x').setTooltip('Remove').onClick(() => {
+        const keys = state.keys.filter((k) => k !== key);
+        const defaults = {...state.defaults};
+        delete defaults[key];
+        void this.persistKeySort(listEl, keys, defaults);
+      }));
+    });
+  }
+
+  private async persistKeySort(listEl: HTMLElement, keys: string[], defaults: Record<string, string>): Promise<void> {
+    const service = this.plugin.lappeConfig;
+    const hadConfig = service.path != null;
+    await service.updateYamlKeySort(keys, defaults);
+    if (!hadConfig) {
+      // The first edit just created linter.yaml; rebuild the whole tab so
+      // the status header reflects the new file.
+      this.display();
+      return;
+    }
+    listEl.empty();
+    this.renderKeySortList(listEl);
   }
 
   /** Enable/disable toggles for every registered core rule. */
@@ -164,7 +189,7 @@ export class LappeTab extends Tab {
     const service = this.plugin.lappeConfig;
     const config = service.config;
 
-    new Setting(this.contentEl).setName('Rules').setDesc('Core rules run on save and via the lappe-linter CLI, scoped by the profiles below. yaml-key-sort is managed by the sort order control above.').setHeading();
+    new Setting(this.contentEl).setName('Rules').setDesc('Core rules run on save and via the lappe-linter CLI, scoped by the profiles below. YAML key sort, timestamps, and property alphabetization are managed in the section above; note-type rules are configured per note type in linter.yaml.').setHeading();
 
     const managedElsewhere = new Set(['yaml-key-sort', 'yaml-timestamp', 'alphabetize-property-values']);
     const rules = getRules().filter((rule) => !managedElsewhere.has(rule.id) && !rule.id.startsWith('note-type-'));
@@ -188,7 +213,7 @@ export class LappeTab extends Tab {
     const service = this.plugin.lappeConfig;
     new Setting(this.contentEl)
         .setName('Styles')
-        .setDesc(`Style files in ${service.stylesFolder}/ apply automatically as profiles. Each file binds itself to folders, tags, or properties via its match block and overrides rules for what it matches.`)
+        .setDesc(`Style files in ${service.stylesFolder}/ apply automatically as profiles. Each file binds itself to folders, tags, or properties via its match block and overrides rules for what it matches. Styles currently apply inside Obsidian only; the lappe-linter CLI does not read this folder yet.`)
         .setHeading()
         .addButton((button) => button.setButtonText('New style').onClick(async () => {
           const name = `style-${service.styles.length + 1}`;

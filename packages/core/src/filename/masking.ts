@@ -1,11 +1,13 @@
 /**
  * Minimal code masking shared by the filename rules: fenced-block tracking
- * plus inline-code skipping, so rewrites never touch code. Local copy by
- * design; if rules-content ships an equivalent, the integrator can converge
- * them.
+ * plus inline-code skipping, so rewrites never touch code. The fence and
+ * inline-code definitions are imported from rules-content/ignore-zones so
+ * the two surfaces cannot drift apart.
  */
 
-const FENCE_RE = /^ {0,3}(`{3,}|~{3,})/;
+import {FENCE_OPEN, inlineCodeSpans} from '../rules-content/ignore-zones';
+
+const FENCE_RE = FENCE_OPEN;
 
 export interface FenceState {
   open: string | null;
@@ -38,13 +40,11 @@ export function consumeFenceLine(line: string, state: FenceState): boolean {
 
 /** Apply `fn` to the parts of a line outside inline code spans. */
 export function mapOutsideInlineCode(line: string, fn: (segment: string) => string): string {
-  const spanRe = /(`+)[\s\S]*?\1/g;
   let out = '';
   let last = 0;
-  let match: RegExpExecArray | null;
-  while ((match = spanRe.exec(line)) !== null) {
-    out += fn(line.slice(last, match.index)) + match[0];
-    last = match.index + match[0].length;
+  for (const [start, end] of inlineCodeSpans(line)) {
+    out += fn(line.slice(last, start)) + line.slice(start, end);
+    last = end;
   }
   return out + fn(line.slice(last));
 }

@@ -59,7 +59,8 @@ export function lineSpans(text: string): LineSpan[] {
   }
 }
 
-const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
+/** Fence delimiter: up to three spaces of indent then a backtick or tilde run. Shared with filename/masking.ts. */
+export const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
 const TABLE_DELIM_ROW = /^ {0,3}\|?[ \t]*:?-+:?[ \t]*(\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/;
 
 function blockZones(lines: LineSpan[]): IgnoreZone[] {
@@ -147,8 +148,9 @@ function blockZones(lines: LineSpan[]): IgnoreZone[] {
 /**
  * CommonMark-style code spans: a run of N backticks closes only on the next
  * run of exactly N backticks. Returns [start, end) offsets within the line.
+ * Exported so filename/masking.ts shares one inline-code definition.
  */
-function inlineCodeSpans(t: string): Array<[number, number]> {
+export function inlineCodeSpans(t: string): Array<[number, number]> {
   const spans: Array<[number, number]> = [];
   let i = 0;
   while (i < t.length) {
