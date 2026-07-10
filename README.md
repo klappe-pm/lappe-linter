@@ -6,16 +6,16 @@ This README is hand-maintained. Upstream's generated rule documentation lives on
 
 ## Monorepo Layout
 
-- Repo root: the Obsidian plugin, kept in the upstream layout ([dec-004](docs/plans/decisions.md)) so merges from upstream stay path-conflict-free.
+- Repo root: the Obsidian plugin, kept in the upstream layout (dec-004) so merges from upstream stay path-conflict-free.
 - `packages/core`: `@lappe-linter/core`, the pure rule core: rules, scope engine, config loader, note-type schemas, and the provider API. Zero `obsidian` imports, enforced by `packages/core/__tests__/no-obsidian.test.ts`.
 - `packages/cli`: `@lappe-linter/cli`, the headless runner (bin `lappe-linter`).
 - `scripts/harness`: Claude Code hook and pre-commit artifacts; installation is covered by [docs/harness/install.md](docs/harness/install.md).
 
-Feature specs and decisions live under [docs/plans/](docs/plans/).
+Planning and design docs live under [docs/plans/](docs/plans/).
 
 ## The linter.yaml Control Plane
 
-`linter.yaml` at the vault root is the single git-tracked source of truth for rule configuration, profiles, and note types; `lappe-linter.yaml` is an accepted alias and `linter.yaml` wins when both exist. The loader fails closed: an invalid file disables scoped linting with one notice instead of applying a partial config. When the file is absent, compiled defaults are active ([dec-005](docs/plans/decisions.md)); create it from the Lappe settings tab button or with `lappe-linter init`. The full schema reference is [docs/linter-yaml.md](docs/linter-yaml.md).
+`linter.yaml` at the vault root is the single git-tracked source of truth for rule configuration, profiles, and note types; `lappe-linter.yaml` is an accepted alias and `linter.yaml` wins when both exist. The loader fails closed: an invalid file disables scoped linting with one notice instead of applying a partial config. When the file is absent, compiled defaults are active (dec-005); create it from the Lappe settings tab button or with `lappe-linter init`. The full schema reference is [docs/linter-yaml.md](docs/linter-yaml.md).
 
 ## The Lappe Settings Tab
 

@@ -23,9 +23,10 @@ test-vault/.obsidian/*.json
 !test-vault/.obsidian/community-plugins.json
 # plugins
 !test-vault/.obsidian/plugins/hot-reload/*
-test-vault/.obsidian/plugins/obsidian-linter/*
-!test-vault/.obsidian/plugins/obsidian-linter/.hotreload
-!test-vault/.obsidian/plugins/obsidian-linter/data.json
+test-vault/.obsidian/plugins/lappe-linter/*
+!test-vault/.obsidian/plugins/lappe-linter/.hotreload
+!test-vault/.obsidian/plugins/lappe-linter/data.json
+!test-vault/.obsidian/plugins/lappe-linter/manifest.json
 test-vault/.obsidian/plugins/table-editor-obsidian/*
 !test-vault/.obsidian/plugins/table-editor-obsidian/.gitkeep
 
@@ -58,3 +59,6 @@ dist-plugin/
 
 # Session rigor anchor (local only)
 .claude-session-scope
+
+# Repo-root Obsidian vault config (local only; test-vault/.obsidian is a tracked fixture)
+/.obsidian/
