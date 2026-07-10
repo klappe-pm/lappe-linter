@@ -8,6 +8,7 @@ import {registerFilenameRules} from './filename';
 import {registerNoteTypeRules} from './note-types';
 import {registerContentRules} from './rules-content';
 
+/** Printed by the CLI --version; keep in lockstep with the workspace package.json versions on release. */
 export const CORE_VERSION = '1.32.0';
 
 export * from './rule';

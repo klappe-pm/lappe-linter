@@ -15,7 +15,7 @@ tags:
 
 ## Two Ways to Add a Rule
 
-Add a rule directly to core when it is general-purpose markdown hygiene that every vault wants: write a `CoreRule` under `packages/core/src/rules/`, register it from that area's barrel, and configure it under `defaults.rules` or a profile in `linter.yaml`. Ship a provider when the rules belong to another product surface (the product-management plugin, a client vault, an experiment) and must evolve without forking or re-releasing the linter. The provider path is the no-fork extension path: your package depends on `@lappe-linter/core`, contributes rules and note-type schemas at runtime, and the linter treats them exactly like built-ins.
+Add a rule directly to core when it is general-purpose markdown hygiene that every vault wants: write a `CoreRule` under the matching `packages/core/src/` area (`rules-content/` for markdown transforms, `note-types/` for frontmatter schema rules, `filename/` for naming rules), register it from that area's barrel, or run `lappe-linter new-rule <name>` to scaffold the rule, its test, and its registration under `packages/core/src/rules-custom/`; then configure it under `defaults.rules` or a profile in `linter.yaml`. Ship a provider when the rules belong to another product surface (the product-management plugin, a client vault, an experiment) and must evolve without forking or re-releasing the linter. The provider path is the no-fork extension path: your package depends on `@lappe-linter/core`, contributes rules and note-type schemas at runtime, and the linter treats them exactly like built-ins.
 
 ## Writing a Provider
 

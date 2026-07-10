@@ -132,5 +132,6 @@ export function runNewRule(name: string, io: CliIo): number {
     io.stdout('  1. In packages/core/src/index.ts, import {registerCustomRules} from \'./rules-custom\' and call it inside registerAllRules().\n');
   }
   io.stdout(`  2. Enable it in linter.yaml:  defaults.rules.${name}.enabled: true\n`);
+  io.stdout('\nAuthoring guide: packages/core/src/providers/authoring-guide.md (covers rule purity rules and the provider API)\n');
   return 0;
 }

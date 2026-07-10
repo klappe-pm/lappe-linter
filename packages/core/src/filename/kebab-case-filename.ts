@@ -33,7 +33,7 @@ export function proposeRename(path: string | undefined): RenameProposal | null {
 export const kebabCaseFilenameRule: CoreRule = {
   id: 'kebab-case-filename',
   category: 'filename',
-  description: 'Filename stem should be kebab-case; the rename itself executes plugin/CLI-side.',
+  description: 'Flag filenames that are not kebab-case and propose the compliant name; the rename runs only where rename mode allows it.',
   reportOnly: true,
   apply: (text, _options, ctx) => {
     const proposal = proposeRename(ctx?.path);

@@ -176,7 +176,7 @@ describe('example product provider end-to-end', () => {
     expect(result.violations).toEqual([
       {
         rule: 'product/epic-requires-parent-project',
-        message: 'epic notes must declare a parent-project key in frontmatter',
+        message: 'Epic notes must declare a parent-project key in their frontmatter.',
         fixed: false,
       },
     ]);

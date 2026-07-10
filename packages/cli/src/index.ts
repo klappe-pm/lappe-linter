@@ -27,12 +27,14 @@ Commands:
   fix --stdin          Filter mode: read stdin, write fixed text to stdout
   explain <path>       Show the governing config, profile chain, and rule set
   new-rule <name>      Scaffold a custom core rule, its test, and registration
+                       (see packages/core/src/providers/authoring-guide.md)
   init                 Write a starter linter.yaml to the current directory
 
 Flags:
   --config <path>      Config file (default: nearest linter.yaml or
                        lappe-linter.yaml walking up from each target;
-                       linter.yaml wins in the same directory)
+                       linter.yaml wins in the same directory; linter-styles/
+                       profile fragments apply inside Obsidian only for now)
   --json               One JSON line per file (output-version 1)
   --changed            Also target git-changed .md files (HEAD diff + staged)
   --allow-rename       Allow fix to execute renames when rename.mode: rename

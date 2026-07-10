@@ -24,7 +24,7 @@ function frontmatterEnd(lines: string[]): number {
 export const h1MatchesStemRule: CoreRule = {
   id: 'h1-matches-stem',
   category: 'filename',
-  description: 'First H1 must match the filename stem; it is rewritten in place or inserted after frontmatter.',
+  description: 'Keep the first H1 equal to the filename stem, rewriting it in place or inserting it after the frontmatter.',
   apply: (text, _options, ctx) => {
     const path = ctx?.path;
     if (!path) {

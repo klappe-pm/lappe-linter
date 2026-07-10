@@ -543,6 +543,7 @@ export default class LinterPlugin extends Plugin {
     }
   }
 
+  /** Palette commands: inspect the resolved profile for the active file, and create linter.yaml. Both are diagnostics; neither mutates note content. */
   private addLappeCommands() {
     this.addCommand({
       id: 'lappe-show-resolved-profile',

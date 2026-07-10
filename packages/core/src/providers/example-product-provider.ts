@@ -29,7 +29,7 @@ function isEpic(frontmatter: string | null, ctx?: CoreRuleContext): boolean {
 const epicRequiresParentProject: CoreRule = {
   id: 'epic-requires-parent-project',
   category: 'provider',
-  description: 'epic notes must declare a parent-project key in frontmatter',
+  description: 'Epic notes must declare a parent-project key in their frontmatter.',
   reportOnly: true,
   apply: (text, _options, ctx) => {
     const frontmatter = frontmatterBlock(text);
