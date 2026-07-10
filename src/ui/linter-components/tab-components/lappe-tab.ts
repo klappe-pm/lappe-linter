@@ -1,4 +1,4 @@
-import {App, Notice, Setting} from 'obsidian';
+import {App, Notice, Setting, TFolder} from 'obsidian';
 import {getRules} from '@lappe-linter/core';
 import LinterPlugin from '../../../main';
 import {Tab} from './tab';
@@ -44,6 +44,7 @@ export class LappeTab extends Tab {
 
     this.displayKeySortSection();
     this.displayRuleToggles();
+    this.displayExcludedFoldersSection();
     this.displayTestFilesSection();
     this.displayStylesSection();
     this.displayScopesSummary();
@@ -202,6 +203,55 @@ export class LappeTab extends Tab {
           .addToggle((toggle) => toggle.setValue(stanza?.enabled === true).onChange(async (value) => {
             await service.setDefaultRuleEnabled(rule.id, value);
           }));
+    }
+  }
+
+  /**
+   * A checkbox per vault folder; checked means excluded. Each toggle is one
+   * comment-preserving write of ignore.folders in linter.yaml (the service
+   * serializes concurrent toggles). Plain checkbox rows instead of Setting
+   * toggles keep the render cheap in large vaults.
+   */
+  private displayExcludedFoldersSection(): void {
+    const service = this.plugin.lappeConfig;
+    new Setting(this.contentEl)
+        .setName('Excluded folders')
+        .setDesc('Checked folders are skipped by the scoped core rules: checking writes the folder into ignore.folders in linter.yaml, unchecking removes it. Comments in the file are preserved.')
+        .setHeading();
+
+    const listEl = this.contentEl.createDiv({cls: 'lappe-excluded-folders'});
+    listEl.style.border = '1px solid var(--background-modifier-border)';
+    listEl.style.borderRadius = '8px';
+    listEl.style.padding = '8px';
+    listEl.style.marginBottom = '8px';
+    listEl.style.maxHeight = '300px';
+    listEl.style.overflowY = 'auto';
+
+    const folders = this.app.vault.getAllLoadedFiles()
+        .filter((file): file is TFolder => file instanceof TFolder && !file.isRoot())
+        .sort((a, b) => a.path.localeCompare(b.path));
+    if (folders.length === 0) {
+      listEl.createEl('div', {text: 'No folders in this vault.'}).style.color = 'var(--text-muted)';
+      return;
+    }
+
+    const ignored = new Set(service.ignoredFolders());
+    for (const folder of folders) {
+      const depth = folder.path.split('/').length - 1;
+      const row = listEl.createEl('label');
+      row.style.display = 'flex';
+      row.style.alignItems = 'center';
+      row.style.gap = '8px';
+      row.style.padding = '2px 0';
+      row.style.paddingLeft = `${depth * 20}px`;
+      row.style.cursor = 'pointer';
+      row.title = folder.path;
+      const checkbox = row.createEl('input', {type: 'checkbox'});
+      checkbox.checked = ignored.has(folder.path);
+      row.createEl('span', {text: `${folder.name}/`});
+      checkbox.addEventListener('change', () => {
+        void service.setIgnoredFolder(folder.path, checkbox.checked);
+      });
     }
   }
 

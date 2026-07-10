@@ -27,6 +27,9 @@ export class LappeConfigService {
   private lastErrorNotice = '';
   private styleNames: string[] = [];
   private styleErrors: Array<{name: string; message: string}> = [];
+  // Serializes ignore-list writes: rapid checkbox toggles queue up instead of
+  // racing read-modify-write cycles that would drop each other's edits.
+  private ignoreWriteChain: Promise<void> = Promise.resolve();
 
   constructor(private app: App) {}
 
@@ -246,6 +249,35 @@ export class LappeConfigService {
       }
     }
     return {keys, defaults};
+  }
+
+  /** Folder paths currently excluded via ignore.folders, trailing slash stripped. */
+  ignoredFolders(): string[] {
+    return (this.current?.ignore?.folders ?? []).map((folder) => folder.replace(/\/+$/, ''));
+  }
+
+  /**
+   * Add or remove one folder path in ignore.folders, comment-preserving.
+   * Exactly one file write per call; concurrent calls run in sequence.
+   */
+  async setIgnoredFolder(path: string, ignored: boolean): Promise<void> {
+    const normalized = path.replace(/\/+$/, '');
+    const run = this.ignoreWriteChain.then(() => this.writeConfigUpdate((doc) => {
+      const node = doc.getIn(['ignore', 'folders']);
+      const raw = node != null && typeof (node as {toJSON?: () => unknown}).toJSON === 'function' ?
+        (node as {toJSON: () => unknown}).toJSON() : [];
+      const folders = (Array.isArray(raw) ? raw : [])
+          .filter((value): value is string => typeof value === 'string')
+          .map((value) => value.replace(/\/+$/, ''));
+      const next = folders.filter((folder) => folder !== normalized);
+      if (ignored) {
+        next.push(normalized);
+      }
+      doc.setIn(['ignore', 'folders'], next);
+    }));
+    // Keep the chain alive after a failed write so later toggles still land.
+    this.ignoreWriteChain = run.catch(() => undefined);
+    return run;
   }
 
   /** True when the path is excluded by the config's ignore section. */
