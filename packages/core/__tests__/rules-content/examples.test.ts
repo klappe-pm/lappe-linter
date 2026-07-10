@@ -2,6 +2,8 @@ import {CoreRule} from '../../src/rule';
 import {
   headerCase,
   joinParagraphLines,
+  listStyle,
+  paragraphSpacing,
   proseListToSentences,
   proseListToSentencesFix,
   replaceEmDash,
@@ -15,6 +17,8 @@ const rules: CoreRule[] = [
   proseListToSentences,
   proseListToSentencesFix,
   headerCase,
+  paragraphSpacing,
+  listStyle,
 ];
 
 for (const rule of rules) {

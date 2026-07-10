@@ -36,6 +36,10 @@ export function defaultLinterConfig(): LinterConfig {
         // Enabled but a no-op until a heading level is assigned a style; the
         // Headers settings section writes h1..h6 here.
         'header-case': {enabled: true},
+        // Body defaults (dec-005): one blank line between blocks, dash bullets,
+        // tight lists. Users adjust these in the Body settings section.
+        'paragraph-spacing': {enabled: true, 'blank-lines': 1},
+        'list-style': {enabled: true, marker: '-', tighten: true},
         // The code-check rules are on but no-op until an individual check in
         // the code-checks section is enabled (all built-ins default off).
         'code-checks': {enabled: true},

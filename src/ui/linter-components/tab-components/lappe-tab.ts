@@ -54,6 +54,8 @@ export class LappeTab extends Tab {
     this.displayKeySortSection();
     this.displayKeptYamlRules();
     this.displayHeadersSection();
+    this.displayBodySection();
+    this.displaySpecialFormattingSection();
     this.displayRuleToggles();
     this.displayCodeChecksSection();
     this.displayExcludedFoldersSection();
@@ -117,34 +119,46 @@ export class LappeTab extends Tab {
 
     // Kept upstream heading rules, shipped on (opt-out).
     for (const alias of ['header-increment', 'headings-start-line', 'trailing-spaces']) {
-      const rule = rulesDict[alias];
-      if (rule == null) {
-        continue;
-      }
-      const ruleDiv = this.contentEl.createDiv();
-      ruleDiv.id = `lappe-${rule.alias}`;
-      new Setting(ruleDiv).setHeading().nameEl.createEl('a', {href: rule.getURL(), text: rule.getName()});
-      let isFirstOption = true;
-      let hideOnLoad = false;
-      for (const option of rule.options) {
-        option.display(ruleDiv, this.plugin.settings, this.plugin);
-        if (isFirstOption) {
-          isFirstOption = false;
-          if (option instanceof BooleanOption) {
-            hideOnLoad = !this.plugin.settings.ruleConfigs[option.ruleAlias][option.configKey];
-          }
-        } else if (hideOnLoad) {
-          option.hide();
+      this.renderUpstreamRule(alias);
+    }
+  }
+
+  /**
+   * Render one upstream rule (heading link plus its option controls) into the
+   * Lappe tab, hiding the sub-options when the rule is disabled, exactly as
+   * the upstream RuleTab does. Shared by the YAML, Headers, Body, and Special
+   * sections so those surfaces stay consistent.
+   */
+  private renderUpstreamRule(alias: string): void {
+    const rule = rulesDict[alias];
+    if (rule == null) {
+      return;
+    }
+    const ruleDiv = this.contentEl.createDiv();
+    ruleDiv.id = `lappe-${rule.alias}`;
+    new Setting(ruleDiv).setHeading().nameEl.createEl('a', {href: rule.getURL(), text: rule.getName()});
+    const optionInfo: SearchOptionInfo[] = [];
+    let isFirstOption = true;
+    let hideOnLoad = false;
+    for (const option of rule.options) {
+      option.display(ruleDiv, this.plugin.settings, this.plugin);
+      optionInfo.push(option.getSearchInfo());
+      if (isFirstOption) {
+        isFirstOption = false;
+        if (option instanceof BooleanOption) {
+          hideOnLoad = !this.plugin.settings.ruleConfigs[option.ruleAlias][option.configKey];
         }
+      } else if (hideOnLoad) {
+        option.hide();
       }
     }
   }
 
   /**
    * The kept upstream YAML formatting rules (blank line after YAML, dedupe
-   * array values, remove keys), rendered with their own option controls in
-   * the YAML section. These run in the upstream pass; the Lappe defaults ship
-   * them on. yaml-title, title alias, and footnote rules are not surfaced.
+   * array values, remove keys). These run in the upstream pass; the Lappe
+   * defaults ship them on. yaml-title, title alias, and footnote rules are
+   * not surfaced.
    */
   private displayKeptYamlRules(): void {
     new Setting(this.contentEl)
@@ -152,28 +166,79 @@ export class LappeTab extends Tab {
         .setDesc('Extra frontmatter cleanups applied on lint. These default on; turn any off to opt out.')
         .setHeading();
     for (const alias of KEPT_YAML_RULE_ALIASES) {
-      const rule = rulesDict[alias];
-      if (rule == null) {
-        continue;
-      }
-      const ruleDiv = this.contentEl.createDiv();
-      ruleDiv.id = `lappe-${rule.alias}`;
-      new Setting(ruleDiv).setHeading().nameEl.createEl('a', {href: rule.getURL(), text: rule.getName()});
-      const optionInfo: SearchOptionInfo[] = [];
-      let isFirstOption = true;
-      let hideOnLoad = false;
-      for (const option of rule.options) {
-        option.display(ruleDiv, this.plugin.settings, this.plugin);
-        optionInfo.push(option.getSearchInfo());
-        if (isFirstOption) {
-          isFirstOption = false;
-          if (option instanceof BooleanOption) {
-            hideOnLoad = !this.plugin.settings.ruleConfigs[option.ruleAlias][option.configKey];
-          }
-        } else if (hideOnLoad) {
-          option.hide();
-        }
-      }
+      this.renderUpstreamRule(alias);
+    }
+  }
+
+  /**
+   * Body section: paragraph spacing, bullet style, artificial line-break
+   * removal (all lappe-core rules written to linter.yaml), plus Basic Styling
+   * (upstream emphasis and strong marker rules).
+   */
+  private displayBodySection(): void {
+    const service = this.plugin.lappeConfig;
+    new Setting(this.contentEl).setName('Body').setDesc('Paragraph, list, and basic text styling applied on lint.').setHeading();
+
+    const paraStanza = service.config?.defaults?.rules?.['paragraph-spacing'] ?? {};
+    const currentBlank = typeof paraStanza['blank-lines'] === 'number' ? String(paraStanza['blank-lines']) : '1';
+    new Setting(this.contentEl.createDiv())
+        .setName('Blank lines between paragraphs')
+        .setDesc('How many blank lines separate blocks. Existing gaps are normalized to this count; adjacent lines are not split.')
+        .addDropdown((dropdown) => {
+          dropdown.addOption('0', '0');
+          dropdown.addOption('1', '1');
+          dropdown.addOption('2', '2');
+          dropdown.setValue(currentBlank);
+          dropdown.onChange(async (value) => {
+            await service.setDefaultRuleOption('paragraph-spacing', 'blank-lines', Number(value));
+          });
+        });
+
+    const listStanza = service.config?.defaults?.rules?.['list-style'] ?? {};
+    const currentMarker = listStanza['marker'] === '*' ? '*' : '-';
+    new Setting(this.contentEl.createDiv())
+        .setName('Bullet marker')
+        .setDesc('The marker used for unordered list items.')
+        .addDropdown((dropdown) => {
+          dropdown.addOption('-', '- (dash)');
+          dropdown.addOption('*', '* (asterisk)');
+          dropdown.setValue(currentMarker);
+          dropdown.onChange(async (value) => {
+            await service.setDefaultRuleOption('list-style', 'marker', value);
+          });
+        });
+    new Setting(this.contentEl.createDiv())
+        .setName('Tight lists')
+        .setDesc('Remove blank lines between consecutive list items.')
+        .addToggle((toggle) => toggle.setValue(listStanza['tighten'] !== false).onChange(async (value) => {
+          await service.setDefaultRuleOption('list-style', 'tighten', value);
+        }));
+
+    const joinStanza = service.config?.defaults?.rules?.['join-paragraph-lines'];
+    new Setting(this.contentEl.createDiv())
+        .setName('Remove artificial line breaks')
+        .setDesc('Unwrap hard-wrapped prose (pasted text, email, fixed-width) so lines wrap naturally. Lists, quotes, code, and intentional breaks are preserved.')
+        .addToggle((toggle) => toggle.setValue(joinStanza?.enabled === true).onChange(async (value) => {
+          await service.setDefaultRuleEnabled('join-paragraph-lines', value);
+        }));
+
+    new Setting(this.contentEl).setName('Basic styling').setDesc('Bold and italic marker styles.').setHeading();
+    for (const alias of ['emphasis-style', 'strong-style']) {
+      this.renderUpstreamRule(alias);
+    }
+  }
+
+  /**
+   * Special formatting: code fences, quotes, and tables. Same layout as the
+   * other sections; groups the upstream block-formatting rules.
+   */
+  private displaySpecialFormattingSection(): void {
+    new Setting(this.contentEl)
+        .setName('Special formatting')
+        .setDesc('Markdown block formatting: code fences, quotes, and tables.')
+        .setHeading();
+    for (const alias of ['default-language-for-code-fences', 'empty-line-around-code-fences', 'blockquote-style', 'empty-line-around-blockquotes', 'empty-line-around-tables']) {
+      this.renderUpstreamRule(alias);
     }
   }
 
@@ -376,7 +441,7 @@ export class LappeTab extends Tab {
 
     new Setting(this.contentEl).setName('Rules').setDesc('Core rules run on save and via the lappe-linter CLI, scoped by the profiles below. YAML key sort, timestamps, and property alphabetization are managed in the section above; note-type rules are configured per note type in linter.yaml.').setHeading();
 
-    const managedElsewhere = new Set(['yaml-key-sort', 'yaml-timestamp', 'alphabetize-property-values']);
+    const managedElsewhere = new Set(['yaml-key-sort', 'yaml-timestamp', 'alphabetize-property-values', 'header-case', 'paragraph-spacing', 'list-style', 'join-paragraph-lines']);
     const rules = getRules().filter((rule) => !managedElsewhere.has(rule.id) && !rule.id.startsWith('note-type-'));
     for (const rule of rules) {
       const stanza = config?.defaults?.rules?.[rule.id];

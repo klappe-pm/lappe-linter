@@ -68,6 +68,8 @@ describe('content rules registration', () => {
       'prose-list-to-sentences',
       'prose-list-to-sentences-fix',
       'header-case',
+      'paragraph-spacing',
+      'list-style',
     ]);
     expect(getRules().every((r) => r.category === 'content')).toBe(true);
   });
