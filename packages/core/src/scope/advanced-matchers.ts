@@ -29,8 +29,18 @@ export function isoToDayNumber(value: unknown): number | null {
     return null;
   }
   const [, y, mo, d] = m;
-  const ms = Date.UTC(Number(y), Number(mo) - 1, Number(d));
-  return Number.isFinite(ms) ? Math.floor(ms / 86400000) : null;
+  const year = Number(y);
+  const month = Number(mo);
+  const day = Number(d);
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    return null;
+  }
+  const ms = Date.UTC(year, month - 1, day);
+  const parsed = new Date(ms);
+  if (!Number.isFinite(ms) || parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month - 1 || parsed.getUTCDate() !== day) {
+    return null;
+  }
+  return Math.floor(ms / 86400000);
 }
 
 /**
@@ -59,17 +69,19 @@ export function dateInRange(dateIso: unknown, range: {after?: string; before?: s
   if (day === null) {
     return false;
   }
-  if (range.after !== undefined) {
-    const after = isoToDayNumber(range.after);
-    if (after !== null && day < after) {
-      return false;
-    }
+  const after = range.after === undefined ? null : isoToDayNumber(range.after);
+  const before = range.before === undefined ? null : isoToDayNumber(range.before);
+  if ((range.after !== undefined && after === null) || (range.before !== undefined && before === null)) {
+    return false;
   }
-  if (range.before !== undefined) {
-    const before = isoToDayNumber(range.before);
-    if (before !== null && day > before) {
-      return false;
-    }
+  if (after !== null && before !== null && after > before) {
+    return false;
+  }
+  if (after !== null && day < after) {
+    return false;
+  }
+  if (before !== null && day > before) {
+    return false;
   }
   return true;
 }

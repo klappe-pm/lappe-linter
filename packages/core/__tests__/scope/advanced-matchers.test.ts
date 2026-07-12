@@ -29,6 +29,7 @@ describe('ageBucket', () => {
   it('returns null on unparseable dates', () => {
     expect(ageBucket('not-a-date', '2026-01-01')).toBeNull();
     expect(ageBucket('2026-01-01', undefined)).toBeNull();
+    expect(ageBucket('2026-02-30', '2026-03-01')).toBeNull();
   });
 });
 
@@ -42,6 +43,8 @@ describe('dateInRange', () => {
 
   it('is false for an unparseable date', () => {
     expect(dateInRange('nope', {after: '2026-01-01'})).toBe(false);
+    expect(dateInRange('2026-01-15', {after: 'not-a-date'})).toBe(false);
+    expect(dateInRange('2026-01-15', {after: '2026-02-01', before: '2026-01-01'})).toBe(false);
   });
 });
 

@@ -23,7 +23,7 @@ export const SCOPE_TYPES: ScopeType[] = [
   {key: 'file', label: 'File', kind: 'multi'},
   {key: 'path', label: 'File path (glob)', kind: 'multi'},
   {key: 'extension', label: 'Extension', kind: 'multi'},
-  {key: 'property', label: 'Property (key=value)', kind: 'multi'},
+  {key: 'properties', label: 'Properties (key=value)', kind: 'multi'},
   {key: 'tag', label: 'Tag', kind: 'multi'},
   {key: 'backlink', label: 'Backlink', kind: 'multi'},
   {key: 'alias', label: 'Alias', kind: 'multi'},
@@ -85,7 +85,8 @@ export function buildMatch(selections: ScopeSelection[]): Record<string, unknown
       case 'age':
         pushList('age', values);
         break;
-      case 'property': {
+      case 'property':
+      case 'properties': {
         const fm = (match.frontmatter as Record<string, unknown>) ?? {};
         for (const pair of values) {
           const eq = pair.indexOf('=');

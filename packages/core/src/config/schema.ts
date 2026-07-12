@@ -28,14 +28,27 @@ const match = {
   type: 'object',
   description: 'Matchers deciding whether this entry applies to a file.',
   properties: {
-    path: {type: 'array', items: {type: 'string'}, description: 'Vault-relative path globs (picomatch).'},
-    extension: {type: 'array', items: {type: 'string'}, description: 'File extensions without the dot.'},
-    frontmatter: {
+    'path': {type: 'array', items: {type: 'string'}, description: 'Vault-relative path globs (picomatch).'},
+    'extension': {type: 'array', items: {type: 'string'}, description: 'File extensions without the dot.'},
+    'frontmatter': {
       type: 'object',
       description: 'Frontmatter key-value predicates: exact match or list-contains.',
       additionalProperties: scalarOrList,
     },
-    tag: {type: 'array', items: {type: 'string'}, description: 'Tag predicates matched against frontmatter tags.'},
+    'tag': {type: 'array', items: {type: 'string'}, description: 'Tag predicates matched against frontmatter tags.'},
+    'age': {type: 'array', items: {type: 'string'}, description: 'Five-day age buckets, for example 1-5 or 6-10.'},
+    'date-created': {
+      type: 'object',
+      properties: {after: {type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$'}, before: {type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$'}},
+      additionalProperties: false,
+    },
+    'date-revised': {
+      type: 'object',
+      properties: {after: {type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$'}, before: {type: 'string', pattern: '^\\d{4}-\\d{2}-\\d{2}$'}},
+      additionalProperties: false,
+    },
+    'backlink': {type: 'array', items: {type: 'string'}, description: 'Backlink titles supplied by the host application.'},
+    'alias': {type: 'array', items: {type: 'string'}, description: 'Aliases supplied by the host application.'},
   },
   additionalProperties: false,
 };
@@ -59,7 +72,7 @@ export const linterConfigJsonSchema: Record<string, unknown> = {
       description: 'Named rule overrides applied when a file matches.',
       additionalProperties: {
         type: 'object',
-        properties: {match, rules},
+        properties: {'match': match, 'rules': rules, 'rule-order': {type: 'array', items: {type: 'string'}}},
         additionalProperties: false,
       },
     },

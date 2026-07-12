@@ -30,6 +30,23 @@ const MATCH_KEYS = new Set(['path', 'extension', 'frontmatter', 'tag', 'age', 'd
 const PROFILE_KEYS = new Set(['match', 'rules', 'rule-order']);
 const NOTE_TYPE_KEYS = new Set(['required', 'key-order', 'values', 'date-keys', 'match']);
 const RENAME_MODES = new Set(['off', 'flag', 'rename']);
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function isValidIsoDate(value: unknown): value is string {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const match = ISO_DATE.exec(value);
+  if (match == null) {
+    return false;
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  return month >= 1 && month <= 12 && day >= 1 &&
+    parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
+}
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -99,7 +116,7 @@ function validateMatch(v: Validation, value: unknown, path: string): void {
         v.error(`${path}.${rangeKey}`, 'must be a mapping with after and/or before');
       } else {
         for (const bound of ['after', 'before']) {
-          if (bound in range && typeof range[bound] !== 'string') {
+          if (bound in range && !isValidIsoDate(range[bound])) {
             v.error(`${path}.${rangeKey}.${bound}`, 'must be an ISO yyyy-MM-dd string');
           }
         }
