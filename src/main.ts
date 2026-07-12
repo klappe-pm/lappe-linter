@@ -24,6 +24,7 @@ import {kitchenSinkFixture, lintText as lappeLintText, registerAllRules as regis
 import {LappeConfigService} from './lappe/config-service';
 import {ribbonFallback} from './lappe/ribbon-action';
 import {shouldLintOnRename} from './lappe/rename-trigger';
+import {LappePreviewView, LAPPE_PREVIEW_VIEW_TYPE} from './ui/lappe-preview-view';
 
 // https://github.com/liamcain/obsidian-calendar-ui/blob/03ceecbf6d88ef260dadf223ee5e483d98d24ffc/src/localization.ts#L20-L43
 const langToMomentLocale = {
@@ -113,6 +114,8 @@ export default class LinterPlugin extends Plugin {
     }
 
     await this.loadSettings();
+
+    this.registerView(LAPPE_PREVIEW_VIEW_TYPE, (leaf) => new LappePreviewView(leaf, this));
 
     this.lappeConfig = new LappeConfigService(this.app);
     this.app.workspace.onLayoutReady(() => {
@@ -654,6 +657,13 @@ export default class LinterPlugin extends Plugin {
     this.addRibbonIcon(icon, 'Lappe Linter: lint current file', () => {
       void this.lintCurrentFile();
     });
+  }
+
+  /** Open the non-modal preview in a split workspace leaf. */
+  openLappePreview(): void {
+    const leaf = this.app.workspace.getLeaf('split');
+    void leaf.setViewState({type: LAPPE_PREVIEW_VIEW_TYPE, active: true});
+    void this.app.workspace.revealLeaf(leaf);
   }
 
   /**
