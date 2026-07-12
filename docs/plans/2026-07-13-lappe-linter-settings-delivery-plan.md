@@ -1,7 +1,7 @@
 # Lappe Linter settings, scoping, preview, and runtime delivery plan
 
 - Plan ID: `lappe-linter-settings-delivery`
-- Status: `draft`
+- Status: `active_release_gate`
 
 ## Objective
 
@@ -46,10 +46,10 @@ Deliver the requested Lappe Linter behavior in a fresh Obsidian vault: determini
 
 | PR | Title | Depends on | Owner | Exit |
 |---|---|---|---|---|
-| `PR-001` | fix(plugin): make fresh-vault loading and wand linting deterministic | none | runtime/bootstrap lane | `ready_for_review` |
-| `PR-002` | feat(settings): replace legacy tabs with the requested settings surface | PR-001 | settings surface lane | `ready_for_review` |
-| `PR-003` | feat(core): complete formatting scopes and inheritance semantics | PR-002 | core semantics lane | `ready_for_review` |
-| `PR-004` | feat(obsidian): add real side-by-side preview and release acceptance gate | PR-003 | Obsidian integration and release lane | `ready_for_review` |
+| `PR-001` | fix(plugin): make fresh-vault loading and wand linting deterministic | none | runtime/bootstrap lane | `validated` |
+| `PR-002` | feat(settings): replace legacy tabs with the requested settings surface | PR-001 | settings surface lane | `validated` |
+| `PR-003` | feat(core): complete formatting scopes and inheritance semantics | PR-002 | core semantics lane | `validated` |
+| `PR-004` | feat(obsidian): add real side-by-side preview and release acceptance gate | PR-003 | Obsidian integration and release lane | `validated` |
 
 ## PR-001: fix(plugin): make fresh-vault loading and wand linting deterministic
 
@@ -110,7 +110,7 @@ Refactor the actual Obsidian settings navigation and wire the requested YAML, He
 - Repository: `/Users/kevinlappe/Projects/lappe-linter`
 - Branch: `agent/pr-002-canonical-settings-surface`
 - Worktree: `/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-02-settings-surface`
-- Paths owned: `src/ui/settings.ts`, `src/ui/linter-components/tab-components/lappe-tab.ts`, `src/lappe/yaml-suggest.ts`, `src/lappe/reorder.ts`, `__tests__/setting-controls.test.ts`, `__tests__/lappe-yaml-controls.test.ts`, `__tests__/lappe-settings-tabs.test.ts`
+- Paths owned: `src/ui/settings.ts`, `src/ui/linter-components/tab-components/lappe-tab.ts`, `src/ui/linter-components/tab-components/tab.ts`, `src/lang/locale/en.ts`, `src/lappe/yaml-suggest.ts`, `src/lappe/reorder.ts`, `__tests__/setting-controls.test.ts`, `__tests__/lappe-yaml-controls.test.ts`, `__tests__/lappe-settings-tabs.test.ts`
 - Merge policy: `review_required`
 
 ### Tasks
@@ -169,7 +169,7 @@ Make the rule, scope, metadata, age, ordering, inheritance, and CLI semantics co
 - Repository: `/Users/kevinlappe/Projects/lappe-linter`
 - Branch: `agent/pr-003-core-scopes-inheritance`
 - Worktree: `/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-03-core-semantics`
-- Paths owned: `packages/core/src/rules-content/header-case.ts`, `packages/core/src/rules-content/paragraph-spacing.ts`, `packages/core/src/rules-content/list-style.ts`, `packages/core/src/scope`, `packages/core/src/config`, `packages/core/src/runner.ts`, `src/lappe/config-service.ts`, `src/lappe/scope-builder-model.ts`, `packages/cli/src`, `packages/core/__tests__/rules-content`, `packages/core/__tests__/scope`, `packages/core/__tests__/config`, `packages/core/__tests__/rule-order.test.ts`, `packages/cli/__tests__`, `__tests__/lappe-rename-trigger.test.ts`
+- Paths owned: `packages/core/src/rules-content/header-case.ts`, `packages/core/src/rules-content/paragraph-spacing.ts`, `packages/core/src/rules-content/list-style.ts`, `packages/core/src/scope`, `packages/core/src/config`, `packages/core/src/runner.ts`, `src/lappe/config-service.ts`, `src/lappe/scope-builder-model.ts`, `src/ui/linter-components/tab-components/lappe-tab.ts`, `packages/cli/src`, `packages/core/__tests__/rules-content`, `packages/core/__tests__/scope`, `packages/core/__tests__/config`, `packages/core/__tests__/rule-order.test.ts`, `packages/cli/__tests__`, `__tests__/lappe-scope-builder-model.test.ts`, `__tests__/lappe-rename-trigger.test.ts`
 - Merge policy: `review_required`
 
 ### Tasks
@@ -229,7 +229,7 @@ Replace the modal/static preview assumption with a real Obsidian workspace inter
 - Repository: `/Users/kevinlappe/Projects/lappe-linter`
 - Branch: `agent/pr-004-obsidian-preview-release`
 - Worktree: `/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-04-obsidian-release`
-- Paths owned: `src/ui/modals/lappe-preview-modal.ts`, `src/ui/lappe-preview-view.ts`, `src/lappe/preview-sample.ts`, `scripts/verify-test-vault.sh`, `__tests__/lappe-preview-sample.test.ts`, `docs/verification/lappe-obsidian-acceptance.md`
+- Paths owned: `src/main.ts`, `src/ui/linter-components/tab-components/lappe-tab.ts`, `src/ui/lappe-preview-view.ts`, `src/ui/modals/lappe-preview-modal.ts`, `src/lappe/preview-sample.ts`, `scripts/verify-test-vault.sh`, `__tests__/lappe-preview-view.test.ts`, `__tests__/lappe-preview-sample.test.ts`, `docs/verification/lappe-obsidian-acceptance.md`
 - Merge policy: `review_required`
 
 ### Tasks
