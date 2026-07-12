@@ -1,0 +1,245 @@
+{
+  "schema_version": "1",
+  "plan_id": "cross-project-plugin-plan-of-record",
+  "title": "Cross-project Obsidian plugin plan of record",
+  "status": "draft",
+  "objective": "Reconcile every existing Lappe Linter and Product Management plan into one coordination contract with separate repository-owned execution lanes, accurate statuses, and no duplicated linter or pipeline ownership.",
+  "source": {
+    "kind": "reviewed-draft",
+    "paths": [
+      "/Users/kevinlappe/Projects/lappe-linter/docs/plans/2026-07-10-settings-redesign-plan.md",
+      "/Users/kevinlappe/Projects/lappe-linter/docs/plans/2026-07-10-settings-tabs-redesign-plan.md",
+      "/Users/kevinlappe/Projects/lappe-linter/docs/plans/2026-07-12-lappe-linter-consolidated-delivery-plan.json",
+      "/Users/kevinlappe/Projects/lappe-linter/docs/plans/2026-07-12-lappe-linter-consolidated-delivery-plan.md",
+      "/Users/kevinlappe/Projects/lappe-linter/Product Management/40-backlog",
+      "/Users/kevinlappe/Projects/product-management-plugin/docs/plans/2026-07-03-product-intent-stack-plan.md",
+      "/Users/kevinlappe/Projects/product-management-plugin/docs/plans/2026-07-04-obsidian-plugin-pipeline-integration-research-plan.md",
+      "/Users/kevinlappe/Projects/product-management-plugin/docs/plans/2026-07-04-pipeline-integration-implementation-plan.md",
+      "/Users/kevinlappe/Projects/product-management-plugin/docs/plans/ACTIVE-PLAN.pointer",
+      "/Users/kevinlappe/Projects/product-management-plugin/docs/plans/README.md",
+      "/Users/kevinlappe/Projects/product-management-plugin/docs/backlogs"
+    ],
+    "notes": "All six plan documents were read in full. The two Lappe plans and the earlier Lappe consolidated plan are coordinated here; the three Product Management plans remain repository-local source records but their statuses and ownership are rolled up here. The Lappe backlog is empty and the Product Management backlog contains only .gitkeep."
+  },
+  "problem": {
+    "id": "PROB-001",
+    "statement": "The repositories have multiple plans with overlapping language but different scopes and inconsistent completion states. The Lappe settings plan is marked DONE while explicitly recording partial or incomplete work; the Product Management pipeline research plan remains DRAFT even though an implementation plan supersedes it and has already landed part of the work; the active product-intent pointer is separate and its relationship to the cross-project work is implicit.",
+    "evidence": [
+      "lappe-linter/docs/plans/2026-07-10-settings-redesign-plan.md is marked DONE while preview is PARTIAL and scope autocomplete remains a follow-up.",
+      "lappe-linter/docs/plans/2026-07-10-settings-tabs-redesign-plan.md identifies the real settings-shell defect and remains DRAFT.",
+      "lappe-linter/docs/plans/2026-07-12-lappe-linter-consolidated-delivery-plan.md is itself a draft coordination plan and does not include the full Product Management workstream roll-up.",
+      "product-management-plugin/docs/plans/2026-07-04-pipeline-integration-implementation-plan.md states that it supersedes the research plan, while ACTIVE-PLAN.pointer still points to the product-intent plan.",
+      "The Product Management pipeline implementation plan records the consumption core as landed but leaves producer, render-surface, config-path, and optional capture work open.",
+      "Neither repository backlog contains actionable items that supersede the plan documents."
+    ]
+  },
+  "goal": {
+    "id": "GOAL-001",
+    "statement": "An agent can select one repository-owned lane, see its true status, understand its dependency boundary, execute its checks, and know which work is complete, in progress, new, superseded, or parked without merging the two plugins.",
+    "metric": "plan_status_reconciliation",
+    "baseline": "Six plan documents span four workstreams with contradictory or implicit authority and no single cross-project status map.",
+    "target": "One validated coordination plan maps every source plan to one status and one owner lane, with no cyclic dependencies or duplicated implementation ownership.",
+    "evidence_source": "docs/plans/2026-07-12-lappe-linter-consolidated-delivery-plan.json"
+  },
+  "non_goals": [
+    "Merge the two repositories or make either plugin depend on the other at source level.",
+    "Delete historical plans, backlog directories, or user-owned dirty work.",
+    "Re-implement the already-tested Lappe core or Product Management consumption core.",
+    "Treat a plan status as proof that the corresponding Obsidian behavior is shipped.",
+    "Resolve the external session-data producer or capture decisions without the required local data evidence."
+  ],
+  "assumptions": [
+    "lappe-linter owns Markdown lint execution, linter.yaml, formatting rules, scopes, and Obsidian lint commands.",
+    "product-management-plugin owns product intent, product notes, dashboards, indexes, and read-only cost consumption.",
+    "The Product Management ACTIVE-PLAN.pointer remains a repository-local pointer; this file is the cross-project coordination plan.",
+    "The existing Lappe and Product Management pure-core tests are reusable and do not need to be replaced by this reconciliation.",
+    "Any external producer lane begins only after its repository state, local data availability, and export contract are verified."
+  ],
+  "decisions_needed": [
+    "DEC-001: Confirm this file is the cross-project coordination plan while each repository may retain a local plan pointer for its own implementation lane.",
+    "DEC-002: For Lappe, decide whether linter-styles are intentionally Obsidian-only or must reach CLI parity.",
+    "DEC-003: For Lappe, choose the final non-blocking preview workflow and complete scope autocomplete before marking the settings lane done.",
+    "DEC-004: For Product Management pipeline, choose the final render surface and exact cost-index path without changing the read-only contract.",
+    "DEC-005: For session-data, verify real token availability and choose the producer export path before scheduling the external producer lane.",
+    "DEC-006: Keep optional artifact-id capture gated on the existing D-049 decision; do not fabricate attribution."
+  ],
+  "risks": [
+    "Marking the old Lappe DONE plan complete would cause agents to skip the actual settings-shell work.",
+    "The Lappe current UI refactor contains a constructor mismatch and undefined unreachable reference that esbuild does not catch.",
+    "Product pipeline work can drift if the research plan, implementation plan, and active pointer are treated as independent authorities.",
+    "A shared Obsidian vault or copied source can make the two plugins appear integrated while their configuration and rule engines remain separate.",
+    "The external session-data producer may be blocked by missing local reports or null token evidence.",
+    "Manual Obsidian verification remains necessary because repository tests do not prove settings registration, reload, or active-vault artifact selection."
+  ],
+  "requirements": [
+    {"id": "REQ-001", "statement": "Every source plan is mapped to an observed status, rolled-up status, owner, and disposition in this coordination plan.", "feature_id": "FEAT-001", "primary_pr": "PR-001", "tests": ["TEST-001"]},
+    {"id": "REQ-002", "statement": "The plan explicitly separates Lappe linting ownership, Product Management product-intent ownership, and session-data telemetry ownership.", "feature_id": "FEAT-001", "primary_pr": "PR-001", "tests": ["TEST-001", "TEST-002"]},
+    {"id": "REQ-003", "statement": "Lappe settings work is treated as INPRG: the real tabs, scope autocomplete, preview workflow, type-aware gate, and Obsidian verification remain open until evidenced.", "feature_id": "FEAT-002", "primary_pr": "PR-003", "tests": ["TEST-003", "TEST-004", "TEST-006"]},
+    {"id": "REQ-004", "statement": "Lappe runtime work preserves the existing core and closes wand, reload, CLI-boundary, artifact-install, and manual-vault verification gaps.", "feature_id": "FEAT-002", "primary_pr": "PR-003", "tests": ["TEST-003", "TEST-006"]},
+    {"id": "REQ-005", "statement": "The Product Management product-intent plan remains INPRG and remains the local plan-of-record for its product hierarchy, artifact, CLI, and view requirements.", "feature_id": "FEAT-003", "primary_pr": "PR-002", "tests": ["TEST-004", "TEST-005"]},
+    {"id": "REQ-006", "statement": "The Product Management pipeline research plan is treated as superseded input, while its unresolved questions are carried into the implementation lane rather than lost.", "feature_id": "FEAT-004", "primary_pr": "PR-002", "tests": ["TEST-001", "TEST-005"]},
+    {"id": "REQ-007", "statement": "The Product Management pipeline consumption core remains INPRG with its frozen product-cost-index contract, null-safe attribution, and open producer/render/config tasks clearly separated.", "feature_id": "FEAT-004", "primary_pr": "PR-004", "tests": ["TEST-005", "TEST-007"]},
+    {"id": "REQ-008", "statement": "The session-data producer lane is parked until local data evidence, export path, and attribution grain are confirmed; no fabricated telemetry is introduced.", "feature_id": "FEAT-005", "primary_pr": "PR-005", "tests": ["TEST-008"]},
+    {"id": "REQ-009", "statement": "The Product Management plugin does not become a second Lappe-compatible linter; any future rule integration uses an explicit provider or versioned contract.", "feature_id": "FEAT-001", "primary_pr": "PR-001", "tests": ["TEST-002", "TEST-005"]},
+    {"id": "REQ-010", "statement": "A lane is not marked complete until its repository checks and required human Obsidian validation have recorded evidence from the exact artifact under test.", "feature_id": "FEAT-006", "primary_pr": "PR-003", "tests": ["TEST-003", "TEST-004", "TEST-006", "TEST-007"]}
+  ],
+  "tests": [
+    {"id": "TEST-001", "kind": "automated", "command": "python3 /Users/kevinlappe/.codex/skills/plan-to-prs/scripts/validate_plan.py /Users/kevinlappe/Projects/lappe-linter/docs/plans/2026-07-12-lappe-linter-consolidated-delivery-plan.json", "cwd": "/Users/kevinlappe/Projects/lappe-linter", "expected": "The coordination plan validates with no schema errors and all IDs, requirements, tests, and dependencies resolve.", "evidence": "Validator output captured before handoff."},
+    {"id": "TEST-002", "kind": "automated", "command": "! rg -n -i \"product-management|session-data|harness|pipeline|telemetry|llm-prices|cost_usd|token-evidence|model-mix\" /Users/kevinlappe/Projects/lappe-linter/docs/plans/2026-07-10-settings-redesign-plan.md && ! rg -n -i \"\\b(lappe|settings redesign|markdown lint)\\b\" /Users/kevinlappe/Projects/product-management-plugin/docs/plans/2026-07-04-obsidian-plugin-pipeline-integration-research-plan.md", "cwd": "/Users/kevinlappe", "expected": "The ownership boundary is explicit: the Lappe settings plan has no pipeline dependency and the pipeline research plan has no Lappe implementation dependency.", "evidence": "Cross-plan negative reference scan plus status roll-up review."},
+    {"id": "TEST-003", "kind": "automated", "command": "npm test && npm run build && npm run minify-css", "cwd": "/Users/kevinlappe/Projects/lappe-linter", "expected": "Lappe tests, production build, and CSS generation pass for the settings/runtime lane.", "evidence": "Record suite count, build output, and artifact hash in the Lappe passoff."},
+    {"id": "TEST-004", "kind": "automated", "command": "npm test && npm run build && npm run check-versions", "cwd": "/Users/kevinlappe/Projects/product-management-plugin", "expected": "Product Management tests, build, and version checks pass for the product-intent and pipeline consumer lanes.", "evidence": "Record command output in the Product Management passoff."},
+    {"id": "TEST-005", "kind": "automated", "command": "npm test -- --runInBand test/product-cost-index.test.ts test/product-cost-view.test.ts test/linter-config-core.test.ts", "cwd": "/Users/kevinlappe/Projects/product-management-plugin", "expected": "The frozen product-cost-index contract remains null-safe and the existing preview/consumer logic remains tested without Lappe source imports.", "evidence": "Targeted test output and dependency scan."},
+    {"id": "TEST-006", "kind": "human", "command": "scripts/install-test-vault.sh --no-build /private/tmp/lappe-linter-obssmoke", "cwd": "/Users/kevinlappe/Projects/lappe-linter", "expected": "Obsidian loads the exact Lappe artifact; the requested tabs, wand, example note, scopes, persistence, and reload behavior work in the throwaway vault.", "evidence": "Record vault path, artifact SHA-256, tab names, lint result, YAML diff, scope result, and reload result."},
+    {"id": "TEST-007", "kind": "human", "command": "npm test && npm run build && npm run package", "cwd": "/Users/kevinlappe/Projects/product-management-plugin", "expected": "The Product Management plugin remains independently shippable and its cost view consumes only the documented read-only export contract.", "evidence": "Record tests, build/package output, and a fixture or vault readback showing null-safe cost rendering."},
+    {"id": "TEST-008", "kind": "human", "command": "git -C /Users/kevinlappe/Projects/session-data status --short --branch", "cwd": "/Users/kevinlappe", "expected": "The session-data repository, active branch, local report availability, token-availability evidence, and intended product-cost-index output path are identified before the producer lane is unparked.", "evidence": "Record exact blocker or evidence; do not infer missing telemetry."}
+  ],
+  "prs": [
+    {
+      "id": "PR-001",
+      "title": "docs: establish one cross-project plan of record",
+      "repo": "/Users/kevinlappe/Projects/lappe-linter",
+      "objective": "Make this coordination plan authoritative for cross-project status and preserve the repository-local plans as scoped historical or execution inputs.",
+      "depends_on": [],
+      "consumes": ["PROB-001"],
+      "produces": ["FEAT-001", "REQ-001", "REQ-002", "REQ-009"],
+      "owner": "integration owner",
+      "base_branch": "master",
+      "branch": "docs/cross-project-plan-of-record",
+      "worktree": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/cross-project-plan-of-record",
+      "paths_owned": ["docs/plans/2026-07-10-settings-redesign-plan.md", "docs/plans/2026-07-10-settings-tabs-redesign-plan.md", "docs/plans/2026-07-12-lappe-linter-consolidated-delivery-plan.json", "docs/plans/2026-07-12-lappe-linter-consolidated-delivery-plan.md"],
+      "requirements": ["REQ-001", "REQ-002", "REQ-009"],
+      "tasks": ["Retain all source plans as evidence and mark the old Lappe DONE plan as superseded or historical when the docs lane is implemented.", "Use this file as the cross-project status map without changing repository ownership or deleting local pointers.", "Record that the Lappe backlog is empty and Product Management's backlog contains only .gitkeep.", "Keep the Lappe/product boundary explicit: ordinary Markdown may be linted, but neither plugin imports the other's source."],
+      "verification": {"preflight": ["Read the newest passoff for each repository.", "Confirm both primary checkouts remain browse-only."], "local": ["TEST-001", "TEST-002", "git diff --check"], "ci": ["Markdown and plan validation."], "integration": [], "negative": ["Confirm no product source paths are added to the Lappe plugin build."]},
+      "acceptance": ["Every plan artifact appears in the status roll-up.", "No plan is silently deleted or falsely marked complete.", "The two plugin ownership boundaries are explicit.", "The plan validates as an agent-executable contract."],
+      "exit_state": "ready_for_review",
+      "merge_policy": "docs_only_carve_out",
+      "rollback": "Revert only the coordination-plan documentation; preserve all source and historical plan files."
+    },
+    {
+      "id": "PR-002",
+      "title": "docs: reconcile Product Management plan authorities",
+      "repo": "/Users/kevinlappe/Projects/product-management-plugin",
+      "objective": "Align the local Product Management plan statuses and references with the cross-project coordination plan without changing plugin behavior.",
+      "depends_on": ["PR-001"],
+      "consumes": ["FEAT-001"],
+      "produces": ["FEAT-003", "FEAT-004", "REQ-005", "REQ-006"],
+      "owner": "Product Management documentation lane",
+      "base_branch": "main",
+      "branch": "docs/reconcile-plan-authority",
+      "worktree": "/Users/kevinlappe/Projects/_worktrees/product-management-plugin/reconcile-plan-authority",
+      "paths_owned": ["docs/plans/2026-07-03-product-intent-stack-plan.md", "docs/plans/2026-07-04-obsidian-plugin-pipeline-integration-research-plan.md", "docs/plans/2026-07-04-pipeline-integration-implementation-plan.md", "docs/plans/README.md"],
+      "requirements": ["REQ-005", "REQ-006"],
+      "tasks": ["Keep the product-intent stack plan as the local active plan-of-record and preserve its INPRG scope.", "Mark the pipeline research plan as superseded input or archive it with a direct pointer to the implementation plan; preserve unresolved questions in the implementation plan or this coordination plan.", "Keep the pipeline implementation plan INPRG with its landed consumption core and explicit remaining producer/render/config/capture work.", "Add a concise boundary note that Lappe Linter is not a pipeline dependency."],
+      "verification": {"preflight": ["Confirm origin/main is current and inspect dirty files before editing."], "local": ["TEST-004", "Markdown frontmatter validation", "git diff --check"], "ci": ["Product Management build, test, version, and documentation checks."], "integration": [], "negative": ["Confirm ACTIVE-PLAN.pointer still resolves to the product-intent plan and no source behavior changes are included."]},
+      "acceptance": ["Product-local authority is unambiguous.", "Research and implementation plans no longer compete as equal active plans.", "The product-intent plan remains INPRG rather than being incorrectly closed.", "No plugin code changes are bundled."],
+      "exit_state": "ready_for_review",
+      "merge_policy": "docs_only_carve_out",
+      "rollback": "Revert only plan-status documentation; preserve the implementation and product-intent source plans."
+    },
+    {
+      "id": "PR-003",
+      "title": "feat: finish Lappe settings and runtime delivery",
+      "repo": "/Users/kevinlappe/Projects/lappe-linter",
+      "objective": "Complete the Lappe settings architecture and runtime verification using the existing tested core without shipping the current unfinished UI refactor.",
+      "depends_on": ["PR-001"],
+      "consumes": ["FEAT-001", "REQ-002"],
+      "produces": ["FEAT-002", "REQ-003", "REQ-004", "REQ-010"],
+      "owner": "Lappe settings and runtime lane",
+      "base_branch": "master",
+      "branch": "feat/lappe-settings-delivery",
+      "worktree": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/lappe-settings-delivery",
+      "paths_owned": ["src/ui/settings.ts", "src/ui/linter-components/tab-components/lappe-tab.ts", "src/lappe/yaml-suggest.ts", "src/main.ts", "src/lappe/config-service.ts", "packages/core/src/config", "packages/core/src/scope", "packages/cli/src", "scripts/install-test-vault.sh", "__tests__", "packages/core/__tests__"],
+      "requirements": ["REQ-003", "REQ-004", "REQ-010"],
+      "tasks": ["Start from a clean task worktree and preserve the current dirty checkout as user-owned evidence.", "Wire the existing renderers into exactly General, YAML, Headers, Body, Special formatting, Scopes, Rule order, Custom, and Debug; remove Lappe and combined Style registration.", "Fix the current LappeTab constructor mismatch and undefined unreachable code.", "Restore vault-aware YAML and scope autocomplete/multi-select controls and complete the chosen non-blocking preview workflow.", "Verify wand fallback, config reload, style-file/CLI boundaries, artifact installation, and the full Obsidian acceptance matrix."],
+      "verification": {"preflight": ["Review current lappe-tab.ts diff before editing.", "Confirm no dirty primary files are staged."], "local": ["TEST-003", "npx tsc --noEmit with documented baseline comparison", "git diff --check"], "ci": ["Full Lappe test suite, build, CSS generation, and package checks."], "integration": ["TEST-006"], "negative": ["No Lappe or Style settings tab.", "Malformed linter.yaml fails closed.", "No silent wand no-op for reading view or no active file."]},
+      "acceptance": ["Requested settings tabs are visible in Obsidian.", "Core behavior, YAML persistence, scope resolution, inheritance, and rule order remain intact.", "The current type/API defects are removed.", "The exact installed artifact passes manual Obsidian verification."],
+      "exit_state": "ready_for_review",
+      "merge_policy": "review_required",
+      "rollback": "Revert the isolated Lappe delivery branch only; do not reset the dirty primary checkout or remove vault data."
+    },
+    {
+      "id": "PR-004",
+      "title": "feat: complete Product Management pipeline consumption",
+      "repo": "/Users/kevinlappe/Projects/product-management-plugin",
+      "objective": "Finish only the Product Management side of the frozen product-cost-index contract after the remaining render-surface and path decisions are resolved.",
+      "depends_on": ["PR-002"],
+      "consumes": ["FEAT-004", "REQ-006"],
+      "produces": ["FEAT-004", "REQ-007"],
+      "owner": "Product Management pipeline lane",
+      "base_branch": "main",
+      "branch": "feat/product-cost-index-consumption",
+      "worktree": "/Users/kevinlappe/Projects/_worktrees/product-management-plugin/product-cost-index-consumption",
+      "paths_owned": ["src/product-cost-index.ts", "src/dashboard-view.ts", "src/main.ts", "src/settings.ts", "docs/documentation/product-cost-index-contract.md", "test/product-cost-index.test.ts", "test/product-cost-view.test.ts"],
+      "requirements": ["REQ-007"],
+      "tasks": ["Do not redo the landed parser, attribution, null-safety, or cycle-guard core.", "Resolve the exact export drop path and add additive config wiring.", "Choose and implement one render surface for the read-only dataset.", "Keep session-data pricing authoritative and preserve unknown/null display behavior.", "Leave optional exact capture gated on the external D-049 decision."],
+      "verification": {"preflight": ["Confirm the session-data contract and origin/main are current."], "local": ["TEST-004", "TEST-005", "git diff --check"], "ci": ["Product Management full test/build/version gates."], "integration": ["TEST-007 after a real product-cost-index fixture is produced."], "negative": ["No telemetry writes into authored product notes.", "Null cost/token/CO2 values never render as zero.", "Ambiguous joins are excluded from summed cost."]},
+      "acceptance": ["The plugin reads the documented export without owning production of telemetry.", "One dashboard or view renders the contract with null-safe semantics.", "The product-intent plan remains independent of pipeline implementation details."],
+      "exit_state": "parked",
+      "merge_policy": "parked",
+      "rollback": "No implementation starts until DEC-004 and the producer contract are resolved."
+    },
+    {
+      "id": "PR-005",
+      "title": "feat: produce product-cost-index from session-data",
+      "repo": "/Users/kevinlappe/Projects/session-data",
+      "objective": "Produce the versioned product-cost-index export from real session-data evidence without fabricating missing tokens, cost, CO2, or attribution.",
+      "depends_on": ["PR-004"],
+      "consumes": ["FEAT-004", "REQ-008"],
+      "produces": ["FEAT-005", "REQ-008"],
+      "owner": "session-data producer owner",
+      "base_branch": "main",
+      "branch": "feat/product-cost-index-producer",
+      "worktree": "/Users/kevinlappe/Projects/_worktrees/session-data/product-cost-index-producer",
+      "paths_owned": ["docs", "src", "schemas", "data"],
+      "requirements": ["REQ-008"],
+      "tasks": ["Inventory the active schema, local reports, token availability, attribution grain, and exact vault export path.", "Choose the join key and preserve the frozen product-cost-index contract.", "Emit a deterministic export with null-safe fields and no writes into authored product notes.", "Add producer fixtures and negative tests for missing evidence, ambiguous joins, and unknown pricing."],
+      "verification": {"preflight": ["TEST-008", "Confirm local session-data reports are available and current."], "local": ["Producer unit tests and schema validation."], "ci": ["session-data repository gates."], "integration": ["TEST-007 after the export is consumed by Product Management."], "negative": ["No inferred token/cost/CO2 values.", "No runtime network pull or untracked source is silently treated as evidence."]},
+      "acceptance": ["The producer is unblocked by real local evidence.", "The export is versioned, deterministic, and contract-valid.", "The Product Management consumer can read it without mutating authored notes."],
+      "exit_state": "parked",
+      "merge_policy": "parked",
+      "rollback": "Keep the lane parked and retain research evidence if local reports or attribution inputs are unavailable."
+    }
+  ],
+  "automation": {
+    "preflight": ["Read the newest passoff for each repository before selecting a lane.", "Confirm the target repo, default branch, and task worktree.", "Run git status --short --branch and preserve dirty user-owned files."],
+    "scheduling": ["Run PR-001 before any implementation lane.", "Run PR-002 for Product Management plan authority and PR-003 for Lappe delivery independently after PR-001.", "Do not unpark PR-004 until its render/path decisions are resolved.", "Do not unpark PR-005 until TEST-008 supplies local evidence."],
+    "closeout": ["Run the affected repository gates.", "Record exact artifact/vault evidence for Obsidian validation.", "Update the relevant passoff and this coordination plan's workstream status without marking partial work done."]
+  },
+  "traceability": {
+    "features": [
+      {"id": "FEAT-001", "statement": "Cross-project plan authority and ownership boundary", "requirements": ["REQ-001", "REQ-002", "REQ-009"]},
+      {"id": "FEAT-002", "statement": "Canonical Lappe settings and runtime delivery", "requirements": ["REQ-003", "REQ-004", "REQ-010"]},
+      {"id": "FEAT-003", "statement": "Product-intent stack local plan continuity", "requirements": ["REQ-005"]},
+      {"id": "FEAT-004", "statement": "Product-cost-index contract and consumer", "requirements": ["REQ-006", "REQ-007"]},
+      {"id": "FEAT-005", "statement": "Session-data producer export", "requirements": ["REQ-008"]},
+      {"id": "FEAT-006", "statement": "Evidence-based completion gates", "requirements": ["REQ-010"]}
+    ],
+    "validations": [
+      {"id": "VAL-001", "statement": "Plan and ownership reconciliation", "tests": ["TEST-001", "TEST-002"]},
+      {"id": "VAL-002", "statement": "Lappe repository and Obsidian validation", "tests": ["TEST-003", "TEST-006"]},
+      {"id": "VAL-003", "statement": "Product Management repository and consumer validation", "tests": ["TEST-004", "TEST-005", "TEST-007"]},
+      {"id": "VAL-004", "statement": "External producer evidence validation", "tests": ["TEST-008"]}
+    ]
+  },
+  "metadata": {
+    "canonical_coordination_plan": "/Users/kevinlappe/Projects/lappe-linter/docs/plans/2026-07-12-lappe-linter-consolidated-delivery-plan.json",
+    "status_rollup": [
+      {"source": "lappe-linter/docs/plans/2026-07-10-settings-redesign-plan.md", "observed_status": "ARCHIVED (formerly DONE)", "rolled_status": "superseded", "disposition": "Historical implementation log; not complete because it records partial preview, free-text scope controls, and the old settings architecture."},
+      {"source": "lappe-linter/docs/plans/2026-07-10-settings-tabs-redesign-plan.md", "observed_status": "ACTIVE (formerly DRAFT)", "rolled_status": "in_progress", "disposition": "Primary source for the Lappe settings requirements; its tasks are carried into PR-003."},
+      {"source": "lappe-linter/docs/plans/2026-07-12-lappe-linter-consolidated-delivery-plan.*", "observed_status": "draft", "rolled_status": "canonical", "disposition": "This is now the cross-project coordination plan; its Lappe PR lanes are retained in PR-003."},
+      {"source": "product-management-plugin/docs/plans/2026-07-03-product-intent-stack-plan.md", "observed_status": "INPRG and active pointer target", "rolled_status": "in_progress", "disposition": "Remains Product Management's local plan-of-record; no Lappe dependency."},
+      {"source": "product-management-plugin/docs/plans/2026-07-04-obsidian-plugin-pipeline-integration-research-plan.md", "observed_status": "ARCHIVED (formerly DRAFT)", "rolled_status": "superseded_input", "disposition": "Research findings are carried into the implementation plan and PR-004/PR-005 decisions; unresolved questions remain visible."},
+      {"source": "product-management-plugin/docs/plans/2026-07-04-pipeline-integration-implementation-plan.md", "observed_status": "INPRG", "rolled_status": "in_progress", "disposition": "Consumption core is landed; producer, render surface, config path, and optional capture remain open."},
+      {"source": "lappe-linter/Product Management/40-backlog and product-management-plugin/docs/backlogs", "observed_status": "empty or .gitkeep only", "rolled_status": "no_new_items", "disposition": "No backlog item was promoted into this plan without evidence."}
+    ],
+    "workstream_status": [
+      {"id": "WS-001", "name": "Lappe settings and runtime", "status": "in_progress", "owner_repo": "/Users/kevinlappe/Projects/lappe-linter", "primary_lane": "PR-003"},
+      {"id": "WS-002", "name": "Product intent stack", "status": "in_progress", "owner_repo": "/Users/kevinlappe/Projects/product-management-plugin", "primary_lane": "PR-002"},
+      {"id": "WS-003", "name": "Product-cost-index consumer", "status": "in_progress", "owner_repo": "/Users/kevinlappe/Projects/product-management-plugin", "primary_lane": "PR-004"},
+      {"id": "WS-004", "name": "Session-data producer", "status": "parked", "owner_repo": "/Users/kevinlappe/Projects/session-data", "primary_lane": "PR-005"},
+      {"id": "WS-005", "name": "Cross-project ownership contract", "status": "new", "owner_repo": "/Users/kevinlappe/Projects/lappe-linter", "primary_lane": "PR-001"}
+    ],
+    "authority": "This plan coordinates cross-project sequencing. Repository-local pointers remain valid for local execution, but no agent should treat a superseded source plan as a second active implementation lane.",
+    "known_baselines": {"lappe_tests": "116 suites / 1,779 tests passed", "product_tests": "106 tests passed", "lappe_remote": "2f06cb6", "product_remote": "c8a8f41"}
+  }
+}
