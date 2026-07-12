@@ -150,14 +150,19 @@ export default {
       'general': 'General',
       'custom': 'Custom',
       'yaml': 'YAML',
+      'headers': 'Headers',
+      'body': 'Body',
+      'special-formatting': 'Special formatting',
+      'scopes': 'Scopes',
+      'rule-order': 'Rule order',
+      // Retained for the legacy SettingDefinition API; these are not
+      // registered as navigation tabs.
       'heading': 'Heading',
       'content': 'Content',
       'footnote': 'Footnote',
       'spacing': 'Spacing',
       'paste': 'Paste',
       'debug': 'Debug',
-      'lappe': 'Lappe',
-      'style': 'Style',
     },
     // tab-searcher.ts
     'default-search-bar-text': 'Search all settings',
