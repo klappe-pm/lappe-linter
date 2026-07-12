@@ -4,7 +4,7 @@ category: obsidian-linter-fork
 sub-category: plan
 date-created: 2026-07-10
 date-revised: 2026-07-10
-status: DRAFT
+status: ACTIVE
 aliases:
   - lappe-linter settings tabs redesign plan
 tags:
@@ -12,6 +12,10 @@ tags:
   - lappe-linter
 ---
 # 2026-07-10-settings-tabs-redesign-plan
+
+## Status
+
+This is the active Lappe settings implementation source plan and is coordinated by `2026-07-12-lappe-linter-consolidated-delivery-plan.md`. Its requirements remain open until the real settings tabs and Obsidian acceptance checks pass.
 
 ## The one thing the last session got wrong
 

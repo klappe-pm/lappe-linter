@@ -4,7 +4,7 @@ category: obsidian-linter-fork
 sub-category: plan
 date-created: 2026-07-10
 date-revised: 2026-07-10
-status: DONE
+status: ARCHIVED
 aliases:
   - lappe-linter settings redesign plan
 tags:
@@ -16,6 +16,10 @@ tags:
 ## Summary
 
 Fix the dead-wand and no-visible-lint experience, then redesign the settings surface around the lappe core: YAML, Headers, Body, Special formatting, scoping with template inheritance, and a live preview. This file is both the plan and the work tracker; each task row updates as work lands. Branch: `feat/settings-redesign` in the linked worktree `lappe-linter-wt-settings-redesign`. Rigor: high (multi-file feature, shared plugin surface); checkpoints at each phase boundary.
+
+## Status
+
+This historical implementation log is archived and superseded by `2026-07-12-lappe-linter-consolidated-delivery-plan.md`. Its DONE label described the completed core phases, not the unresolved settings-shell, autocomplete, preview, and Obsidian-verification requirements recorded below.
 
 ## Diagnosis (2026-07-10 session)
 
