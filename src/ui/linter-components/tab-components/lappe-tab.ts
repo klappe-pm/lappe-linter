@@ -137,6 +137,22 @@ export class LappeTab extends Tab {
     for (const alias of ['header-increment', 'headings-start-line', 'trailing-spaces']) {
       this.renderUpstreamRule(alias);
     }
+    this.displayFilenameSection();
+  }
+
+  /** Filename is the first H1 source; the rename handler skips Untitled files. */
+  private displayFilenameSection(): void {
+    const service = this.plugin.lappeConfig;
+    new Setting(this.contentEl).setName('Filename and first H1').setDesc('Real filenames use kebab-case by default. Obsidian Untitled files are ignored until a real name is entered, then the first H1 follows the filename.').setHeading();
+    for (const [ruleId, name] of [['kebab-case-filename', 'Kebab-case filename'], ['h1-matches-stem', 'First H1 follows filename']] as const) {
+      const enabled = service.config?.defaults?.rules?.[ruleId]?.enabled !== false;
+      new Setting(this.contentEl.createDiv())
+          .setName(name)
+          .setDesc(ruleId === 'kebab-case-filename' ? 'Report a non-kebab filename and propose the compliant rename.' : 'Set or update the first H1 from the real filename after the Untitled transition.')
+          .addToggle((toggle) => toggle.setValue(enabled).onChange(async (value) => {
+            await service.setDefaultRuleEnabled(ruleId, value);
+          }));
+    }
   }
 
   /** A section heading with a "Preview" button opening the live preview modal. */
@@ -757,8 +773,9 @@ export class LappeTab extends Tab {
         after.addEventListener('input', update);
         before.addEventListener('input', update);
       } else {
-        const input = field.createEl('input', {type: 'text', placeholder: scopeKey === 'property' ? 'key=value, key=value' : 'comma-separated values'});
+        const input = field.createEl('input', {type: 'text', placeholder: scopeKey === 'properties' ? 'key=value, key=value' : 'comma-separated values'});
         input.style.flex = '1';
+        new ListSuggest(this.app, input, () => this.scopeSuggestionValues(scopeKey));
         input.addEventListener('input', () => selections.set(scopeKey, {type: scopeKey, values: input.value.split(',').map((v) => v.trim()).filter(Boolean)}));
       }
     };
@@ -799,5 +816,45 @@ export class LappeTab extends Tab {
       new Notice(`lappe-linter: created profile "${name}"`);
       this.display();
     }));
+  }
+
+  /** Vault-backed suggestions for scope values; free-form values remain valid. */
+  private scopeSuggestionValues(scopeKey: string): string[] {
+    const markdownFiles = this.app.vault.getMarkdownFiles();
+    const filePaths = markdownFiles.map((file) => file.path);
+    const fileStems = markdownFiles.map((file) => file.path.replace(/\.md$/i, '').split('/').pop() ?? file.path);
+    const unique = (values: string[]): string[] => [...new Set(values)].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+    switch (scopeKey) {
+      case 'folder':
+        return unique(this.app.vault.getAllLoadedFiles()
+            .filter((file): file is TFolder => file instanceof TFolder && !file.isRoot())
+            .map((folder) => folder.path));
+      case 'file':
+      case 'path':
+        return unique(filePaths);
+      case 'extension':
+        return unique(markdownFiles.map((file) => file.extension));
+      case 'properties':
+        return vaultYamlKeys(this.app).flatMap((key) => {
+          const values = vaultYamlValues(this.app, key);
+          return values.length === 0 ? [`${key}=`] : values.map((value) => `${key}=${value}`);
+        });
+      case 'tag':
+        return unique([...vaultYamlValues(this.app, 'tags'), ...vaultYamlValues(this.app, 'tag')].map((value) => value.replace(/^#/, '')));
+      case 'alias':
+        return unique([...vaultYamlValues(this.app, 'aliases'), ...vaultYamlValues(this.app, 'alias')]);
+      case 'backlink':
+        return unique(fileStems);
+      case 'domain':
+      case 'category':
+      case 'sub-category':
+      case 'types':
+      case 'project':
+        return vaultYamlValues(this.app, scopeKey);
+      case 'age':
+        return Array.from({length: 20}, (_, index) => `${index * 5 + 1}-${index * 5 + 5}`);
+      default:
+        return [];
+    }
   }
 }

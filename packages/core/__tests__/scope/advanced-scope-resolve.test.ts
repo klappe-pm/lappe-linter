@@ -78,4 +78,17 @@ describe('advanced scope matchers end to end', () => {
     ].join('\n'));
     expect(result.ok).toBe(false);
   });
+
+  it('errors on an impossible calendar date in a range', () => {
+    const result = parseLinterConfig([
+      'version: 1',
+      'profiles:',
+      '  bad:',
+      '    match:',
+      '      date-created: {after: "2026-02-30"}',
+      '    rules: {}',
+      '',
+    ].join('\n'));
+    expect(result.ok).toBe(false);
+  });
 });

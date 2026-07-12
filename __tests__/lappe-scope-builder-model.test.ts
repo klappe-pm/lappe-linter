@@ -3,6 +3,7 @@ import {buildMatch, SCOPE_TYPES} from '../src/lappe/scope-builder-model';
 describe('scope builder model', () => {
   it('offers project as a scope type', () => {
     expect(SCOPE_TYPES.some((t) => t.key === 'project')).toBe(true);
+    expect(SCOPE_TYPES.some((t) => t.key === 'properties')).toBe(true);
   });
 
   it('maps a folder to a recursive glob', () => {
@@ -27,6 +28,7 @@ describe('scope builder model', () => {
 
   it('parses key=value property selections', () => {
     expect(buildMatch([{type: 'property', values: ['status=DRAFT']}])).toEqual({frontmatter: {status: 'DRAFT'}});
+    expect(buildMatch([{type: 'properties', values: ['status=DRAFT']}])).toEqual({frontmatter: {status: 'DRAFT'}});
   });
 
   it('maps age buckets and date ranges', () => {
