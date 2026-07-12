@@ -18,28 +18,24 @@ const tabNameToTabIconId: Record<string | RuleType, string> = {
   'General': iconInfo.general.id,
   'Custom': iconInfo.custom.id,
   'YAML': iconInfo.yaml.id,
-  'Heading': iconInfo.heading.id,
-  'Footnote': iconInfo.footer.id,
-  'Content': iconInfo.content.id,
-  'Spacing': iconInfo.whitespace.id,
-  'Paste': iconInfo.paste.id,
+  'Headers': iconInfo.heading.id,
+  'Body': iconInfo.content.id,
+  'Special formatting': iconInfo.content.id,
+  'Scopes': iconInfo.vault.id,
+  'Rule order': iconInfo.whitespace.id,
   'Debug': iconInfo.debug.id,
-  'Lappe': iconInfo.vault.id,
-  'Style': iconInfo.content.id,
 };
 
 const tabNameToTextKey: Record<string | RuleType, LanguageStringKey> = {
   'General': 'tabs.names.general',
   'Custom': 'tabs.names.custom',
   'YAML': 'tabs.names.yaml',
-  'Heading': 'tabs.names.heading',
-  'Footnote': 'tabs.names.footnote',
-  'Content': 'tabs.names.content',
-  'Spacing': 'tabs.names.spacing',
-  'Paste': 'tabs.names.paste',
+  'Headers': 'tabs.names.headers',
+  'Body': 'tabs.names.body',
+  'Special formatting': 'tabs.names.special-formatting',
+  'Scopes': 'tabs.names.scopes',
+  'Rule order': 'tabs.names.rule-order',
   'Debug': 'tabs.names.debug',
-  'Lappe': 'tabs.names.lappe',
-  'Style': 'tabs.names.style',
 };
 
 export abstract class Tab {
@@ -61,7 +57,7 @@ export abstract class Tab {
     this.navButton.createSpan().setText(nameInLanguage);
 
     this.contentEl = settingsEl.createDiv('linter-tab-settings');
-    this.contentEl.id = name.toLowerCase().replace(' ', '-');
+    this.contentEl.id = name.toLowerCase().replaceAll(' ', '-');
 
     this.headingEl = new Setting(this.contentEl).setName(nameInLanguage).setHeading().nameEl;
     hideEl(this.headingEl);

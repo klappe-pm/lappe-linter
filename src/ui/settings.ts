@@ -6,7 +6,6 @@ import {Rule, RuleType, ruleTypeToRules} from '../rules';
 import {hideEl, richDescription} from './helpers';
 import {SearchStatus, Tab} from './linter-components/tab-components/tab';
 import {GeneralTab} from './linter-components/tab-components/general-tab';
-import {RuleTab} from './linter-components/tab-components/rule-tab';
 import {CustomTab} from './linter-components/tab-components/custom-tab';
 import {TabSearcher} from './linter-components/tab-components/tab-searcher';
 import {DebugTab} from './linter-components/tab-components/debug-tab';
@@ -78,13 +77,12 @@ export class SettingTab extends PluginSettingTab {
 
   private addTabs(isMobile: boolean) {
     this.addTab(new GeneralTab(this.tabNavEl, this.settingsContentEl, isMobile, this.plugin, this.app));
-    this.addTab(new LappeTab(this.tabNavEl, this.settingsContentEl, isMobile, this.plugin, this.app));
-
-    // dec-005: one Style tab for heading, content, and spacing rules; the
-    // YAML, Footnote, and Paste surfaces are removed (Lappe owns YAML).
-    const styleRules = [RuleType.HEADING, RuleType.CONTENT, RuleType.SPACING]
-        .flatMap((ruleType) => ruleTypeToRules.get(ruleType) ?? []);
-    this.addTab(new RuleTab(this.tabNavEl, this.settingsContentEl, 'Style', styleRules, isMobile, this.plugin));
+    // Keep the requested controls in their own named tabs. The old combined
+    // Lappe and Style tabs made the redesign invisible to users and mixed
+    // unrelated persistence surfaces together.
+    for (const surface of ['YAML', 'Headers', 'Body', 'Special formatting', 'Scopes', 'Rule order'] as const) {
+      this.addTab(new LappeTab(this.tabNavEl, this.settingsContentEl, isMobile, this.plugin, this.app, surface));
+    }
 
     this.addTab(new CustomTab(this.tabNavEl, this.settingsContentEl, isMobile, this.app, this.plugin));
     this.addTab(new DebugTab(this.tabNavEl, this.settingsContentEl, isMobile, this.plugin));

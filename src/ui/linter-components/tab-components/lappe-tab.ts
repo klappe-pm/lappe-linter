@@ -15,14 +15,16 @@ import {buildMatch, ScopeSelection, SCOPE_TYPES} from '../../../lappe/scope-buil
 // upstream YAML and Footnote tabs; these are not re-surfaced).
 const KEPT_YAML_RULE_ALIASES = ['add-blank-line-after-yaml', 'dedupe-yaml-array-values', 'remove-yaml-keys'];
 
+export type LappeSurface = 'YAML' | 'Headers' | 'Body' | 'Special formatting' | 'Scopes' | 'Rule order';
+
 /**
- * The Lappe settings tab: a view over linter.yaml (the source of truth).
- * One combined YAML key sort control, toggles for the core rules, and a
- * read-only summary of the scoped profiles and note types.
+ * One requested settings surface backed by linter.yaml. The implementation is
+ * shared so each tab writes through the same comment-preserving service while
+ * the navigation remains explicit and discoverable.
  */
 export class LappeTab extends Tab {
-  constructor(navEl: HTMLElement, settingsEl: HTMLElement, isMobile: boolean, plugin: LinterPlugin, private app: App) {
-    super(navEl, settingsEl, 'Lappe', isMobile, plugin);
+  constructor(navEl: HTMLElement, settingsEl: HTMLElement, isMobile: boolean, plugin: LinterPlugin, private app: App, private surface: LappeSurface) {
+    super(navEl, settingsEl, surface, isMobile, plugin);
     this.display();
   }
 
@@ -53,18 +55,32 @@ export class LappeTab extends Tab {
           .setHeading();
     }
 
-    this.displayKeySortSection();
-    this.displayKeptYamlRules();
-    this.displayHeadersSection();
-    this.displayBodySection();
-    this.displaySpecialFormattingSection();
-    this.displayRuleOrderSection();
-    this.displayRuleToggles();
-    this.displayCodeChecksSection();
-    this.displayExcludedFoldersSection();
-    this.displayTestFilesSection();
-    this.displayStylesSection();
-    this.displayScopesSummary();
+    switch (this.surface) {
+      case 'YAML':
+        this.displayKeySortSection();
+        this.displayKeptYamlRules();
+        break;
+      case 'Headers':
+        this.displayHeadersSection();
+        break;
+      case 'Body':
+        this.displayBodySection();
+        break;
+      case 'Special formatting':
+        this.displaySpecialFormattingSection();
+        break;
+      case 'Scopes':
+        this.displayScopesSummary();
+        this.displayCodeChecksSection();
+        this.displayExcludedFoldersSection();
+        this.displayTestFilesSection();
+        this.displayStylesSection();
+        this.displayRuleToggles();
+        break;
+      case 'Rule order':
+        this.displayRuleOrderSection();
+        break;
+    }
   }
 
   /**
