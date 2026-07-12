@@ -6,7 +6,6 @@ import {ListSuggest, vaultYamlKeys, vaultYamlValues} from '../../../lappe/yaml-s
 import {moveItem} from '../../../lappe/reorder';
 import {rulesDict} from '../../../rules';
 import {BooleanOption, SearchOptionInfo} from '../../../option';
-import {LappePreviewModal} from '../../modals/lappe-preview-modal';
 import {buildMatch, ScopeSelection, SCOPE_TYPES} from '../../../lappe/scope-builder-model';
 
 // Kept upstream YAML formatting rules, surfaced in the Lappe YAML section.
@@ -162,7 +161,7 @@ export class LappeTab extends Tab {
         .setDesc(desc)
         .setHeading()
         .addButton((button) => button.setButtonText('Preview').setTooltip('Preview these settings on a sample note').onClick(() => {
-          new LappePreviewModal(this.app, this.plugin).open();
+          this.plugin.openLappePreview();
         }));
   }
 
