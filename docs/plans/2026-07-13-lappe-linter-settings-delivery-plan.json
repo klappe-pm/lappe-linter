@@ -1,0 +1,239 @@
+{
+  "schema_version": "1",
+  "plan_id": "lappe-linter-settings-delivery",
+  "title": "Lappe Linter settings, scoping, preview, and runtime delivery plan",
+  "status": "draft",
+  "objective": "Deliver the requested Lappe Linter behavior in a fresh Obsidian vault: deterministic loading and wand linting, the exact settings architecture, YAML/header/body/special-formatting controls, real side-by-side preview, reusable scopes, metadata matching, inheritance, and evidence-based release verification.",
+  "source": {
+    "kind": "user-requirements-and-code-review",
+    "paths": [
+      "/Users/kevinlappe/.codex/attachments/9dc7c887-b978-4c92-88b6-733b95d7b72d/pasted-text.txt",
+      "/Users/kevinlappe/Projects/lappe-linter/docs/plans/2026-07-10-settings-redesign-plan.md",
+      "/Users/kevinlappe/Projects/lappe-linter/docs/plans/2026-07-10-settings-tabs-redesign-plan.md",
+      "/Users/kevinlappe/Projects/lappe-linter/src/main.ts",
+      "/Users/kevinlappe/Projects/lappe-linter/src/ui/settings.ts",
+      "/Users/kevinlappe/Projects/lappe-linter/src/ui/linter-components/tab-components/lappe-tab.ts",
+      "/Users/kevinlappe/Projects/lappe-linter/src/lappe/config-service.ts",
+      "/Users/kevinlappe/Projects/lappe-linter/packages/core/src"
+    ],
+    "notes": "The Product Management pipeline plan is explicitly outside this execution graph. Product Management remains a separate plugin and may consume independent telemetry exports, but it does not own or implement Lappe linting."
+  },
+  "problem": {
+    "id": "PROB-001",
+    "statement": "The Lappe core and many pure tests exist, but the user-visible plugin does not yet reliably deliver the requested experience. The settings shell still registers the wrong tabs, the unfinished UI refactor has a constructor mismatch and undefined unreachable code, the scope UI is free-text, preview is not the requested non-blocking side-by-side note, and fresh-vault/wand behavior has not been proven in Obsidian.",
+    "evidence": [
+      "src/ui/settings.ts currently registers General, Lappe, Style, Custom, and Debug.",
+      "src/ui/linter-components/tab-components/lappe-tab.ts defines a seven-argument constructor while settings.ts calls it with five arguments.",
+      "src/ui/linter-components/tab-components/lappe-tab.ts contains unreachable code referencing an undefined sections variable.",
+      "The existing plan marks scope autocomplete and non-blocking preview partial or follow-up while the user requirement requires them.",
+      "The pure Lappe suite passes 116 suites and 1,779 tests, but that does not prove an installed Obsidian settings surface or active-vault wand behavior.",
+      "The product-management plugin has its own preview implementation and is not the Lappe lint engine."
+    ]
+  },
+  "goal": {
+    "id": "GOAL-001",
+    "statement": "A new user can install Lappe Linter into a fresh Obsidian vault, see the requested settings tabs, configure a rule, lint a real note with the wand, observe the expected change in a side-by-side preview, configure a matching scope, reload the plugin, and reproduce the same result from the documented artifact.",
+    "metric": "lappe_acceptance_matrix_pass_rate",
+    "baseline": "The pure logic baseline is green, but the requested fresh-vault, exact-tab, side-by-side, scope-autocomplete, inheritance, and reload checks are not all evidenced.",
+    "target": "100% of required acceptance scenarios pass in the throwaway Obsidian vault, with no unresolved P0/P1 defects and a reproducible artifact hash.",
+    "evidence_source": "docs/plans/2026-07-13-lappe-linter-settings-delivery-plan.json"
+  },
+  "non_goals": [
+    "Merge lappe-linter into product-management-plugin.",
+    "Replace the tested @lappe-linter/core engine with the Product Management preview engine.",
+    "Delete upstream rules or historical plans; hide legacy settings only where the user requested a simplified surface.",
+    "Treat a synthetic preformatted preview or unit tests alone as the requested Obsidian side-by-side validation.",
+    "Expand the Product Management pipeline or session-data producer as part of Lappe delivery."
+  ],
+  "assumptions": [
+    "The repository default branch is master and the Lappe plugin id is lappe-linter.",
+    "The current pure core and existing rule tests are the implementation base, not throwaway work.",
+    "linter.yaml is the canonical user-editable Lappe configuration and must remain comment-preserving.",
+    "The exact filename-flow trigger remains a decision until verified against Obsidian rename and paste behavior.",
+    "A throwaway vault at /private/tmp/lappe-linter-obssmoke may be created for manual validation.",
+    "Product Management remains a separate plugin with its own plan and release artifact."
+  ],
+  "decisions_needed": [
+    "DEC-001: Resolve the source wording conflict between date-revised in the default key order and date-updated in the kept timestamp options. Recommendation: use date-revised everywhere because the current core, scaffold, and existing plan use date-revised.",
+    "DEC-002: Confirm the preview contract is a real Markdown note or workspace leaf on the left and the settings panel on the right, not a modal or static preformatted block. This plan assumes the non-blocking workspace-leaf design.",
+    "DEC-003: Define the exact automatic application trigger for filename/header behavior: rename transition, paste, save, or an explicit lint action. The trigger must be tested rather than implied by a comment.",
+    "DEC-004: Scope combination semantics: recommended AND across selected scope types and OR among values within one type.",
+    "DEC-005: Decide whether linter-styles are intentionally Obsidian-only or must reach CLI parity. This does not block the exact settings-tab work but must be documented before release.",
+    "DEC-006: Define the final profile override editor shape so each inherited option can be explicitly reset to inherited or set as an override."
+  ],
+  "risks": [
+    "The current dirty primary checkout contains user-owned documentation and source changes; all implementation lanes must start from a clean linked worktree and never reset the primary.",
+    "The bundle currently allows TypeScript/API mismatches that a type-aware gate must catch.",
+    "A settings refactor can accidentally leave duplicate rule controls in old tabs, creating conflicting persistence paths.",
+    "Scope matching can appear to work in pure tests while failing in Obsidian if metadata-cache backlinks, aliases, or frontmatter are not threaded correctly.",
+    "A modal or static preview can be incorrectly reported as live side-by-side behavior.",
+    "Filename, date, and timestamp naming inconsistencies can create silent metadata drift."
+  ],
+  "requirements": [
+    {"id": "REQ-001", "statement": "A fresh vault loads the fork using the lappe-linter plugin id, the correct manifest/main/styles artifacts, the correct enabled community-plugin id, and no stale obsidian-linter installation path.", "feature_id": "FEAT-001", "primary_pr": "PR-001", "tests": ["TEST-001", "TEST-009"]},
+    {"id": "REQ-002", "statement": "The wand lints the active Markdown file in editing view, reading view, and with no editor when a file is available; it shows an actionable notice instead of silently doing nothing when no Markdown file exists.", "feature_id": "FEAT-001", "primary_pr": "PR-001", "tests": ["TEST-002", "TEST-009"]},
+    {"id": "REQ-003", "statement": "The active-file lint path reads the file, resolves linter.yaml/profile configuration, applies the Lappe core, writes changed content, reports violations or errors, and fails closed without silently swallowing failures.", "feature_id": "FEAT-001", "primary_pr": "PR-001", "tests": ["TEST-002", "TEST-003"]},
+    {"id": "REQ-004", "statement": "The settings navigation contains exactly General, YAML, Headers, Body, Special formatting, Scopes, Rule order, Custom, and Debug; it contains no Lappe tab and no combined Style tab.", "feature_id": "FEAT-002", "primary_pr": "PR-002", "tests": ["TEST-004", "TEST-009"]},
+    {"id": "REQ-005", "statement": "YAML exposes the default order preset, domain, category, sub-category, types, date-created, date-revised, links, aliases, tags, then one blank key/value row, with drag-and-drop ordering and no separate key-sort option.", "feature_id": "FEAT-002", "primary_pr": "PR-002", "tests": ["TEST-005", "TEST-009"]},
+    {"id": "REQ-006", "statement": "YAML key and value fields show existing vault values alphabetically, narrow as the user types, start with one blank row, and use consistent add/remove row controls; Insert is not a separate flow.", "feature_id": "FEAT-002", "primary_pr": "PR-002", "tests": ["TEST-005", "TEST-009"]},
+    {"id": "REQ-007", "statement": "YAML keeps blank-line-after-YAML, dedupe-array-values, remove YAML keys/values, and timestamp controls; all retained toggles default ON; title alias, YAML title, and footnote options are removed from the redesigned surface.", "feature_id": "FEAT-002", "primary_pr": "PR-002", "tests": ["TEST-005", "TEST-009"]},
+    {"id": "REQ-008", "statement": "Headers is the renamed heading surface and provides per-level alphabetical options camelCase, First letter, kebab-case, Title Case, and underscore_formatted.", "feature_id": "FEAT-003", "primary_pr": "PR-002", "tests": ["TEST-006", "TEST-009"]},
+    {"id": "REQ-009", "statement": "Filename/header behavior ignores Obsidian Untitled names, formats a real filename as configured, sets H1 from the formatted filename, applies configured H2/H3 behavior, and has a tested automatic trigger.", "feature_id": "FEAT-003", "primary_pr": "PR-003", "tests": ["TEST-006", "TEST-009"]},
+    {"id": "REQ-010", "statement": "Headers retains header increment, include-heading-start-line, and trailing spaces with default ON behavior.", "feature_id": "FEAT-003", "primary_pr": "PR-002", "tests": ["TEST-006", "TEST-009"]},
+    {"id": "REQ-011", "statement": "Body replaces Content and exposes Basic Styling controls for Bold, Underscore, and Italics.", "feature_id": "FEAT-004", "primary_pr": "PR-002", "tests": ["TEST-007", "TEST-009"]},
+    {"id": "REQ-012", "statement": "Body controls paragraph blank lines at 0, 1, or 2; bullet markers - or * with one following space; tight bullets default ON; and removal of artificial hard line breaks from pasted, Gmail, AI, or window-wrapped text.", "feature_id": "FEAT-004", "primary_pr": "PR-003", "tests": ["TEST-007", "TEST-009"]},
+    {"id": "REQ-013", "statement": "Special formatting is a separate surface for code blocks, quotes, tables, callouts, and other Markdown-specific rules using the Body/YAML row pattern.", "feature_id": "FEAT-004", "primary_pr": "PR-002", "tests": ["TEST-007", "TEST-009"]},
+    {"id": "REQ-014", "statement": "The priority surface locks the first/default rule and supports manual or alphabetical ordering for the remaining rules, globally and per scoped profile.", "feature_id": "FEAT-005", "primary_pr": "PR-002", "tests": ["TEST-008", "TEST-009"]},
+    {"id": "REQ-015", "statement": "The preview is a real, non-blocking side-by-side experience with the example Markdown note on the left and settings on the right; changing configuration updates the visible result.", "feature_id": "FEAT-005", "primary_pr": "PR-004", "tests": ["TEST-009"]},
+    {"id": "REQ-016", "statement": "The preview/sample note covers YAML, H1/H2/H3, paragraphs, bullets, bold, italics, underscores, code blocks, quotes, tables, and callouts, and visibly reflects configured changes.", "feature_id": "FEAT-005", "primary_pr": "PR-004", "tests": ["TEST-009"]},
+    {"id": "REQ-017", "statement": "Scopes support folder, file, file path, properties, tags, backlinks, aliases, domain, category, sub-category, date-created, date-revised, age, project, and types; project is available under types.", "feature_id": "FEAT-006", "primary_pr": "PR-003", "tests": ["TEST-010", "TEST-009"]},
+    {"id": "REQ-018", "statement": "Scope selectors are multi-select; selected scope types reveal matching fields to the right; the selector closes on outside click; and vault folders, tags, property keys, and values use autocomplete.", "feature_id": "FEAT-006", "primary_pr": "PR-003", "tests": ["TEST-010", "TEST-009"]},
+    {"id": "REQ-019", "statement": "Age is today minus date-created, displayed in five-day buckets 1-5, 6-10, 11-15, and a note created today rounds up to 1.", "feature_id": "FEAT-006", "primary_pr": "PR-003", "tests": ["TEST-010"]},
+    {"id": "REQ-020", "statement": "The base settings act as a template; scoped configurations inherit non-overridden values, explicit overrides are distinguishable and resettable, later base changes propagate to inherited values, and an explicit push-template action is available.", "feature_id": "FEAT-006", "primary_pr": "PR-003", "tests": ["TEST-010", "TEST-009"]},
+    {"id": "REQ-021", "statement": "Scope matching and preview use preset, domain, category, sub-category, types, project, date-created, date-revised, tags, aliases, and links metadata, plus Obsidian metadata-cache context for backlinks and aliases.", "feature_id": "FEAT-006", "primary_pr": "PR-003", "tests": ["TEST-010", "TEST-009"]},
+    {"id": "REQ-022", "statement": "The CLI, core, and Obsidian runtime preserve existing rule behavior and explicitly document any metadata-cache or style-file parity boundary.", "feature_id": "FEAT-007", "primary_pr": "PR-003", "tests": ["TEST-003", "TEST-011"]},
+    {"id": "REQ-023", "statement": "The release is backed by a fresh-vault acceptance record containing artifact hash, plugin id, exact tab names, wand result, YAML diff, scope result, inheritance result, preview result, reload result, and no open P0/P1 defects.", "feature_id": "FEAT-007", "primary_pr": "PR-004", "tests": ["TEST-009", "TEST-011"]}
+  ],
+  "tests": [
+    {"id": "TEST-001", "kind": "automated", "command": "npm run build && test -f main.js && test -f manifest.json && test -f styles.css && rg -n '\"id\": \"lappe-linter\"' manifest.json", "cwd": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-01-debug-wand", "expected": "The production artifact exists and the manifest/plugin id is lappe-linter.", "evidence": "Command output and SHA-256 for main.js, manifest.json, and styles.css."},
+    {"id": "TEST-002", "kind": "automated", "command": "npm test -- --runInBand __tests__/lappe-ribbon-action.test.ts packages/core/__tests__/integration/lint-file.test.ts", "cwd": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-01-debug-wand", "expected": "Ribbon fallback, active-file handling, and core file mutation tests pass.", "evidence": "Targeted Jest output."},
+    {"id": "TEST-003", "kind": "automated", "command": "npm test -- --runInBand packages/core/__tests__/cli-parity/parity.test.ts packages/core/__tests__/config/loader.test.ts packages/core/__tests__/scope/advanced-scope-resolve.test.ts", "cwd": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-03-core-semantics", "expected": "CLI parity, config loading, and scope resolution pass.", "evidence": "Targeted Jest output."},
+    {"id": "TEST-004", "kind": "automated", "command": "node -e 'const fs=require(\"fs\"); const s=fs.readFileSync(\"src/ui/settings.ts\",\"utf8\"); const expected=[\"General\",\"YAML\",\"Headers\",\"Body\",\"Special formatting\",\"Scopes\",\"Rule order\",\"Custom\",\"Debug\"]; for(const x of expected) if(!s.includes(x)) process.exit(1); if(s.includes(\"new LappeTab(this.tabNavEl, this.settingsContentEl, isMobile, this.plugin, this.app)\")) process.exit(1);'", "cwd": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-02-settings-surface", "expected": "The requested tab contract is represented and the known constructor mismatch is absent.", "evidence": "Focused source contract test plus Obsidian verification."},
+    {"id": "TEST-005", "kind": "automated", "command": "npm test -- --runInBand __tests__/setting-controls.test.ts __tests__/lappe-yaml-controls.test.ts", "cwd": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-02-settings-surface", "expected": "YAML settings, default order, row operations, and option visibility tests pass.", "evidence": "Targeted Jest output."},
+    {"id": "TEST-006", "kind": "automated", "command": "npm test -- --runInBand packages/core/__tests__/rules-content/header-case.test.ts packages/core/__tests__/rules-content/paragraph-spacing.test.ts packages/core/__tests__/rules-content/list-style.test.ts __tests__/lappe-rename-trigger.test.ts", "cwd": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-03-core-semantics", "expected": "Header styles, paragraph/list spacing, and filename transition behavior pass with idempotency coverage.", "evidence": "Targeted Jest output."},
+    {"id": "TEST-007", "kind": "automated", "command": "npm test -- --runInBand packages/core/__tests__/rules-content/header-case.test.ts packages/core/__tests__/rules-content/paragraph-spacing.test.ts packages/core/__tests__/rules-content/list-style.test.ts __tests__/setting-controls.test.ts", "cwd": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-03-core-semantics", "expected": "Body, header, and special-formatting rule behavior remains green.", "evidence": "Targeted Jest output and fixture snapshots."},
+    {"id": "TEST-008", "kind": "automated", "command": "npm test -- --runInBand packages/core/__tests__/rule-order.test.ts __tests__/lappe-reorder.test.ts packages/core/__tests__/scope/merge-semantics.test.ts", "cwd": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-03-core-semantics", "expected": "Locked-first ordering, manual/alphabetical ordering, and inheritance merge semantics pass.", "evidence": "Targeted Jest output."},
+    {"id": "TEST-009", "kind": "human", "command": "scripts/install-test-vault.sh --no-build /private/tmp/lappe-linter-obssmoke", "cwd": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-04-obsidian-release", "expected": "Obsidian loads the exact artifact in a fresh vault; the exact tabs appear; wand, YAML, headers, body, special formatting, side-by-side preview, scopes, inheritance, metadata matching, reload, and persistence all pass.", "evidence": "Record the vault path, artifact SHA-256, plugin reload steps, tab names, before/after note content, linter.yaml diff, scope match/non-match cases, inherited/override cases, and final result."},
+    {"id": "TEST-010", "kind": "automated", "command": "npm test -- --runInBand packages/core/__tests__/scope/advanced-matchers.test.ts packages/core/__tests__/scope/advanced-scope-resolve.test.ts packages/core/__tests__/scope/merge-semantics.test.ts __tests__/lappe-scope-builder-model.test.ts", "cwd": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-03-core-semantics", "expected": "All requested scope types, age buckets, metadata matching, resolver precedence, and inheritance semantics pass.", "evidence": "Targeted Jest output with fixed dates and explicit metadata fixtures."},
+    {"id": "TEST-011", "kind": "automated", "command": "npm test && npm run build && npm run minify-css", "cwd": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-04-obsidian-release", "expected": "Full Lappe tests, production build, and CSS generation pass before release.", "evidence": "Full suite count, build output, CSS output, artifact hash, and CI result."}
+  ],
+  "prs": [
+    {
+      "id": "PR-001",
+      "title": "fix(plugin): make fresh-vault loading and wand linting deterministic",
+      "repo": "/Users/kevinlappe/Projects/lappe-linter",
+      "objective": "Fix the entry-point failure so a fresh vault loads the fork and the wand performs a visible, testable lint operation in every supported active-file state.",
+      "depends_on": [],
+      "consumes": ["PROB-001"],
+      "produces": ["FEAT-001", "REQ-001", "REQ-002", "REQ-003"],
+      "owner": "runtime/bootstrap lane",
+      "base_branch": "master",
+      "branch": "agent/pr-001-fresh-vault-wand",
+      "worktree": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-01-debug-wand",
+      "paths_owned": ["manifest.json", "scripts/install-test-vault.sh", "src/main.ts", "src/lappe/ribbon-action.ts", "__tests__/lappe-ribbon-action.test.ts", "packages/core/__tests__/integration/lint-file.test.ts"],
+      "requirements": ["REQ-001", "REQ-002", "REQ-003"],
+      "tasks": ["Verify manifest id, install destination, enabled plugin id, and fresh-vault artifact set.", "Trace the ribbon callback from click through command check, active TFile resolution, core lint, vault modify, and notice/report.", "Ensure reading view and no-editor states use the whole-file path when a Markdown file is active.", "Ensure no-file state produces a deterministic localized notice.", "Add regression tests for each state and a fresh-vault install assertion."],
+      "verification": {"preflight": ["git status --short --branch", "Confirm worktree is based on origin/master and primary checkout is untouched."], "local": ["TEST-001", "TEST-002", "npm run build"], "ci": ["Repository build/test workflow."], "integration": ["TEST-009 after PR-002, PR-003, and PR-004."], "negative": ["No silent no-op when reading view is active.", "No write when no Markdown file exists.", "Malformed config fails closed with a visible notice."]},
+      "acceptance": ["A new vault loads lappe-linter from the documented install flow.", "Wand changes a real Markdown file in editing and reading view.", "No-file behavior is visible and actionable.", "The active-file path uses the same Lappe core as CLI/config tests."],
+      "exit_state": "ready_for_review",
+      "merge_policy": "review_required",
+      "rollback": "Revert only the isolated entry-point changes; retain the prior artifact and do not reset any user vault."
+    },
+    {
+      "id": "PR-002",
+      "title": "feat(settings): replace legacy tabs with the requested settings surface",
+      "repo": "/Users/kevinlappe/Projects/lappe-linter",
+      "objective": "Refactor the actual Obsidian settings navigation and wire the requested YAML, Headers, Body, Special formatting, Scopes, and Rule order surfaces without a bolted-on Lappe or Style tab.",
+      "depends_on": ["PR-001"],
+      "consumes": ["FEAT-001"],
+      "produces": ["FEAT-002", "REQ-004", "REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-010", "REQ-011", "REQ-013", "REQ-014"],
+      "owner": "settings surface lane",
+      "base_branch": "master",
+      "branch": "agent/pr-002-canonical-settings-surface",
+      "worktree": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-02-settings-surface",
+      "paths_owned": ["src/ui/settings.ts", "src/ui/linter-components/tab-components/lappe-tab.ts", "src/lappe/yaml-suggest.ts", "src/lappe/reorder.ts", "__tests__/setting-controls.test.ts", "__tests__/lappe-yaml-controls.test.ts", "__tests__/lappe-settings-tabs.test.ts"],
+      "requirements": ["REQ-004", "REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-010", "REQ-011", "REQ-013", "REQ-014"],
+      "tasks": ["Fix the LappeTab constructor/registration contract before moving behavior.", "Register exactly General, YAML, Headers, Body, Special formatting, Scopes, Rule order, Custom, and Debug; remove Lappe and Style registrations.", "Implement YAML order preset, domain, category, sub-category, types, date-created, date-revised, links, aliases, tags, blank row with drag/drop and no separate key-sort option.", "Use vault key/value suggestions with alphabetical initial values and narrowing as the user types; keep consistent blank-row add/remove controls.", "Keep only the requested YAML controls, default retained toggles ON, and explicitly record DEC-001 before choosing date-updated versus date-revised.", "Wire Headers, Body, Special formatting, and Rule order sections to the canonical config service without duplicate legacy controls.", "Remove the dead legacy section method and undefined sections reference; add source contract tests."],
+      "verification": {"preflight": ["Review current lappe-tab.ts diff and the original prompt.", "Confirm no unrelated source or docs are staged."], "local": ["TEST-004", "TEST-005", "TEST-006", "TEST-007", "TEST-008", "npm run build"], "ci": ["Full Jest suite, production build, ESLint, and package checks."], "integration": ["TEST-009 after PR-003 and PR-004."], "negative": ["No Lappe or Style tab.", "No free-text-only YAML suggestion implementation.", "No duplicate YAML/header/body rule controls in hidden legacy tabs.", "No constructor/API mismatch in changed settings paths."]},
+      "acceptance": ["The exact tab names appear in the real Obsidian settings UI.", "YAML controls write comment-preserving linter.yaml changes.", "Headers, Body, Special formatting, and Rule order are reachable from their requested tabs.", "The plan's date naming decision is explicit and tested.", "The settings refactor does not destroy existing core rule support."],
+      "exit_state": "ready_for_review",
+      "merge_policy": "review_required",
+      "rollback": "Revert the settings-surface PR only; preserve the core engine, prior settings data, and the original primary-checkout work."
+    },
+    {
+      "id": "PR-003",
+      "title": "feat(core): complete formatting scopes and inheritance semantics",
+      "repo": "/Users/kevinlappe/Projects/lappe-linter",
+      "objective": "Make the rule, scope, metadata, age, ordering, inheritance, and CLI semantics complete and deterministic behind the settings surface.",
+      "depends_on": ["PR-002"],
+      "consumes": ["FEAT-002"],
+      "produces": ["FEAT-003", "FEAT-004", "FEAT-006", "REQ-009", "REQ-012", "REQ-017", "REQ-018", "REQ-019", "REQ-020", "REQ-021", "REQ-022"],
+      "owner": "core semantics lane",
+      "base_branch": "master",
+      "branch": "agent/pr-003-core-scopes-inheritance",
+      "worktree": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-03-core-semantics",
+      "paths_owned": ["packages/core/src/rules-content/header-case.ts", "packages/core/src/rules-content/paragraph-spacing.ts", "packages/core/src/rules-content/list-style.ts", "packages/core/src/scope", "packages/core/src/config", "packages/core/src/runner.ts", "src/lappe/config-service.ts", "src/lappe/scope-builder-model.ts", "packages/cli/src", "packages/core/__tests__/rules-content", "packages/core/__tests__/scope", "packages/core/__tests__/config", "packages/core/__tests__/rule-order.test.ts", "packages/cli/__tests__", "__tests__/lappe-rename-trigger.test.ts"],
+      "requirements": ["REQ-009", "REQ-012", "REQ-017", "REQ-018", "REQ-019", "REQ-020", "REQ-021", "REQ-022"],
+      "tasks": ["Implement or verify header-case options and filename-to-H1 behavior with explicit Untitled handling.", "Implement or verify paragraph spacing 0/1/2, bullet marker/tightness, and artificial-line-break removal while preserving code/frontmatter/quote/table zones.", "Implement or verify code, quote, table, callout, and other special-formatting semantics with fixtures and idempotency tests.", "Implement all scope matchers and fixed-date tests for folder, file, path, properties, tags, backlinks, aliases, domain, category, sub-category, date-created, date-revised, age, project, and types.", "Use AND across selected scope types and OR within values unless DEC-004 changes the contract.", "Thread Obsidian metadata-cache backlinks and aliases into the plugin resolver and document CLI limitations.", "Implement inherited versus overridden option state, reset-to-inherited behavior, base-change propagation, and explicit push-template action.", "Verify global and per-profile locked-first/manual/alphabetical rule ordering."],
+      "verification": {"preflight": ["Confirm PR-002 has merged or use its exact commit as the base.", "Run targeted core tests before changing semantics."], "local": ["TEST-003", "TEST-006", "TEST-007", "TEST-008", "TEST-010", "npm test -- --runInBand packages/core/__tests__ packages/cli/__tests__"], "ci": ["Full Jest suite, core build, CLI build, production build, ESLint."], "integration": ["TEST-009 after PR-004."], "negative": ["Malformed scope values do not match everything.", "Missing metadata-cache context does not fabricate backlink/alias matches.", "Inherited values do not become overrides during a base edit.", "Null/empty YAML metadata does not produce accidental scope matches."]},
+      "acceptance": ["Every requested scope type has a tested resolver path or an explicit documented limitation.", "Age buckets match the exact five-day contract and today rounds to 1.", "Base/profile inheritance is observable and resettable.", "CLI and Obsidian behavior have an explicit parity statement.", "Core tests remain green and transformations are idempotent."],
+      "exit_state": "ready_for_review",
+      "merge_policy": "review_required",
+      "rollback": "Revert core semantics as one isolated lane; preserve config files and use fixture diffs to diagnose behavior changes."
+    },
+    {
+      "id": "PR-004",
+      "title": "feat(obsidian): add real side-by-side preview and release acceptance gate",
+      "repo": "/Users/kevinlappe/Projects/lappe-linter",
+      "objective": "Replace the modal/static preview assumption with a real Obsidian workspace interaction and make the final release claim depend on an exact artifact acceptance record.",
+      "depends_on": ["PR-003"],
+      "consumes": ["FEAT-003", "FEAT-004", "FEAT-006"],
+      "produces": ["FEAT-005", "FEAT-007", "REQ-015", "REQ-016", "REQ-023"],
+      "owner": "Obsidian integration and release lane",
+      "base_branch": "master",
+      "branch": "agent/pr-004-obsidian-preview-release",
+      "worktree": "/Users/kevinlappe/Projects/_worktrees/lappe-linter/pr-04-obsidian-release",
+      "paths_owned": ["src/ui/modals/lappe-preview-modal.ts", "src/ui/lappe-preview-view.ts", "src/lappe/preview-sample.ts", "scripts/verify-test-vault.sh", "__tests__/lappe-preview-sample.test.ts", "docs/verification/lappe-obsidian-acceptance.md"],
+      "requirements": ["REQ-015", "REQ-016", "REQ-023"],
+      "tasks": ["Create a real Markdown sample note containing every requested syntax category.", "Open the sample note in a workspace leaf on the left and the settings panel on the right; do not use a blocking modal as the acceptance surface.", "Re-render or re-lint the real sample when relevant settings/config changes, preserving the note as a visible before/after test target.", "Add scripts/verify-test-vault.sh to install, identify, hash, and report the exact plugin artifact.", "Write the acceptance record with tab names, wand states, YAML/header/body/special outputs, scope match/non-match, inheritance, reload, and artifact hash.", "Run the full suite/build and stop release if any P0/P1 or acceptance item remains unverified."],
+      "verification": {"preflight": ["Confirm PR-003 is merged and the source artifact is clean in the task worktree.", "Confirm throwaway vault path is not a production vault."], "local": ["TEST-009", "TEST-011", "git diff --check"], "ci": ["Full repository CI and release/package checks."], "integration": ["Fresh-vault Obsidian acceptance record attached to the PR."], "negative": ["Preview is not a static pre block only.", "Preview is not a blocking modal only.", "Artifact hash in the acceptance record matches the installed main.js.", "Reload is performed after installation and after linter.yaml changes."]},
+      "acceptance": ["A user can see a real note and settings side by side.", "All requested behavior is visible in the note and reproducible after reload.", "The acceptance record identifies the exact artifact and vault.", "Release is blocked when manual verification is missing."],
+      "exit_state": "ready_for_review",
+      "merge_policy": "review_required",
+      "rollback": "Revert the preview/release lane and retain the previous build; do not delete the throwaway vault evidence or user notes."
+    }
+  ],
+  "automation": {
+    "preflight": ["Read the newest Lappe passoff and this plan before selecting a PR lane.", "Confirm the primary checkout is browse-only and the task worktree is based on current origin/master.", "Run git status --short --branch and record unrelated dirty paths before editing."],
+    "scheduling": ["PR-001 is the root runtime lane.", "PR-002 depends on PR-001 and owns the shared settings UI files.", "PR-003 depends on PR-002 and owns core/config/CLI semantics, avoiding shared settings files.", "PR-004 depends on PR-003 and owns preview/release integration and evidence.", "Only the integration owner resolves conflicts or merges lanes."],
+    "closeout": ["Run the lane's local checks and full required suite.", "Push the named branch, open the named PR with the specified message/body, and wait for required CI.", "Merge only when required checks pass, no unresolved review threads remain, and the acceptance evidence is attached.", "Fast-forward local master after merge and record the merge SHA in the passoff."]
+  },
+  "traceability": {
+    "features": [
+      {"id": "FEAT-001", "statement": "Fresh-vault loading, active-file linting, and wand behavior", "requirements": ["REQ-001", "REQ-002", "REQ-003"]},
+      {"id": "FEAT-002", "statement": "Canonical settings tabs and controls", "requirements": ["REQ-004", "REQ-005", "REQ-006", "REQ-007", "REQ-008", "REQ-010", "REQ-011", "REQ-013", "REQ-014"]},
+      {"id": "FEAT-003", "statement": "Header/body/special formatting semantics", "requirements": ["REQ-009", "REQ-012"]},
+      {"id": "FEAT-004", "statement": "Scopes, metadata, age, and inheritance", "requirements": ["REQ-017", "REQ-018", "REQ-019", "REQ-020", "REQ-021"]},
+      {"id": "FEAT-005", "statement": "Real side-by-side preview", "requirements": ["REQ-015", "REQ-016"]},
+      {"id": "FEAT-006", "statement": "Rule order and core/CLI parity", "requirements": ["REQ-014", "REQ-022"]},
+      {"id": "FEAT-007", "statement": "Release evidence and artifact reproducibility", "requirements": ["REQ-023"]}
+    ],
+    "validations": [
+      {"id": "VAL-001", "statement": "Fresh-vault/runtime validation", "tests": ["TEST-001", "TEST-002", "TEST-009"]},
+      {"id": "VAL-002", "statement": "Settings and formatting validation", "tests": ["TEST-004", "TEST-005", "TEST-006", "TEST-007", "TEST-008"]},
+      {"id": "VAL-003", "statement": "Scope and inheritance validation", "tests": ["TEST-010", "TEST-009"]},
+      {"id": "VAL-004", "statement": "Release validation", "tests": ["TEST-009", "TEST-011"]}
+    ]
+  },
+  "metadata": {
+    "canonical_plan": "/Users/kevinlappe/Projects/lappe-linter/docs/plans/2026-07-13-lappe-linter-settings-delivery-plan.json",
+    "supersedes": ["docs/plans/2026-07-10-settings-redesign-plan.md", "docs/plans/2026-07-10-settings-tabs-redesign-plan.md", "docs/plans/2026-07-12-lappe-linter-consolidated-delivery-plan.json"],
+    "project_boundary": "product-management-plugin is a separate repository and plugin. It is not a dependency of this plan and must not receive copied Lappe lint code. Its pipeline plan remains separate.",
+    "status_rollup": [
+      {"item": "Core rules and pure tests", "status": "delivered_baseline", "evidence": "116 suites / 1,779 tests previously passed; rerun is required per lane."},
+      {"item": "Fresh-vault plugin loading and wand", "status": "in_progress", "owner": "PR-001"},
+      {"item": "Exact settings tab architecture", "status": "not_done", "owner": "PR-002"},
+      {"item": "Formatting rule semantics", "status": "delivered_partially_and_requires_acceptance", "owner": "PR-003"},
+      {"item": "Scopes, autocomplete, metadata, inheritance", "status": "in_progress", "owner": "PR-003"},
+      {"item": "Real side-by-side preview", "status": "not_done", "owner": "PR-004"},
+      {"item": "Fresh-vault release evidence", "status": "not_done", "owner": "PR-004"}
+    ],
+    "pr_contracts": {
+      "PR-001": {"commit_subject": "fix(plugin): make fresh-vault loading and wand linting deterministic", "pr_title": "fix(plugin): make fresh-vault loading and wand linting deterministic", "pr_body": "Fix plugin-id/install-path drift and make the wand lint the active Markdown file in editing view, reading view, and no-file states. Add regression coverage for the active-file path and fresh-vault artifact contract. Required checks: TEST-001, TEST-002, npm run build."},
+      "PR-002": {"commit_subject": "feat(settings): replace legacy tabs with the requested settings surface", "pr_title": "feat(settings): replace legacy tabs with the requested settings surface", "pr_body": "Wire the real settings navigation to General, YAML, Headers, Body, Special formatting, Scopes, Rule order, Custom, and Debug. Implement the requested YAML ordering, autocomplete, row controls, and retained-option defaults while preserving linter.yaml persistence. Required checks: TEST-004 through TEST-008."},
+      "PR-003": {"commit_subject": "feat(core): complete formatting scopes and inheritance semantics", "pr_title": "feat(core): complete formatting scopes and inheritance semantics", "pr_body": "Complete and verify header/body/special-formatting semantics, scope matchers, age buckets, metadata context, rule ordering, CLI boundaries, and inherited-versus-overridden profile behavior. Required checks: TEST-003, TEST-006 through TEST-008, TEST-010."},
+      "PR-004": {"commit_subject": "feat(obsidian): add real side-by-side preview and release acceptance gate", "pr_title": "feat(obsidian): add real side-by-side preview and release acceptance gate", "pr_body": "Replace modal/static preview assumptions with a real Obsidian side-by-side note/settings workflow and attach an exact artifact acceptance record. Required checks: TEST-009 and TEST-011; no release claim without manual evidence."}
+    },
+    "hard_stop_conditions": ["Do not mark PR-002 complete if any requested tab is absent or Lappe/Style remains visible.", "Do not mark PR-003 complete if scope fields remain free-text-only where autocomplete is required.", "Do not mark PR-004 complete if preview is modal-only or static-only.", "Do not claim shippable until TEST-009 records a passing fresh-vault run."]
+  }
+}
