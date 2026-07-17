@@ -69,7 +69,10 @@ Scripts already live in git — the plane doesn't reinvent version control; it s
 - Never writes to `sessions.db`, registries, or repos directly (v1 actions go through existing CLIs only).
 - Not a replacement for the Obsidian surfaces — it's the operator view; the vault stays the authoring view.
 
-## 8. Naming (decision needed — DEC-102)
+## 8. Naming (DEC-102 — resolved: **harness-view**)
+
+**Ratified name: `harness-view`** (own repo `klappe-pm/harness-view`). The candidates below are retained for the record.
+
 
 Constraints: it's a real product (not "whatever-component manager"), should sit comfortably beside `harness`, `lappe-linter`, `pm-vault`, and shouldn't collide badly in search.
 
