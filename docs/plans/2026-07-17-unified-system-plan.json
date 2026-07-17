@@ -1,0 +1,53 @@
+{
+  "plan_id": "lappe-unified-system-v1",
+  "status": "draft_for_review",
+  "date": "2026-07-17",
+  "program_line": {
+    "current_pointer": "harness/docs/program/v5/PROGRAM.md",
+    "staged": "harness/docs/plans/v7/",
+    "placement": "proposed v8 increment, or v7 WP-10..WP-14 if v7 still open (DEC-101)"
+  },
+  "companions": [
+    "docs/plans/2026-07-17-unified-system-sketches.md",
+    "docs/plans/2026-07-17-pm-plugin-linter-migration-plan.md",
+    "docs/plans/2026-07-17-harness-logs-analysis-charter.md",
+    "docs/plans/2026-07-17-management-plane-design.md"
+  ],
+  "workstreams": [
+    {"id": "WS-A", "title": "Migrate linter code out of product-management-plugin", "repos": ["lappe-linter", "product-management-plugin"], "detail_doc": "2026-07-17-pm-plugin-linter-migration-plan.md", "exit": "PM plugin has zero linter source; split preview and unique capabilities reconciled into @lappe-linter/core; provider stub replaces embedding"},
+    {"id": "WS-B", "title": "Property-based template system: global base + scoped toggles + rules/automations bindings", "repos": ["lappe-linter"], "exit": "templates: and automations: schema in core config with loader/serializer/scaffold; preview-first apply contract; CLI/plugin parity"},
+    {"id": "WS-C", "title": "CLI as shift-left execution surface", "repos": ["lappe-linter"], "exit": "template/report/export/run commands shipped; output-version 2; container registration via HC-1/HC-6"},
+    {"id": "WS-D", "title": "Telemetry v2: lint-event v2, template-event v1, run-summary v1; ingest; committed rollups", "repos": ["lappe-linter", "session-data"], "exit": "template_events + lint_runs tables; CI commits docs/reports/lint/*.{md,json}; capture fail-open, gates fail-closed"},
+    {"id": "WS-E", "title": "Reports left-nav surface in plugin", "repos": ["lappe-linter"], "exit": "usage/coverage report from local rollup JSON; --ll-* tokens only; promote-to-guidance action"},
+    {"id": "WS-F", "title": "harness-logs-analysis project", "repos": ["harness-logs-analysis (new)"], "detail_doc": "2026-07-17-harness-logs-analysis-charter.md", "exit": "first findings report from real multi-container data; one recommendation lands upstream with measured follow-up"},
+    {"id": "WS-G", "title": "Management plane app", "repos": ["harness-dashboards or new (DEC-102)"], "detail_doc": "2026-07-17-management-plane-design.md", "exit": "v0 read-only panels: Scripts, Projects/CI-drift, Security, Insights"},
+    {"id": "WS-H", "title": "Code-comment linting / agent header contract", "repos": ["lappe-linter"], "exit": "lappe-header v1 schema ratified; code-checks enforcement on opted-in paths; script-index consumes metadata"},
+    {"id": "WS-I", "title": "Product-management capability alignment", "repos": ["product-management-plugin"], "exit": "capability map documented; provider ships note-types; capabilities exposed via Obsidian + pm-vault CLI + management plane read-only"}
+  ],
+  "pr_sequence": [
+    {"id": "PR-101", "repo": "lappe-linter", "title": "docs: adopt unified system plan", "depends_on": []},
+    {"id": "PR-102", "repo": "lappe-linter", "title": "feat(core): port template-body + pinned-key capabilities; land split preview", "depends_on": ["PR-101"]},
+    {"id": "PR-103", "repo": "product-management-plugin", "title": "refactor: remove linter code; ship provider stub", "depends_on": ["PR-102"]},
+    {"id": "PR-104", "repo": "lappe-linter", "title": "feat(config): templates + automations schema", "depends_on": ["PR-102"]},
+    {"id": "PR-105", "repo": "lappe-linter", "title": "feat(cli): template/report/export/run; output-version 2", "depends_on": ["PR-104"]},
+    {"id": "PR-106", "repo": "lappe-linter+session-data", "title": "feat(telemetry): template_events + lint_runs ingest; committed rollups", "depends_on": ["PR-105"]},
+    {"id": "PR-107", "repo": "lappe-linter", "title": "feat(ui): Reports left-nav surface", "depends_on": ["PR-106"]},
+    {"id": "PR-108", "repo": "harness", "title": "docs: program increment referencing this package", "depends_on": ["PR-101"]},
+    {"id": "PR-109", "repo": "harness-logs-analysis", "title": "chore: scaffold project", "depends_on": ["PR-106"]},
+    {"id": "PR-110", "repo": "harness-dashboards-or-new", "title": "feat: management plane v0", "depends_on": ["PR-106"]}
+  ],
+  "decisions": [
+    {"id": "DEC-101", "question": "v8 increment vs v7 WP-10..14"},
+    {"id": "DEC-102", "question": "management plane name (rec: Bridge) and host repo"},
+    {"id": "DEC-103", "question": "management plane runtime (rec: local web first, package later)"},
+    {"id": "DEC-104", "question": "template apply contract for existing notes"},
+    {"id": "DEC-105", "question": "agent header contract syntax per language family"},
+    {"id": "DEC-106", "question": "export bundle signing now vs at v2 automation"},
+    {"id": "DEC-107", "question": "linter-styles CLI parity (carries DEC-005), resolve by PR-105"}
+  ],
+  "telemetry_contracts": {
+    "lint_event": {"version": 2, "adds": ["run_id", "trigger", "repo", "action", "duration_ms"]},
+    "template_event": {"version": 1, "fields": ["ts", "run_id", "trigger", "repo", "path", "template", "scope_matched", "keys_applied", "toggles_overridden", "mode"]},
+    "run_summary": {"version": 1, "fields": ["run_id", "trigger", "repo", "files_scanned", "files_changed", "violations", "fixes", "templates_invoked", "exit_code", "ts_start", "ts_end"]}
+  }
+}
