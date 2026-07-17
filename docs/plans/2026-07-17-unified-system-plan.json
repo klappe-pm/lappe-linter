@@ -4,8 +4,8 @@
   "date": "2026-07-17",
   "program_line": {
     "current_pointer": "harness/docs/program/v5/PROGRAM.md",
-    "staged": "harness/docs/plans/v7/",
-    "placement": "proposed v8 increment, or v7 WP-10..WP-14 if v7 still open (DEC-101)"
+    "latest": "harness/docs/plans/v7/",
+    "placement": "resolved (DEC-101): no v8; v7 is the latest line, Opus-orchestrated per harness PR #485; these workstreams feed v7, placement owned by the v7 package (audit-locked, not edited from the linter side)"
   },
   "companions": [
     "docs/plans/2026-07-17-unified-system-sketches.md",
@@ -37,7 +37,7 @@
     {"id": "PR-110", "repo": "harness-dashboards-or-new", "title": "feat: management plane v0", "depends_on": ["PR-106"]}
   ],
   "decisions": [
-    {"id": "DEC-101", "question": "v8 increment vs v7 WP-10..14"},
+    {"id": "DEC-101", "question": "v8 increment vs v7", "status": "resolved", "resolution": "no v8; align to harness v7 (Opus-orchestrated) per harness PR #485"},
     {"id": "DEC-102", "question": "management plane name (rec: Bridge) and host repo"},
     {"id": "DEC-103", "question": "management plane runtime (rec: local web first, package later)"},
     {"id": "DEC-104", "question": "template apply contract for existing notes"},

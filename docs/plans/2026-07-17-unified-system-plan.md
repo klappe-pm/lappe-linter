@@ -14,7 +14,7 @@
 
 Bring the scattered linting, template, documentation-sanitization, and telemetry work into one system with a single shared engine, then close the loop: local shift-left enforcement → structured logs → committed reports → a logs-analysis project → upstream hooks and agent guidance that prevent the same defects earlier. Add a local management plane (GUI) over scripts, automations, CI configs, security jobs, and harness state. Position the whole package as the next increment of the main program line.
 
-## Program-line placement (the "V8" question)
+## Program-line placement (the "V8" question — resolved to v7)
 
 The main program line lives in the harness repo:
 
@@ -22,7 +22,7 @@ The main program line lives in the harness repo:
 - `docs/program/v6/` — 30+ work orders (WO-G/S/M/T/C/P/X)
 - `docs/plans/v7/` — newest staged package (PROGRAM.md, WP-00..WP-09, documentation-control-plane, harness-feature-architecture)
 
-There is **no v8 yet**. This plan is written to become the **v8 program increment** (or, if v7 is still open when this is ratified, its workstreams can be appended as WP-10..WP-14). Either way, the merge target is explicit in each workstream below, and nothing here contradicts v7 — WS-D/E/F/G below are the concrete build-out of v7's `documentation-control-plane-execution-plan.md` and `harness-feature-architecture.md` (Projects/Work/Environments/Models/Assurance/Insights).
+**Resolved (DEC-101):** the harness program owners have declared there is **no v8; v7 is the latest line**, and the orchestrator is Opus (harness PR #485, 2026-07-17). This plan is therefore *not* a separate v8 increment. Its workstreams are cross-repo contributions that feed v7, with program-line placement owned by the harness v7 package rather than asserted from the linter side. Nothing here contradicts v7 — WS-D/E/F/G below are the concrete build-out of v7's `documentation-control-plane-execution-plan.md` and `harness-feature-architecture.md` (Projects/Work/Environments/Models/Assurance/Insights). The harness-side lane (PR-108) adds a coordination pointer *outside* `docs/plans/v7/` (that package is audit-locked by `validate_package.py`), so the v7 owners incorporate these workstreams on their own cadence.
 
 ## What this consolidates (evidence inventory)
 
@@ -162,13 +162,13 @@ Exit: capability map doc in PM repo; provider stub shipping note-types; no cross
 | PR-105 | lappe-linter | feat(cli): template/report/export/run commands; output-version 2 | PR-104 | validated |
 | PR-106 | lappe-linter + session-data | feat(telemetry): template_events + lint_runs ingest; committed rollups in CI | PR-105 | validated |
 | PR-107 | lappe-linter | feat(ui): Reports left-nav surface | PR-106 | validated |
-| PR-108 | harness | docs: program increment (v8 or v7 WP-10..14) referencing this package | PR-101 | ready_for_review |
+| PR-108 | harness | docs: v7-aligned cross-repo coordination pointer (outside the audit-locked v7 package) referencing this plan | PR-101 | ready_for_review |
 | PR-109 | new repo | chore: scaffold harness-logs-analysis via `harness project init` | PR-106 | validated |
 | PR-110 | harness-dashboards or new | feat: management plane v0 (read-only panels) | PR-106 | validated |
 
 ## Decisions needed
 
-- DEC-101: Ratify v8 vs. appending WP-10..14 to v7 (depends on whether v7 is adopted before this package merges).
+- DEC-101: **Resolved** — no v8; align to harness v7 (Opus-orchestrated) per harness PR #485. Placement owned by the v7 package.
 - DEC-102: Management plane name (candidates + recommendation in the design doc) and host repo (`harness-dashboards` vs. fresh repo).
 - DEC-103: Management plane runtime — recommendation is local web app (Next.js/localhost) first, packaged as Electron/Tauri later; confirm.
 - DEC-104: Template apply contract for existing notes (preview-only today): which keys a template may rewrite on apply, and whether apply ever runs from automations or only interactively/CLI.
