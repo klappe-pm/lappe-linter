@@ -47,6 +47,9 @@ export interface LinterSettings {
   lintCommands: LintCommand[];
   customRegexes: CustomReplace[];
   commonStyles: CommonStyles;
+  // Vault-relative path to the telemetry JSONL the Reports tab rolls up
+  // (the spool the lint/template hooks append to). Empty = not configured.
+  reportsSourcePath?: string;
 }
 
 export type LinterSettingsKeys = NestedKeyOf<LinterSettings>
@@ -70,6 +73,7 @@ export const DEFAULT_SETTINGS: Partial<LinterSettings> = {
   logLevel: 'ERROR',
   lintCommands: [],
   customRegexes: [],
+  reportsSourcePath: '',
   commonStyles: {
     aliasArrayStyle: NormalArrayFormats.SingleLine,
     tagArrayStyle: NormalArrayFormats.SingleLine,

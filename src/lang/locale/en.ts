@@ -155,6 +155,7 @@ export default {
       'special-formatting': 'Special formatting',
       'scopes': 'Scopes',
       'rule-order': 'Rule order',
+      'reports': 'Reports',
       // Retained for the legacy SettingDefinition API; these are not
       // registered as navigation tabs.
       'heading': 'Heading',
