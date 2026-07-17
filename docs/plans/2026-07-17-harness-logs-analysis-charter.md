@@ -33,6 +33,16 @@ Cross-container joins ride the existing session-data contract: containers export
 3. **Automation candidates list**: recurring manual actions detected in logs that should become automations.
 4. **Feeds**: the management plane's Insights panel and the PM plugin's cost view read these outputs (read-only).
 
+## Metric families (first-class analysis dimensions)
+
+Lineage: `harness/docs/backlog/product-metrics-to-token-developer-ttm-metrics.md` (P1) — the reporting model joining product metrics to token, developer, and time-to-market metrics. Token metrics already have producers (the cost ledger, the derived-cost dataset per decision `derived-cost-published-rates`, and the bet's tokens-per-merged-PR companion metric). The other two families currently have no owner anywhere in the fleet; this project owns their computation:
+
+- **Developer metrics** — the human-plus-agent productivity picture: sessions per repo and per work item, rigor levels, review load (review rounds per PR), lint-violation trends per surface, accepted-result rate. Derived from `sessions.db`, `lint_events`/`lint_runs`, and check-runs; no new producers.
+- **Time-to-market metrics** — intent-to-delivery latency per work item: minted (`work-item-id` created) → first bound session → first PR (`Work-Item:` trailer / report `pr-url`) → merged → status `DONE`. Computed by joining the spine (J2/J3/J6) with git history. The computation lives here because nothing else in the fleet computes it.
+- **Token metrics** — consumed from the existing ledger/rollup outputs, joined against the other two families (cost per feature against latency per feature); this project adds joins, never producers.
+
+Findings reports segment by these three families so product metrics (bets, outcomes, RICE) read against them — the delivery feature-view the backlog entry names.
+
 ## Cadence & loop closure
 
 - Weekly analysis run (manual at first; scheduled once stable).
@@ -67,5 +77,6 @@ This is a data-exploration project over logs, so boundaries are explicit:
 ## Acceptance
 
 - First findings report produced from real data across ≥2 repos and ≥2 containers' worth of logs.
+- The report includes at least one computed time-to-market latency and one developer-metric aggregate for a real work item (the two families this project owns).
 - At least one recommendation lands upstream (hook/digest/template change) and its follow-up measurement is recorded.
 - Management plane Insights panel renders the latest findings JSON.
