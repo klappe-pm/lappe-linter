@@ -19,6 +19,7 @@ export * from './scope';
 export * from './rules-content';
 export * from './note-types';
 export * from './filename';
+export * from './templates';
 export * from './providers';
 export * from './lint-file';
 export * from './fixtures';

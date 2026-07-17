@@ -113,6 +113,75 @@ export const linterConfigJsonSchema: Record<string, unknown> = {
         additionalProperties: false,
       },
     },
+    'templates': {
+      type: 'object',
+      description: 'Property-based templates: one global base plus scoped children.',
+      properties: {
+        'global': {
+          type: 'object',
+          description: 'The base template every scoped template inherits.',
+          properties: {
+            'pinned-keys': {type: 'array', items: {type: 'string'}, description: 'Template-owned keys; a scoped child may switch them off.'},
+            'key-order': {type: 'array', items: {type: 'string'}},
+            'frontmatter': {
+              type: 'object',
+              description: 'Seed frontmatter for a rendered note.',
+              additionalProperties: {oneOf: [scalar, {type: 'array', items: scalar}, {type: 'null'}]},
+            },
+            'body': {type: 'string', description: 'Markdown body scaffold; {{title}} is substituted.'},
+            'age-line': {type: 'boolean'},
+          },
+          additionalProperties: false,
+        },
+        'by-scope': {
+          type: 'array',
+          description: 'Property-scoped templates, each refining the global base for a scope.',
+          items: {
+            type: 'object',
+            required: ['name'],
+            properties: {
+              'name': {type: 'string'},
+              'extends': {const: 'global'},
+              match,
+              'toggles': {
+                type: 'object',
+                description: 'Inherited attributes switched on/off for this scope.',
+                additionalProperties: {oneOf: [{type: 'boolean'}, {enum: ['on', 'off']}]},
+              },
+              'pinned-keys': {type: 'array', items: {type: 'string'}},
+              'key-order': {type: 'array', items: {type: 'string'}},
+              'frontmatter': {
+                type: 'object',
+                additionalProperties: {oneOf: [scalar, {type: 'array', items: scalar}, {type: 'null'}]},
+              },
+              'body': {type: 'string'},
+              'age-line': {type: 'boolean'},
+            },
+            additionalProperties: false,
+          },
+        },
+      },
+      additionalProperties: false,
+    },
+    'automations': {
+      type: 'array',
+      description: 'Rule/automation bindings: when and how linting runs, per trigger.',
+      items: {
+        type: 'object',
+        required: ['name', 'trigger'],
+        properties: {
+          'name': {type: 'string'},
+          'trigger': {enum: ['on-write', 'on-create', 'on-rename', 'pre-commit', 'ci', 'schedule', 'manual']},
+          'action': {enum: ['check', 'fix', 'apply-template']},
+          'failure': {enum: ['open', 'closed']},
+          'log': {enum: ['spool', 'none']},
+          'report': {enum: ['md', 'json', 'none']},
+          'schedule': {type: 'string', description: 'Cron expression; required when trigger is schedule.'},
+          scope: match,
+        },
+        additionalProperties: false,
+      },
+    },
     'rename': {
       type: 'object',
       description: 'Filename rule behavior.',

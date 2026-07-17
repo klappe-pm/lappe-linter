@@ -10,7 +10,7 @@ describe('linterConfigJsonSchema', () => {
   it('covers every LinterConfig top-level key', () => {
     const properties = linterConfigJsonSchema.properties as Record<string, unknown>;
     expect(Object.keys(properties).sort()).toEqual(
-        ['defaults', 'ignore', 'note-types', 'profiles', 'providers', 'rename', 'version'],
+        ['automations', 'defaults', 'ignore', 'note-types', 'profiles', 'providers', 'rename', 'templates', 'version'],
     );
   });
 

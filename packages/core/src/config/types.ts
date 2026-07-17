@@ -60,6 +60,96 @@ export interface RenameConfig {
   mode: 'off' | 'flag' | 'rename';
 }
 
+/** A frontmatter seed value: scalar, list of scalars, or null (key present, no default). */
+export type TemplateFrontmatterValue =
+  | string
+  | number
+  | boolean
+  | Array<string | number | boolean>
+  | null;
+
+/**
+ * The global base template every scoped template inherits (F-templates). Owns
+ * a frontmatter seed, a body scaffold, and the set of keys the template "pins"
+ * (template-owned attributes a scoped child may switch off via `toggles`).
+ */
+export interface GlobalTemplate {
+  /** Keys the template owns; a scoped child may switch them off via `toggles`. */
+  'pinned-keys'?: string[];
+  /** Frontmatter key order for rendered notes; falls back to the house order. */
+  'key-order'?: string[];
+  /** Seed frontmatter written into a rendered note. */
+  frontmatter?: Record<string, TemplateFrontmatterValue>;
+  /** Markdown body scaffold; `{{title}}` is substituted at render time. */
+  body?: string;
+  /** Emit a trailing `> age: <bucket>` line when a render `today` is supplied. */
+  'age-line'?: boolean;
+}
+
+/**
+ * A property-scoped template: inherits the global base and refines it for a
+ * scope (folder, frontmatter property, tag, age, etc.). Everything a scoped
+ * template sets overrides the global; `toggles` switch inherited attributes
+ * on or off for this scope only.
+ */
+export interface ScopedTemplate extends GlobalTemplate {
+  /** Unique template name. */
+  name: string;
+  /** Only 'global' is supported today; absent also means inherit the global base. */
+  extends?: 'global';
+  /** Scope this template applies to; same matcher shape as a profile. */
+  match?: ProfileMatch;
+  /**
+   * Inherited attributes switched on/off for this scope. A key set to off (or
+   * false) is dropped from the rendered frontmatter and unpinned; on (or true)
+   * is a no-op that documents intent.
+   */
+  toggles?: Record<string, boolean | 'on' | 'off'>;
+}
+
+/** The `templates:` block: one global base plus any property-scoped children. */
+export interface TemplatesConfig {
+  global?: GlobalTemplate;
+  'by-scope'?: ScopedTemplate[];
+}
+
+export type AutomationTrigger =
+  | 'on-write'
+  | 'on-create'
+  | 'on-rename'
+  | 'pre-commit'
+  | 'ci'
+  | 'schedule'
+  | 'manual';
+export type AutomationAction = 'check' | 'fix' | 'apply-template';
+/** open = never blocks (authoring); closed = non-zero exit on violations (gates). */
+export type AutomationFailure = 'open' | 'closed';
+export type AutomationLog = 'spool' | 'none';
+export type AutomationReport = 'md' | 'json' | 'none';
+
+/**
+ * One rule/automation binding declared under `automations:`: it says WHEN
+ * linting runs (trigger), HOW (action), how it fails (failure mode), and where
+ * it logs. This is the contract the CLI `run` command, the on-write hook, the
+ * pre-commit gate, and scheduled sweeps all read; core only defines the shape.
+ */
+export interface AutomationConfig {
+  name: string;
+  trigger: AutomationTrigger;
+  /** Defaults to 'check'. */
+  action?: AutomationAction;
+  /** Defaults to 'open' for authoring triggers, 'closed' for pre-commit/ci gates. */
+  failure?: AutomationFailure;
+  /** Defaults to 'spool'. */
+  log?: AutomationLog;
+  /** Defaults to 'none'. When set, a run writes a rollup report in this format. */
+  report?: AutomationReport;
+  /** Cron expression; required when trigger is 'schedule'. */
+  schedule?: string;
+  /** Scope restricting which files the automation touches; absent = every file. */
+  scope?: ProfileMatch;
+}
+
 export interface IgnoreConfig {
   folders?: string[];
   files?: string[];
@@ -73,6 +163,10 @@ export interface LinterConfig {
   'rule-order'?: string[];
   profiles?: Record<string, ProfileConfig>;
   'note-types'?: Record<string, NoteTypeSchema>;
+  /** Property-based templates: one global base plus scoped children (F-templates). */
+  templates?: TemplatesConfig;
+  /** Rule/automation bindings: when and how linting runs, per trigger. */
+  automations?: AutomationConfig[];
   rename?: RenameConfig;
   ignore?: IgnoreConfig;
   /** Provider config namespaces (F08): providers.<namespace> mirrors defaults/profiles. */
