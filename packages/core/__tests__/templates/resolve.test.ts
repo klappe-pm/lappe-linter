@@ -19,7 +19,7 @@ describe('resolveTemplate', () => {
     const resolved = resolveTemplate(
         facts('Inbox/a.md'),
         config({
-          global: {frontmatter: {domain: 'general'}, 'pinned-keys': ['domain'], body: '# {{title}}'},
+          'global': {'frontmatter': {domain: 'general'}, 'pinned-keys': ['domain'], 'body': '# {{title}}'},
           'by-scope': [{name: 'projects', match: {path: ['Projects/**']}}],
         }),
     );
@@ -34,7 +34,7 @@ describe('resolveTemplate', () => {
     const resolved = resolveTemplate(
         facts('Projects/new.md'),
         config({
-          global: {frontmatter: {domain: 'general', status: 'NEW'}},
+          'global': {frontmatter: {domain: 'general', status: 'NEW'}},
           'by-scope': [
             {name: 'projects', match: {path: ['Projects/**']}, frontmatter: {domain: 'product', project: []}},
           ],
@@ -50,8 +50,8 @@ describe('resolveTemplate', () => {
     const resolved = resolveTemplate(
         facts('Projects/new.md'),
         config({
-          global: {
-            frontmatter: {domain: 'general', aliases: []},
+          'global': {
+            'frontmatter': {domain: 'general', aliases: []},
             'pinned-keys': ['domain', 'aliases'],
           },
           'by-scope': [
@@ -67,7 +67,7 @@ describe('resolveTemplate', () => {
     const resolved = resolveTemplate(
         facts('Projects/new.md', 'type: project'),
         config({
-          global: {},
+          'global': {},
           'by-scope': [
             {name: 'by-folder', match: {path: ['Projects/**']}},
             {name: 'by-property', match: {frontmatter: {type: 'project'}}},

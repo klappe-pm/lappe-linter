@@ -5,5 +5,5 @@
  * CLI `template` commands, and any other surface consume this same core.
  */
 export * from './types';
-export {resolveTemplate} from './resolve';
+export {resolveTemplate, resolveNamedTemplate} from './resolve';
 export {renderTemplate} from './render';

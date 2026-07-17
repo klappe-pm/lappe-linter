@@ -177,7 +177,7 @@ export const linterConfigJsonSchema: Record<string, unknown> = {
           'log': {enum: ['spool', 'none']},
           'report': {enum: ['md', 'json', 'none']},
           'schedule': {type: 'string', description: 'Cron expression; required when trigger is schedule.'},
-          scope: match,
+          'scope': match,
         },
         additionalProperties: false,
       },

@@ -14,7 +14,9 @@ import {runInit} from './init';
 import {CliIo, realIo} from './io';
 import {expandTargets, runCheck, runFix} from './lint-run';
 import {runNewRule} from './new-rule';
+import {runAutomation} from './run';
 import {runStdinFix} from './stdin';
+import {runTemplate} from './template';
 
 const HELP = `lappe-linter ${CORE_VERSION}
 
@@ -29,6 +31,13 @@ Commands:
   new-rule <name>      Scaffold a custom core rule, its test, and registration
                        (see packages/core/src/providers/authoring-guide.md)
   init                 Write a starter linter.yaml to the current directory
+  template list        List configured templates (global base + scoped)
+  template show <name> Show a template's effective shape and a rendered preview
+  template apply <paths...>  Scaffold new notes from the matching template;
+                       existing notes are previewed, never overwritten
+  template check <paths...>  Report notes missing their template's pinned keys
+  run <name> <paths...>  Fire a named automation; honors its failure mode
+  run --list           List configured automations
 
 Flags:
   --config <path>      Config file (default: nearest linter.yaml or
@@ -40,6 +49,8 @@ Flags:
   --allow-rename       Allow fix to execute renames when rename.mode: rename
   --stdin-path <path>  Assumed config-relative path for fix --stdin
   --today <date>       Override today's ISO date (for date-key rules)
+  --dry-run            template apply: print instead of writing new notes
+  --list               run: list automations instead of firing one
   --version            Print version
   --help               Print this help
 `;
@@ -75,6 +86,14 @@ export async function run(argv: string[], io: CliIo = realIo()): Promise<number>
 
   if (command === 'explain') {
     return runExplain(paths[0], flags, io, cache);
+  }
+
+  if (command === 'template') {
+    return runTemplate(paths, flags, io, cache, today);
+  }
+
+  if (command === 'run') {
+    return runAutomation(paths, flags, io, cache, today);
   }
 
   if (command === 'fix' && flags.stdin) {

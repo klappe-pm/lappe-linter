@@ -56,23 +56,8 @@ function mergeFrontmatter(
   return {...(base ?? {}), ...(over ?? {})};
 }
 
-/**
- * Resolve the effective template for one file: the global base, refined by the
- * one scoped template whose match applies, with toggles removing any inherited
- * attribute switched off for that scope. Returns null when there is no
- * `templates` block and no global base at all.
- */
-export function resolveTemplate(
-    facts: FileFacts,
-    config: LinterConfig,
-): ResolvedTemplate | null {
-  const templates: TemplatesConfig | undefined = config.templates;
-  if (!templates || (!templates.global && !(templates['by-scope']?.length))) {
-    return null;
-  }
-  const global: GlobalTemplate = templates.global ?? {};
-  const scoped = selectScoped(templates['by-scope'] ?? [], facts);
-
+/** Merge the global base with one (optional) scoped template and apply toggles. */
+function mergeResolved(global: GlobalTemplate, scoped: ScopedTemplate | null): ResolvedTemplate {
   let frontmatter = mergeFrontmatter(global.frontmatter, scoped?.frontmatter);
   let pinnedKeys = [...(scoped?.['pinned-keys'] ?? global['pinned-keys'] ?? [])];
   const keyOrder = [...(scoped?.['key-order'] ?? global['key-order'] ?? [])];
@@ -98,4 +83,48 @@ export function resolveTemplate(
     body,
     ageLine,
   };
+}
+
+/**
+ * Resolve the effective template for one file: the global base, refined by the
+ * one scoped template whose match applies, with toggles removing any inherited
+ * attribute switched off for that scope. Returns null when there is no
+ * `templates` block and no global base at all.
+ */
+export function resolveTemplate(
+    facts: FileFacts,
+    config: LinterConfig,
+): ResolvedTemplate | null {
+  const templates: TemplatesConfig | undefined = config.templates;
+  if (!templates || (!templates.global && !(templates['by-scope']?.length))) {
+    return null;
+  }
+  const global: GlobalTemplate = templates.global ?? {};
+  const scoped = selectScoped(templates['by-scope'] ?? [], facts);
+  return mergeResolved(global, scoped);
+}
+
+/**
+ * Resolve a template by name for display, independent of any file: 'global'
+ * (or undefined) yields the base alone; any other name yields that scoped
+ * template merged over the base. Returns null when the name is unknown or no
+ * templates are configured. Powers `template show` and the plugin editor.
+ */
+export function resolveNamedTemplate(
+    config: LinterConfig,
+    name?: string,
+): ResolvedTemplate | null {
+  const templates: TemplatesConfig | undefined = config.templates;
+  if (!templates || (!templates.global && !(templates['by-scope']?.length))) {
+    return null;
+  }
+  const global: GlobalTemplate = templates.global ?? {};
+  if (name === undefined || name === 'global') {
+    return mergeResolved(global, null);
+  }
+  const scoped = (templates['by-scope'] ?? []).find((t) => t.name === name);
+  if (!scoped) {
+    return null;
+  }
+  return mergeResolved(global, scoped);
 }
