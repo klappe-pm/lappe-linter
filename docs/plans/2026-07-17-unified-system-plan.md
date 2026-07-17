@@ -24,6 +24,22 @@ The main program line lives in the harness repo:
 
 **Resolved (DEC-101):** the harness program owners have declared there is **no v8; v7 is the latest line**, and the orchestrator is Opus (harness PR #485, 2026-07-17). This plan is therefore *not* a separate v8 increment. Its workstreams are cross-repo contributions that feed v7, with program-line placement owned by the harness v7 package rather than asserted from the linter side. Nothing here contradicts v7 — WS-D/E/F/G below are the concrete build-out of v7's `documentation-control-plane-execution-plan.md` and `harness-feature-architecture.md` (Projects/Work/Environments/Models/Assurance/Insights). The harness-side lane (PR-108) adds a coordination pointer *outside* `docs/plans/v7/` (that package is audit-locked by `validate_package.py`), so the v7 owners incorporate these workstreams on their own cadence.
 
+## Execution status (2026-07-17)
+
+Landed on `master` via PR #10 (squash `91b16ad`) and the telemetry follow-on:
+
+- **WS-B (property-based templates) — DONE.** `packages/core/src/templates/` (`resolveTemplate`, `resolveNamedTemplate`, `renderTemplate`): global base → one property-scoped child via the existing scope matcher, per-scope toggles that drop and unpin attributes, clock-free render. `templates:` + `automations:` blocks in `linter.yaml` with strict loader validation, draft-07 JSON schema, and commented scaffold entries.
+- **WS-C (CLI shift-left surface) — DONE (first slice).** `lappe-linter template list|show|apply|check` (new notes scaffolded; existing notes previewed, never overwritten — DEC-104) and `run <name>|--list` (honors automation failure modes: open never blocks, closed surfaces exit 1). `report`/`export` commands remain to be built.
+- **WS-A (PM-plugin migration) — linter side DONE.** The template subsystem is the reconciled port target; the PM-plugin source deletion + provider stub (PR-103) is a separate cross-repo lane on its own branch.
+- **WS-D (telemetry) — lappe-linter side DONE.** Core telemetry contract `packages/core/src/telemetry/` (`template-event` v1, `run-summary` v1, `toJsonl`); CLI emits these under `--json` from `template`/`run`, with a `--trigger` label for hooks/CI. The `session-data` ingest of `template_events`/`lint_runs` (harness/session-data side of PR-106) is pending.
+
+Decisions:
+
+- **DEC-101 — RESOLVED:** no v8; align to harness **v7** (Opus-orchestrated) per harness PR #485. Placement owned by the v7 package.
+- **DEC-107 (carries DEC-005) — open:** `--json` FileReport stays output-version 1 for hook/CI compatibility; the new telemetry events carry their own per-event `v`, so no breaking bump was needed. Linter-styles CLI parity still to decide.
+
+Test posture: full suite green (1822 tests, 125 suites); CLI↔plugin byte parity intact; strict `tsc` on core; plugin bundles.
+
 ## What this consolidates (evidence inventory)
 
 | Thread | Where it is today |
@@ -155,15 +171,16 @@ Exit: capability map doc in PM repo; provider stub shipping note-types; no cross
 
 | PR | Repo | Title | Depends on | Exit |
 |---|---|---|---|---|
-| PR-101 | lappe-linter | docs: adopt unified system plan (this package) | none | merged after review |
-| PR-102 | lappe-linter | feat(core): port template-body + pinned-key capabilities; land split preview view | PR-101 | validated |
-| PR-103 | product-management-plugin | refactor: remove linter code; ship provider stub | PR-102 | validated |
-| PR-104 | lappe-linter | feat(config): `templates:` + `automations:` schema, loader, scaffold | PR-102 | validated |
-| PR-105 | lappe-linter | feat(cli): template/report/export/run commands; output-version 2 | PR-104 | validated |
-| PR-106 | lappe-linter + session-data | feat(telemetry): template_events + lint_runs ingest; committed rollups in CI | PR-105 | validated |
-| PR-107 | lappe-linter | feat(ui): Reports left-nav surface | PR-106 | validated |
-| PR-108 | harness | docs: v7-aligned cross-repo coordination pointer (outside the audit-locked v7 package) referencing this plan | PR-101 | ready_for_review |
-| PR-109 | new repo | chore: scaffold harness-logs-analysis via `harness project init` | PR-106 | validated |
+| PR-101 | lappe-linter | docs: adopt unified system plan (this package) | none | **MERGED** (#10, `91b16ad`) |
+| PR-102 | lappe-linter | feat(core): template subsystem (body + pinned-key + toggles) | PR-101 | **MERGED** (#10) |
+| PR-103 | product-management-plugin | refactor: remove linter code; ship provider stub | PR-102 | next lane (own branch) |
+| PR-104 | lappe-linter | feat(config): `templates:` + `automations:` schema, loader, scaffold | PR-102 | **MERGED** (#10) |
+| PR-105 | lappe-linter | feat(cli): template/run commands (report/export to follow) | PR-104 | **MERGED** (#10) |
+| PR-106a | lappe-linter | feat(telemetry): core event contract + CLI `--json` emission | PR-105 | **in review** (this branch) |
+| PR-106b | session-data | feat(telemetry): ingest template_events + lint_runs; committed rollups | PR-106a | pending |
+| PR-107 | lappe-linter | feat(ui): Reports left-nav surface | PR-106 | pending |
+| PR-108 | harness | docs: v7-aligned cross-repo coordination pointer (outside the audit-locked v7 package) referencing this plan | PR-101 | coordination comment posted on harness #485 |
+| PR-109 | new repo | chore: scaffold harness-logs-analysis via `harness project init` | PR-106 | pending |
 | PR-110 | harness-dashboards or new | feat: management plane v0 (read-only panels) | PR-106 | validated |
 
 ## Decisions needed

@@ -106,19 +106,37 @@ function profileOf(result: LintTextResult): string {
   return result.profileChain[result.profileChain.length - 1];
 }
 
-export function runCheck(files: string[], flags: CliFlags, io: CliIo, cache: ConfigCache, today: string): number {
-  let violationCount = 0;
+/** Aggregate stats for a check/fix run, for run-summary telemetry (WS-D). */
+export interface RunResult {
+  /** Process exit code: 0 clean/fixed, 1 check violations, 2 config/usage error. */
+  exit: number;
+  /** Non-ignored files actually linted. */
+  filesLinted: number;
+  /** Files written (fix mode). */
+  changed: number;
+  /** Total violations reported. */
+  violations: number;
+  /** Violations whose fix was applied (fix mode). */
+  fixes: number;
+}
+
+const CONFIG_ERROR_RESULT: RunResult = {exit: 2, filesLinted: 0, changed: 0, violations: 0, fixes: 0};
+
+export function runCheck(files: string[], flags: CliFlags, io: CliIo, cache: ConfigCache, today: string): RunResult {
+  let violations = 0;
+  let filesLinted = 0;
   for (const fileAbs of files) {
     const cfg = configFor(fileAbs, flags, io, cache);
     if (!cfg.ok) {
       reportConfigErrors(cfg.messages, io);
-      return 2;
+      return CONFIG_ERROR_RESULT;
     }
     const linted = lintOne(fileAbs, cfg.loaded, today);
     if (linted === null) {
       continue;
     }
-    violationCount += linted.result.violations.length;
+    filesLinted += 1;
+    violations += linted.result.violations.length;
     if (flags.json) {
       const report: FileReport = {
         path: linted.relPath,
@@ -133,7 +151,7 @@ export function runCheck(files: string[], flags: CliFlags, io: CliIo, cache: Con
       }
     }
   }
-  return violationCount > 0 ? 1 : 0;
+  return {exit: violations > 0 ? 1 : 0, filesLinted, changed: 0, violations, fixes: 0};
 }
 
 function maybeRename(fileAbs: string, linted: LintedFile, flags: CliFlags, io: CliIo): string | null {
@@ -153,19 +171,27 @@ function maybeRename(fileAbs: string, linted: LintedFile, flags: CliFlags, io: C
   return toVaultPath(linted.loaded.configDir, targetAbs);
 }
 
-export function runFix(files: string[], flags: CliFlags, io: CliIo, cache: ConfigCache, today: string): number {
+export function runFix(files: string[], flags: CliFlags, io: CliIo, cache: ConfigCache, today: string): RunResult {
+  let filesLinted = 0;
+  let changed = 0;
+  let violations = 0;
+  let fixes = 0;
   for (const fileAbs of files) {
     const cfg = configFor(fileAbs, flags, io, cache);
     if (!cfg.ok) {
       reportConfigErrors(cfg.messages, io);
-      return 2;
+      return CONFIG_ERROR_RESULT;
     }
     const linted = lintOne(fileAbs, cfg.loaded, today);
     if (linted === null) {
       continue;
     }
+    filesLinted += 1;
+    violations += linted.result.violations.length;
+    fixes += linted.result.violations.filter((v) => v.fixed).length;
     if (linted.result.changed) {
       fs.writeFileSync(fileAbs, linted.result.text);
+      changed += 1;
     }
     const renamedTo = maybeRename(fileAbs, linted, flags, io);
     if (flags.json) {
@@ -182,5 +208,5 @@ export function runFix(files: string[], flags: CliFlags, io: CliIo, cache: Confi
       io.stdout(`${linted.relPath}\n`);
     }
   }
-  return 0;
+  return {exit: 0, filesLinted, changed, violations, fixes};
 }
