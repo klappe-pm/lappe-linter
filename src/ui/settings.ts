@@ -10,6 +10,7 @@ import {CustomTab} from './linter-components/tab-components/custom-tab';
 import {TabSearcher} from './linter-components/tab-components/tab-searcher';
 import {DebugTab} from './linter-components/tab-components/debug-tab';
 import {LappeTab} from './linter-components/tab-components/lappe-tab';
+import {ReportsTab} from './linter-components/tab-components/reports-tab';
 import {getTextInLanguage, LanguageStringKey} from '../lang/helpers';
 import {LinterSettingsKeys} from '../settings-data';
 import {NormalArrayFormats, SpecialArrayFormats, TagSpecificArrayFormats} from '../utils/yaml';
@@ -84,6 +85,7 @@ export class SettingTab extends PluginSettingTab {
       this.addTab(new LappeTab(this.tabNavEl, this.settingsContentEl, isMobile, this.plugin, this.app, surface));
     }
 
+    this.addTab(new ReportsTab(this.tabNavEl, this.settingsContentEl, isMobile, this.plugin, this.app));
     this.addTab(new CustomTab(this.tabNavEl, this.settingsContentEl, isMobile, this.app, this.plugin));
     this.addTab(new DebugTab(this.tabNavEl, this.settingsContentEl, isMobile, this.plugin));
   }

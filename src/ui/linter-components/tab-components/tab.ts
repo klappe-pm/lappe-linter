@@ -23,6 +23,7 @@ const tabNameToTabIconId: Record<string | RuleType, string> = {
   'Special formatting': iconInfo.content.id,
   'Scopes': iconInfo.vault.id,
   'Rule order': iconInfo.whitespace.id,
+  'Reports': iconInfo.content.id,
   'Debug': iconInfo.debug.id,
 };
 
@@ -35,6 +36,7 @@ const tabNameToTextKey: Record<string | RuleType, LanguageStringKey> = {
   'Special formatting': 'tabs.names.special-formatting',
   'Scopes': 'tabs.names.scopes',
   'Rule order': 'tabs.names.rule-order',
+  'Reports': 'tabs.names.reports',
   'Debug': 'tabs.names.debug',
 };
 
