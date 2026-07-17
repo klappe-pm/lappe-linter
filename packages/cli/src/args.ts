@@ -9,6 +9,8 @@ export type CliCommand =
   | 'explain'
   | 'new-rule'
   | 'init'
+  | 'template'
+  | 'run'
   | 'help'
   | 'version';
 
@@ -18,6 +20,8 @@ export interface CliFlags {
   changed: boolean;
   allowRename: boolean;
   stdin: boolean;
+  dryRun: boolean;
+  list: boolean;
   stdinPath?: string;
   today?: string;
 }
@@ -30,12 +34,13 @@ export interface ParsedArgs {
 
 export type ParseResult = {ok: true; args: ParsedArgs} | {ok: false; message: string};
 
-const COMMANDS = new Set(['check', 'fix', 'explain', 'new-rule', 'init', 'help']);
+const COMMANDS = new Set(['check', 'fix', 'explain', 'new-rule', 'init', 'template', 'run', 'help']);
+const TEMPLATE_SUBCOMMANDS = new Set(['list', 'show', 'apply', 'check']);
 const VALUE_FLAGS = new Set(['--config', '--stdin-path', '--today']);
-const BOOLEAN_FLAGS = new Set(['--json', '--changed', '--allow-rename', '--stdin']);
+const BOOLEAN_FLAGS = new Set(['--json', '--changed', '--allow-rename', '--stdin', '--dry-run', '--list']);
 
 export function parseArgs(args: string[]): ParseResult {
-  const flags: CliFlags = {json: false, changed: false, allowRename: false, stdin: false};
+  const flags: CliFlags = {json: false, changed: false, allowRename: false, stdin: false, dryRun: false, list: false};
   const positionals: string[] = [];
   let wantHelp = false;
   let wantVersion = false;
@@ -66,6 +71,10 @@ export function parseArgs(args: string[]): ParseResult {
         flags.changed = true;
       } else if (arg === '--allow-rename') {
         flags.allowRename = true;
+      } else if (arg === '--dry-run') {
+        flags.dryRun = true;
+      } else if (arg === '--list') {
+        flags.list = true;
       } else {
         flags.stdin = true;
       }
@@ -111,6 +120,21 @@ export function parseArgs(args: string[]): ParseResult {
   }
   if (command === 'init' && paths.length > 0) {
     return {ok: false, message: 'init takes no paths'};
+  }
+  if (command === 'template') {
+    const sub = paths[0];
+    if (sub === undefined || !TEMPLATE_SUBCOMMANDS.has(sub)) {
+      return {ok: false, message: 'template requires a subcommand: list, show, apply, or check'};
+    }
+    if (sub === 'show' && paths.length !== 2) {
+      return {ok: false, message: 'template show requires exactly one template name'};
+    }
+    if ((sub === 'apply' || sub === 'check') && paths.length < 2) {
+      return {ok: false, message: `template ${sub} requires at least one path`};
+    }
+  }
+  if (command === 'run' && !flags.list && paths.length < 1) {
+    return {ok: false, message: 'run requires an automation name, or --list'};
   }
 
   return {ok: true, args: {command: command as CliCommand, paths, flags}};

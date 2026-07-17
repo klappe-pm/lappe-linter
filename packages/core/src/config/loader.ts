@@ -20,6 +20,8 @@ const TOP_LEVEL_KEYS = new Set([
   'rule-order',
   'profiles',
   'note-types',
+  'templates',
+  'automations',
   'rename',
   'ignore',
   'providers',
@@ -29,6 +31,15 @@ const TOP_LEVEL_KEYS = new Set([
 const MATCH_KEYS = new Set(['path', 'extension', 'frontmatter', 'tag', 'age', 'date-created', 'date-revised', 'backlink', 'alias']);
 const PROFILE_KEYS = new Set(['match', 'rules', 'rule-order']);
 const NOTE_TYPE_KEYS = new Set(['required', 'key-order', 'values', 'date-keys', 'match']);
+const GLOBAL_TEMPLATE_KEYS = new Set(['pinned-keys', 'key-order', 'frontmatter', 'body', 'age-line']);
+const SCOPED_TEMPLATE_KEYS = new Set(['name', 'extends', 'match', 'toggles', 'pinned-keys', 'key-order', 'frontmatter', 'body', 'age-line']);
+const TEMPLATES_KEYS = new Set(['global', 'by-scope']);
+const AUTOMATION_KEYS = new Set(['name', 'trigger', 'action', 'failure', 'log', 'report', 'schedule', 'scope']);
+const AUTOMATION_TRIGGERS = new Set(['on-write', 'on-create', 'on-rename', 'pre-commit', 'ci', 'schedule', 'manual']);
+const AUTOMATION_ACTIONS = new Set(['check', 'fix', 'apply-template']);
+const AUTOMATION_FAILURES = new Set(['open', 'closed']);
+const AUTOMATION_LOGS = new Set(['spool', 'none']);
+const AUTOMATION_REPORTS = new Set(['md', 'json', 'none']);
 const RENAME_MODES = new Set(['off', 'flag', 'rename']);
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -228,6 +239,149 @@ function validateNoteTypes(v: Validation, value: unknown, path: string): void {
   }
 }
 
+function validateTemplateFrontmatter(v: Validation, value: unknown, path: string): void {
+  if (!isPlainObject(value)) {
+    v.error(path, 'must be a mapping of key to seed value');
+    return;
+  }
+  for (const [key, seed] of Object.entries(value)) {
+    if (seed !== null && !isScalar(seed) && !isScalarArray(seed)) {
+      v.error(`${path}.${key}`, 'must be a scalar, a list of scalars, or null');
+    }
+  }
+}
+
+function validateTemplateFields(v: Validation, obj: Record<string, unknown>, path: string, allowed: Set<string>): void {
+  for (const key of Object.keys(obj)) {
+    if (!allowed.has(key)) {
+      v.warn(`unknown key "${path}.${key}" ignored`);
+    }
+  }
+  for (const listKey of ['pinned-keys', 'key-order'] as const) {
+    if (listKey in obj && !isStringArray(obj[listKey])) {
+      v.error(`${path}.${listKey}`, 'must be a list of strings');
+    }
+  }
+  if ('frontmatter' in obj) {
+    validateTemplateFrontmatter(v, obj.frontmatter, `${path}.frontmatter`);
+  }
+  if ('body' in obj && typeof obj.body !== 'string') {
+    v.error(`${path}.body`, 'must be a string');
+  }
+  if ('age-line' in obj && typeof obj['age-line'] !== 'boolean') {
+    v.error(`${path}.age-line`, 'must be a boolean');
+  }
+}
+
+function validateTemplates(v: Validation, value: unknown, path: string): void {
+  if (!isPlainObject(value)) {
+    v.error(path, 'must be a mapping with optional global and by-scope');
+    return;
+  }
+  for (const key of Object.keys(value)) {
+    if (!TEMPLATES_KEYS.has(key)) {
+      v.warn(`unknown key "${path}.${key}" ignored`);
+    }
+  }
+  if ('global' in value) {
+    if (!isPlainObject(value.global)) {
+      v.error(`${path}.global`, 'must be a mapping');
+    } else {
+      validateTemplateFields(v, value.global, `${path}.global`, GLOBAL_TEMPLATE_KEYS);
+    }
+  }
+  if ('by-scope' in value) {
+    const scoped = value['by-scope'];
+    if (!Array.isArray(scoped)) {
+      v.error(`${path}.by-scope`, 'must be a list of scoped templates');
+      return;
+    }
+    const seen = new Set<string>();
+    scoped.forEach((entry, index) => {
+      const entryPath = `${path}.by-scope[${index}]`;
+      if (!isPlainObject(entry)) {
+        v.error(entryPath, 'scoped template must be a mapping');
+        return;
+      }
+      if (typeof entry.name !== 'string' || entry.name.trim() === '') {
+        v.error(`${entryPath}.name`, 'must be a non-empty string');
+      } else if (seen.has(entry.name)) {
+        v.error(`${entryPath}.name`, `duplicate template name "${entry.name}"`);
+      } else {
+        seen.add(entry.name);
+      }
+      if ('extends' in entry && entry.extends !== 'global') {
+        v.error(`${entryPath}.extends`, 'only "global" is supported');
+      }
+      if ('match' in entry) {
+        validateMatch(v, entry.match, `${entryPath}.match`);
+      }
+      if ('toggles' in entry) {
+        const toggles = entry.toggles;
+        if (!isPlainObject(toggles)) {
+          v.error(`${entryPath}.toggles`, 'must be a mapping of key to on/off');
+        } else {
+          for (const [tKey, tVal] of Object.entries(toggles)) {
+            if (typeof tVal !== 'boolean' && tVal !== 'on' && tVal !== 'off') {
+              v.error(`${entryPath}.toggles.${tKey}`, 'must be a boolean or "on"/"off"');
+            }
+          }
+        }
+      }
+      validateTemplateFields(v, entry, entryPath, SCOPED_TEMPLATE_KEYS);
+    });
+  }
+}
+
+function validateAutomations(v: Validation, value: unknown, path: string): void {
+  if (!Array.isArray(value)) {
+    v.error(path, 'must be a list of automations');
+    return;
+  }
+  const seen = new Set<string>();
+  value.forEach((entry, index) => {
+    const entryPath = `${path}[${index}]`;
+    if (!isPlainObject(entry)) {
+      v.error(entryPath, 'automation must be a mapping');
+      return;
+    }
+    for (const key of Object.keys(entry)) {
+      if (!AUTOMATION_KEYS.has(key)) {
+        v.warn(`unknown key "${entryPath}.${key}" ignored`);
+      }
+    }
+    if (typeof entry.name !== 'string' || entry.name.trim() === '') {
+      v.error(`${entryPath}.name`, 'must be a non-empty string');
+    } else if (seen.has(entry.name)) {
+      v.error(`${entryPath}.name`, `duplicate automation name "${entry.name}"`);
+    } else {
+      seen.add(entry.name);
+    }
+    if (typeof entry.trigger !== 'string' || !AUTOMATION_TRIGGERS.has(entry.trigger)) {
+      v.error(`${entryPath}.trigger`, 'must be one of on-write, on-create, on-rename, pre-commit, ci, schedule, manual');
+    }
+    for (const [enumKey, allowed] of [
+      ['action', AUTOMATION_ACTIONS],
+      ['failure', AUTOMATION_FAILURES],
+      ['log', AUTOMATION_LOGS],
+      ['report', AUTOMATION_REPORTS],
+    ] as const) {
+      if (enumKey in entry && (typeof entry[enumKey] !== 'string' || !allowed.has(entry[enumKey] as string))) {
+        v.error(`${entryPath}.${enumKey}`, `must be one of ${[...allowed].join(', ')}`);
+      }
+    }
+    if ('schedule' in entry && typeof entry.schedule !== 'string') {
+      v.error(`${entryPath}.schedule`, 'must be a cron string');
+    }
+    if (entry.trigger === 'schedule' && typeof entry.schedule !== 'string') {
+      v.error(`${entryPath}.schedule`, 'a schedule trigger requires a cron string');
+    }
+    if ('scope' in entry) {
+      validateMatch(v, entry.scope, `${entryPath}.scope`);
+    }
+  });
+}
+
 function validateRename(v: Validation, value: unknown, path: string): void {
   if (!isPlainObject(value)) {
     v.error(path, 'must be a mapping with a mode key');
@@ -372,6 +526,12 @@ export function parseLinterConfig(yamlText: string): LoadResult {
   }
   if ('note-types' in raw) {
     validateNoteTypes(v, raw['note-types'], 'note-types');
+  }
+  if ('templates' in raw) {
+    validateTemplates(v, raw.templates, 'templates');
+  }
+  if ('automations' in raw) {
+    validateAutomations(v, raw.automations, 'automations');
   }
   if ('rename' in raw) {
     validateRename(v, raw.rename, 'rename');

@@ -34,6 +34,10 @@ profiles: # named per-scope overrides; a file matching a profile gets its rules 
 
 note-types: {} # frontmatter schemas per note type; add entries like "task:" with required keys, key-order, and allowed values
 
+templates: {} # property-based templates: a global base every note inherits plus scoped children; e.g. global: {pinned-keys: [domain, category], body: "# {{title}}"} and by-scope: [{name: projects, match: {path: ["Projects/**"]}, toggles: {aliases: off}}]
+
+automations: [] # rule/automation bindings deciding when and how linting runs; e.g. {name: lint-on-write, trigger: on-write, action: fix, failure: open}, {name: gate, trigger: pre-commit, action: check, failure: closed}
+
 code-checks: {} # declarative code linting over fenced code blocks (dec-006); enable built-ins like "no-token-shaped-strings: {enabled: true}" or define your own {pattern, languages, message}; patterns are bounded regex, never executed code
 
 rename:
