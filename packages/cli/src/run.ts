@@ -1,9 +1,10 @@
-import {AutomationConfig} from '@lappe-linter/core';
+import {AutomationConfig, makeRunSummary, toJsonl} from '@lappe-linter/core';
 import {CliFlags} from './args';
 import {ConfigCache, ConfigResult} from './config-discovery';
 import {changedMarkdownFiles} from './git-changed';
 import {CliIo} from './io';
 import {expandTargets, reportConfigErrors, runCheck, runFix} from './lint-run';
+import {newRunId, nowIso, repoOf, triggerOf} from './telemetry';
 
 /**
  * `run` command: fire a named automation from linter.yaml. Maps the
@@ -86,14 +87,35 @@ export function runAutomation(
     return 2;
   }
 
-  const exit = action === 'fix' ?
+  const runId = newRunId();
+  const tsStart = nowIso();
+  const result = action === 'fix' ?
     runFix(files, flags, io, cache, today) :
     runCheck(files, flags, io, cache, today);
+  const tsEnd = nowIso();
 
-  // A config error (2) always propagates. Otherwise the failure mode decides:
-  // an open automation reports but never blocks; a closed one surfaces exit 1.
-  if (exit === 2) {
+  // A config error (2) always propagates without a summary (nothing ran).
+  if (result.exit === 2) {
     return 2;
   }
-  return defaultFailure(automation) === 'open' ? 0 : exit;
+
+  if (flags.json) {
+    io.stdout(toJsonl(makeRunSummary({
+      run_id: runId,
+      trigger: triggerOf(flags),
+      repo: repoOf(cfg.loaded.configDir),
+      action,
+      files_scanned: files.length,
+      files_changed: result.changed,
+      violations: result.violations,
+      fixes: result.fixes,
+      exit_code: result.exit,
+      ts_start: tsStart,
+      ts_end: tsEnd,
+    })));
+  }
+
+  // The failure mode decides the process exit: an open automation reports but
+  // never blocks; a closed one surfaces the check's exit 1.
+  return defaultFailure(automation) === 'open' ? 0 : result.exit;
 }

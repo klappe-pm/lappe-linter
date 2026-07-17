@@ -51,6 +51,8 @@ Flags:
   --today <date>       Override today's ISO date (for date-key rules)
   --dry-run            template apply: print instead of writing new notes
   --list               run: list automations instead of firing one
+  --trigger <t>        Telemetry trigger label (on-write|on-create|on-rename|
+                       pre-commit|ci|schedule|manual) emitted with --json events
   --version            Print version
   --help               Print this help
 `;
@@ -115,9 +117,10 @@ export async function run(argv: string[], io: CliIo = realIo()): Promise<number>
     files = [...new Set([...files, ...changed.files])];
   }
 
-  return command === 'check' ?
+  const result = command === 'check' ?
     runCheck(files, flags, io, cache, today) :
     runFix(files, flags, io, cache, today);
+  return result.exit;
 }
 
 // Only auto-run when invoked as a binary, not when imported by tests.

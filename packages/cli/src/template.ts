@@ -2,15 +2,19 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   FileFacts,
+  LinterConfig,
+  makeTemplateEvent,
   ProfileMatch,
   renderTemplate,
   resolveNamedTemplate,
   resolveTemplate,
+  toJsonl,
 } from '@lappe-linter/core';
 import {CliFlags} from './args';
 import {ConfigCache, ConfigResult} from './config-discovery';
 import {CliIo} from './io';
 import {reportConfigErrors, toVaultPath} from './lint-run';
+import {matchKinds, newRunId, nowIso, repoOf, triggerOf} from './telemetry';
 
 /**
  * `template` command: inspect and apply property-based templates from the
@@ -54,6 +58,21 @@ function frontmatterKeys(raw: string | null): Set<string> {
 
 function stemOf(p: string): string {
   return path.basename(p).replace(/\.md$/, '');
+}
+
+/** scope_matched and toggles_overridden for a resolved template, for telemetry. */
+function scopeInfo(config: LinterConfig, name: string | null): {scopeMatched: string[]; togglesOff: string[]} {
+  if (name === null) {
+    return {scopeMatched: [], togglesOff: []};
+  }
+  const entry = (config.templates?.['by-scope'] ?? []).find((t) => t.name === name);
+  if (!entry) {
+    return {scopeMatched: [], togglesOff: []};
+  }
+  const togglesOff = Object.entries(entry.toggles ?? {})
+      .filter(([, v]) => v === false || v === 'off')
+      .map(([k]) => k);
+  return {scopeMatched: matchKinds(entry.match), togglesOff};
 }
 
 function describeMatch(match: ProfileMatch | undefined): string {
@@ -139,6 +158,8 @@ function templateApply(
     cache: ConfigCache,
     today: string,
 ): number {
+  const runId = newRunId();
+  const trigger = triggerOf(flags);
   let nonConforming = 0;
   for (const target of targets) {
     const abs = path.resolve(io.cwd, target);
@@ -153,35 +174,61 @@ function templateApply(
     const facts: FileFacts = {path: relPath, frontmatter: existingText ? rawFrontmatter(existingText) : null, today};
     const resolved = resolveTemplate(facts, cfg.loaded.config);
     if (!resolved) {
-      io.stdout(`no-template  ${relPath}\n`);
+      if (!flags.json) {
+        io.stdout(`no-template  ${relPath}\n`);
+      }
       continue;
     }
 
+    // Human output is suppressed under --json so the stream stays pure JSONL;
+    // the template-event carries the same facts a report would need.
+    let mode: 'apply' | 'preview' = 'preview';
     if (sub === 'check') {
       const present = frontmatterKeys(existingText ? rawFrontmatter(existingText) : null);
       const missing = resolved.pinnedKeys.filter((k) => !present.has(k));
       if (missing.length) {
         nonConforming += 1;
-        io.stdout(`${relPath}: template ${resolved.name ?? 'global'}: missing pinned keys ${missing.join(', ')}\n`);
+        if (!flags.json) {
+          io.stdout(`${relPath}: template ${resolved.name ?? 'global'}: missing pinned keys ${missing.join(', ')}\n`);
+        }
       }
-      continue;
+    } else {
+      const rendered = renderTemplate(resolved, {title: stemOf(target), today});
+      if (exists) {
+        if (!flags.json) {
+          io.stdout(`--- ${relPath} (exists; preview only, not overwritten) ---\n`);
+          io.stdout(rendered);
+        }
+      } else if (flags.dryRun) {
+        if (!flags.json) {
+          io.stdout(`--- ${relPath} (new; dry-run) ---\n`);
+          io.stdout(rendered);
+        }
+      } else {
+        fs.mkdirSync(path.dirname(abs), {recursive: true});
+        fs.writeFileSync(abs, rendered);
+        mode = 'apply';
+        if (!flags.json) {
+          io.stdout(`wrote ${relPath} from template ${resolved.name ?? 'global'}\n`);
+        }
+      }
     }
 
-    // apply
-    const rendered = renderTemplate(resolved, {title: stemOf(target), today});
-    if (exists) {
-      io.stdout(`--- ${relPath} (exists; preview only, not overwritten) ---\n`);
-      io.stdout(rendered);
-      continue;
+    if (flags.json) {
+      const info = scopeInfo(cfg.loaded.config, resolved.name);
+      io.stdout(toJsonl(makeTemplateEvent({
+        ts: nowIso(),
+        run_id: runId,
+        trigger,
+        repo: repoOf(cfg.loaded.configDir),
+        path: relPath,
+        template: resolved.name ?? 'global',
+        scope_matched: info.scopeMatched,
+        keys_applied: Object.keys(resolved.frontmatter),
+        toggles_overridden: info.togglesOff,
+        mode,
+      })));
     }
-    if (flags.dryRun) {
-      io.stdout(`--- ${relPath} (new; dry-run) ---\n`);
-      io.stdout(rendered);
-      continue;
-    }
-    fs.mkdirSync(path.dirname(abs), {recursive: true});
-    fs.writeFileSync(abs, rendered);
-    io.stdout(`wrote ${relPath} from template ${resolved.name ?? 'global'}\n`);
   }
   return sub === 'check' && nonConforming > 0 ? 1 : 0;
 }

@@ -24,6 +24,8 @@ export interface CliFlags {
   list: boolean;
   stdinPath?: string;
   today?: string;
+  /** Telemetry trigger label emitted with events (default: manual). */
+  trigger?: string;
 }
 
 export interface ParsedArgs {
@@ -36,7 +38,8 @@ export type ParseResult = {ok: true; args: ParsedArgs} | {ok: false; message: st
 
 const COMMANDS = new Set(['check', 'fix', 'explain', 'new-rule', 'init', 'template', 'run', 'help']);
 const TEMPLATE_SUBCOMMANDS = new Set(['list', 'show', 'apply', 'check']);
-const VALUE_FLAGS = new Set(['--config', '--stdin-path', '--today']);
+const VALUE_FLAGS = new Set(['--config', '--stdin-path', '--today', '--trigger']);
+const TRIGGERS = new Set(['on-write', 'on-create', 'on-rename', 'pre-commit', 'ci', 'schedule', 'manual']);
 const BOOLEAN_FLAGS = new Set(['--json', '--changed', '--allow-rename', '--stdin', '--dry-run', '--list']);
 
 export function parseArgs(args: string[]): ParseResult {
@@ -61,6 +64,8 @@ export function parseArgs(args: string[]): ParseResult {
         flags.config = value;
       } else if (arg === '--stdin-path') {
         flags.stdinPath = value;
+      } else if (arg === '--trigger') {
+        flags.trigger = value;
       } else {
         flags.today = value;
       }
@@ -99,6 +104,9 @@ export function parseArgs(args: string[]): ParseResult {
 
   if (flags.today !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(flags.today)) {
     return {ok: false, message: '--today must be an ISO date (yyyy-MM-dd)'};
+  }
+  if (flags.trigger !== undefined && !TRIGGERS.has(flags.trigger)) {
+    return {ok: false, message: `--trigger must be one of ${[...TRIGGERS].join(', ')}`};
   }
   if (flags.stdin && command !== 'fix') {
     return {ok: false, message: '--stdin is only valid with fix'};

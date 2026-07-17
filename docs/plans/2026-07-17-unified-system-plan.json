@@ -7,6 +7,20 @@
     "latest": "harness/docs/plans/v7/",
     "placement": "resolved (DEC-101): no v8; v7 is the latest line, Opus-orchestrated per harness PR #485; these workstreams feed v7, placement owned by the v7 package (audit-locked, not edited from the linter side)"
   },
+  "execution_status": {
+    "as_of": "2026-07-17",
+    "merged_master": {"pr": 10, "squash": "91b16ad", "lanes": ["WS-B templates", "WS-C CLI first slice", "WS-A linter-side port"]},
+    "in_review": {"lane": "WS-D telemetry (lappe-linter side): core event contract + CLI --json emission + --trigger"},
+    "workstream_status": {
+      "WS-A": "linter-side done (template subsystem is the port target); PM-plugin source deletion + provider stub pending (own branch)",
+      "WS-B": "done",
+      "WS-C": "done (first slice: template/run); report/export commands pending",
+      "WS-D": "lappe-linter side done; session-data ingest + committed rollups pending",
+      "WS-E": "pending", "WS-F": "pending", "WS-G": "pending", "WS-H": "pending", "WS-I": "pending"
+    },
+    "coordination": "cross-repo pointer comment posted on harness PR #485; aligned to v7/Opus",
+    "tests": "1822 passing, 125 suites; CLI/plugin parity intact"
+  },
   "companions": [
     "docs/plans/2026-07-17-unified-system-sketches.md",
     "docs/plans/2026-07-17-pm-plugin-linter-migration-plan.md",
