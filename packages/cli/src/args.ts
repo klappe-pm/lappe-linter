@@ -11,6 +11,8 @@ export type CliCommand =
   | 'init'
   | 'template'
   | 'run'
+  | 'report'
+  | 'export'
   | 'help'
   | 'version';
 
@@ -26,6 +28,12 @@ export interface CliFlags {
   today?: string;
   /** Telemetry trigger label emitted with events (default: manual). */
   trigger?: string;
+  /** Telemetry JSONL input file for report/export (default: stdin). */
+  input?: string;
+  /** ISO yyyy-MM-dd lower bound for report. */
+  since?: string;
+  /** Output directory for export. */
+  out?: string;
 }
 
 export interface ParsedArgs {
@@ -36,9 +44,9 @@ export interface ParsedArgs {
 
 export type ParseResult = {ok: true; args: ParsedArgs} | {ok: false; message: string};
 
-const COMMANDS = new Set(['check', 'fix', 'explain', 'new-rule', 'init', 'template', 'run', 'help']);
+const COMMANDS = new Set(['check', 'fix', 'explain', 'new-rule', 'init', 'template', 'run', 'report', 'export', 'help']);
 const TEMPLATE_SUBCOMMANDS = new Set(['list', 'show', 'apply', 'check']);
-const VALUE_FLAGS = new Set(['--config', '--stdin-path', '--today', '--trigger']);
+const VALUE_FLAGS = new Set(['--config', '--stdin-path', '--today', '--trigger', '--input', '--since', '--out']);
 const TRIGGERS = new Set(['on-write', 'on-create', 'on-rename', 'pre-commit', 'ci', 'schedule', 'manual']);
 const BOOLEAN_FLAGS = new Set(['--json', '--changed', '--allow-rename', '--stdin', '--dry-run', '--list']);
 
@@ -66,6 +74,12 @@ export function parseArgs(args: string[]): ParseResult {
         flags.stdinPath = value;
       } else if (arg === '--trigger') {
         flags.trigger = value;
+      } else if (arg === '--input') {
+        flags.input = value;
+      } else if (arg === '--since') {
+        flags.since = value;
+      } else if (arg === '--out') {
+        flags.out = value;
       } else {
         flags.today = value;
       }
@@ -143,6 +157,12 @@ export function parseArgs(args: string[]): ParseResult {
   }
   if (command === 'run' && !flags.list && paths.length < 1) {
     return {ok: false, message: 'run requires an automation name, or --list'};
+  }
+  if ((command === 'report' || command === 'export') && paths.length > 0) {
+    return {ok: false, message: `${command} takes no paths; use --input <file> or pipe JSONL on stdin`};
+  }
+  if (flags.since !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(flags.since)) {
+    return {ok: false, message: '--since must be an ISO date (yyyy-MM-dd)'};
   }
 
   return {ok: true, args: {command: command as CliCommand, paths, flags}};

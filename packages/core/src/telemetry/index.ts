@@ -4,3 +4,4 @@
  * schema regardless of surface.
  */
 export * from './events';
+export * from './report';

@@ -13,7 +13,9 @@ import {changedMarkdownFiles} from './git-changed';
 import {runInit} from './init';
 import {CliIo, realIo} from './io';
 import {expandTargets, runCheck, runFix} from './lint-run';
+import {runExport} from './export-cmd';
 import {runNewRule} from './new-rule';
+import {runReport} from './report';
 import {runAutomation} from './run';
 import {runStdinFix} from './stdin';
 import {runTemplate} from './template';
@@ -38,6 +40,10 @@ Commands:
   template check <paths...>  Report notes missing their template's pinned keys
   run <name> <paths...>  Fire a named automation; honors its failure mode
   run --list           List configured automations
+  report               Roll up a telemetry JSONL stream (--input or stdin) to
+                       a usage/lint report (--md default, --json for data)
+  export               Write a checksummed, secret-scrubbed JSONL bundle
+                       (--input or stdin) to --out for cross-container sharing
 
 Flags:
   --config <path>      Config file (default: nearest linter.yaml or
@@ -53,6 +59,9 @@ Flags:
   --list               run: list automations instead of firing one
   --trigger <t>        Telemetry trigger label (on-write|on-create|on-rename|
                        pre-commit|ci|schedule|manual) emitted with --json events
+  --input <file>       report/export: telemetry JSONL input (default: stdin)
+  --since <date>       report: only count events on/after this ISO date
+  --out <dir>          export: output directory (default: .)
   --version            Print version
   --help               Print this help
 `;
@@ -96,6 +105,14 @@ export async function run(argv: string[], io: CliIo = realIo()): Promise<number>
 
   if (command === 'run') {
     return runAutomation(paths, flags, io, cache, today);
+  }
+
+  if (command === 'report') {
+    return runReport(flags, io);
+  }
+
+  if (command === 'export') {
+    return runExport(flags, io);
   }
 
   if (command === 'fix' && flags.stdin) {
