@@ -100,6 +100,70 @@ describe('template apply', () => {
   });
 });
 
+const ENFORCE_CONFIG = [
+  'version: 1',
+  'templates:',
+  '  global:',
+  '    pinned-keys: [domain, category]',
+  '    frontmatter:',
+  '      domain: general',
+  '      category: general',
+  '  by-scope:',
+  '    - name: projects',
+  '      match:',
+  '        path: ["Projects/**"]',
+  '      frontmatter:',
+  '        domain: product',
+  '',
+].join('\n');
+
+function enforceSetup(): string {
+  const dir = makeTmpDir('lappe-enf-');
+  fs.writeFileSync(path.join(dir, 'linter.yaml'), ENFORCE_CONFIG);
+  return dir;
+}
+
+describe('template apply --enforce (DEC-104)', () => {
+  it('writes missing pinned keys into an existing matched note, preserving the rest', async () => {
+    const dir = enforceSetup();
+    writeFileEnsuringDir(path.join(dir, 'Projects/thin.md'), '---\ndomain: product\ntitle: Keep me\n---\n\nBody stays.\n');
+    const {code, out} = await runCli(['template', 'apply', 'Projects/thin.md', '--enforce'], dir);
+    expect(code).toBe(0);
+    expect(out).toContain('enforced Projects/thin.md: added pinned keys category');
+    const written = fs.readFileSync(path.join(dir, 'Projects/thin.md'), 'utf8');
+    expect(written).toContain('category: general');
+    expect(written).toContain('domain: product'); // existing value untouched
+    expect(written).toContain('title: Keep me'); // non-pinned key preserved
+    expect(written).toContain('Body stays.'); // body preserved
+  });
+
+  it('does not overwrite a pinned key the note already sets', async () => {
+    const dir = enforceSetup();
+    writeFileEnsuringDir(path.join(dir, 'Projects/full.md'), '---\ndomain: mine\ncategory: mine\n---\n\nx\n');
+    const {code, out} = await runCli(['template', 'apply', 'Projects/full.md', '--enforce'], dir);
+    expect(code).toBe(0);
+    expect(out).toContain('already conforms');
+    expect(fs.readFileSync(path.join(dir, 'Projects/full.md'), 'utf8')).toContain('domain: mine');
+  });
+
+  it('enforce --dry-run reports without writing', async () => {
+    const dir = enforceSetup();
+    writeFileEnsuringDir(path.join(dir, 'Projects/thin.md'), '---\ndomain: product\n---\n\nx\n');
+    const {code, out} = await runCli(['template', 'apply', 'Projects/thin.md', '--enforce', '--dry-run'], dir);
+    expect(code).toBe(0);
+    expect(out).toContain('would add category');
+    expect(fs.readFileSync(path.join(dir, 'Projects/thin.md'), 'utf8')).not.toContain('category:');
+  });
+
+  it('bare apply still previews an existing note (no --enforce)', async () => {
+    const dir = enforceSetup();
+    writeFileEnsuringDir(path.join(dir, 'Projects/thin.md'), '---\ndomain: product\n---\n\nx\n');
+    const {out} = await runCli(['template', 'apply', 'Projects/thin.md'], dir);
+    expect(out).toContain('preview only, not overwritten');
+    expect(fs.readFileSync(path.join(dir, 'Projects/thin.md'), 'utf8')).not.toContain('category:');
+  });
+});
+
 describe('template check', () => {
   it('flags a note missing its template pinned keys', async () => {
     const dir = setup();

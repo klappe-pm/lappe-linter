@@ -34,7 +34,7 @@
     {"id": "WS-D", "title": "Telemetry v2: lint-event v2, template-event v1, run-summary v1; ingest; committed rollups", "repos": ["lappe-linter", "session-data"], "exit": "template_events + lint_runs tables; CI commits docs/reports/lint/*.{md,json}; capture fail-open, gates fail-closed"},
     {"id": "WS-E", "title": "Reports left-nav surface in plugin", "repos": ["lappe-linter"], "exit": "usage/coverage report from local rollup JSON; --ll-* tokens only; promote-to-guidance action"},
     {"id": "WS-F", "title": "harness-logs-analysis project", "repos": ["harness-logs-analysis (new)"], "detail_doc": "2026-07-17-harness-logs-analysis-charter.md", "exit": "first findings report from real multi-container data; one recommendation lands upstream with measured follow-up"},
-    {"id": "WS-G", "title": "Management plane app", "repos": ["harness-dashboards or new (DEC-102)"], "detail_doc": "2026-07-17-management-plane-design.md", "exit": "v0 read-only panels: Scripts, Projects/CI-drift, Security, Insights"},
+    {"id": "WS-G", "title": "Management plane app (harness-view)", "repos": ["klappe-pm/harness-view (new, DEC-102 resolved)"], "detail_doc": "2026-07-17-management-plane-design.md", "exit": "v0 read-only panels: Scripts, Projects/CI-drift, Security, Insights"},
     {"id": "WS-H", "title": "Code-comment linting / agent header contract", "repos": ["lappe-linter"], "exit": "lappe-header v1 schema ratified; code-checks enforcement on opted-in paths; script-index consumes metadata"},
     {"id": "WS-I", "title": "Product-management capability alignment", "repos": ["product-management-plugin"], "exit": "capability map documented; provider ships note-types; capabilities exposed via Obsidian + pm-vault CLI + management plane read-only"}
   ],
@@ -52,9 +52,9 @@
   ],
   "decisions": [
     {"id": "DEC-101", "question": "v8 increment vs v7", "status": "resolved", "resolution": "no v8; align to harness v7 (Opus-orchestrated) per harness PR #485"},
-    {"id": "DEC-102", "question": "management plane name (rec: Bridge) and host repo"},
+    {"id": "DEC-102", "question": "management plane name and host repo", "status": "resolved", "resolution": "named harness-view; own repo klappe-pm/harness-view"},
     {"id": "DEC-103", "question": "management plane runtime (rec: local web first, package later)"},
-    {"id": "DEC-104", "question": "template apply contract for existing notes"},
+    {"id": "DEC-104", "question": "template apply contract for existing notes", "status": "resolved", "resolution": "yes when linted/applied explicitly and scope matches; --enforce writes template-owned pinned keys into scope-matched existing notes, preserving other frontmatter and body; bare apply still previews"},
     {"id": "DEC-105", "question": "agent header contract syntax per language family"},
     {"id": "DEC-106", "question": "export bundle signing now vs at v2 automation"},
     {"id": "DEC-107", "question": "linter-styles CLI parity (carries DEC-005), resolve by PR-105"}

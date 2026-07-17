@@ -24,6 +24,8 @@ export interface CliFlags {
   stdin: boolean;
   dryRun: boolean;
   list: boolean;
+  /** template apply: write template-owned pinned keys into existing matched notes (DEC-104). */
+  enforce: boolean;
   stdinPath?: string;
   today?: string;
   /** Telemetry trigger label emitted with events (default: manual). */
@@ -48,10 +50,10 @@ const COMMANDS = new Set(['check', 'fix', 'explain', 'new-rule', 'init', 'templa
 const TEMPLATE_SUBCOMMANDS = new Set(['list', 'show', 'apply', 'check']);
 const VALUE_FLAGS = new Set(['--config', '--stdin-path', '--today', '--trigger', '--input', '--since', '--out']);
 const TRIGGERS = new Set(['on-write', 'on-create', 'on-rename', 'pre-commit', 'ci', 'schedule', 'manual']);
-const BOOLEAN_FLAGS = new Set(['--json', '--changed', '--allow-rename', '--stdin', '--dry-run', '--list']);
+const BOOLEAN_FLAGS = new Set(['--json', '--changed', '--allow-rename', '--stdin', '--dry-run', '--list', '--enforce']);
 
 export function parseArgs(args: string[]): ParseResult {
-  const flags: CliFlags = {json: false, changed: false, allowRename: false, stdin: false, dryRun: false, list: false};
+  const flags: CliFlags = {json: false, changed: false, allowRename: false, stdin: false, dryRun: false, list: false, enforce: false};
   const positionals: string[] = [];
   let wantHelp = false;
   let wantVersion = false;
@@ -94,6 +96,8 @@ export function parseArgs(args: string[]): ParseResult {
         flags.dryRun = true;
       } else if (arg === '--list') {
         flags.list = true;
+      } else if (arg === '--enforce') {
+        flags.enforce = true;
       } else {
         flags.stdin = true;
       }

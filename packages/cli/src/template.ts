@@ -60,6 +60,54 @@ function stemOf(p: string): string {
   return path.basename(p).replace(/\.md$/, '');
 }
 
+function scalarYaml(value: string | number | boolean): string {
+  const s = String(value);
+  return s === '' || /[:#[\]{},"']|^\s|\s$/.test(s) ? JSON.stringify(s) : s;
+}
+
+function serializeKeyLines(key: string, value: unknown): string[] {
+  if (value === null || value === undefined) {
+    return [`${key}:`];
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return [`${key}:`];
+    }
+    return [`${key}:`, ...value.map((item) => `  - ${scalarYaml(item as string | number | boolean)}`)];
+  }
+  return [`${key}: ${scalarYaml(value as string | number | boolean)}`];
+}
+
+/**
+ * DEC-104: write the template-owned pinned keys that are missing from an
+ * existing, scope-matched note into its frontmatter, preserving every other
+ * key and the body. Only ADDS missing pinned keys — it never overwrites a value
+ * the note already set, so authored content is safe.
+ */
+function enforcePinnedKeys(
+    text: string,
+    pinnedKeys: string[],
+    frontmatter: Record<string, unknown>,
+): {text: string; added: string[]} {
+  const present = frontmatterKeys(rawFrontmatter(text));
+  const missing = pinnedKeys.filter((k) => !present.has(k) && k in frontmatter);
+  if (missing.length === 0) {
+    return {text, added: []};
+  }
+  const newLines = missing.flatMap((k) => serializeKeyLines(k, frontmatter[k]));
+  const lines = text.split('\n');
+  if (lines[0] === '---') {
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i] === '---') {
+        lines.splice(i, 0, ...newLines);
+        return {text: lines.join('\n'), added: missing};
+      }
+    }
+  }
+  // No frontmatter: prepend a fresh block, keeping the original body intact.
+  return {text: `${['---', ...newLines, '---', ''].join('\n')}${text}`, added: missing};
+}
+
 /** scope_matched and toggles_overridden for a resolved template, for telemetry. */
 function scopeInfo(config: LinterConfig, name: string | null): {scopeMatched: string[]; togglesOff: string[]} {
   if (name === null) {
@@ -194,7 +242,24 @@ function templateApply(
       }
     } else {
       const rendered = renderTemplate(resolved, {title: stemOf(target), today});
-      if (exists) {
+      if (exists && flags.enforce) {
+        // DEC-104: the note is being applied explicitly and matches the
+        // template scope, so write its missing pinned keys in place.
+        const enforced = enforcePinnedKeys(existingText ?? '', resolved.pinnedKeys, resolved.frontmatter);
+        if (enforced.added.length > 0 && !flags.dryRun) {
+          fs.writeFileSync(abs, enforced.text);
+          mode = 'apply';
+          if (!flags.json) {
+            io.stdout(`enforced ${relPath}: added pinned keys ${enforced.added.join(', ')}\n`);
+          }
+        } else if (!flags.json) {
+          io.stdout(
+              enforced.added.length > 0 ?
+                `--- ${relPath} (enforce dry-run: would add ${enforced.added.join(', ')}) ---\n` :
+                `${relPath}: already conforms to template ${resolved.name ?? 'global'}\n`,
+          );
+        }
+      } else if (exists) {
         if (!flags.json) {
           io.stdout(`--- ${relPath} (exists; preview only, not overwritten) ---\n`);
           io.stdout(rendered);

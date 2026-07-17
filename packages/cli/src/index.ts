@@ -56,6 +56,8 @@ Flags:
   --stdin-path <path>  Assumed config-relative path for fix --stdin
   --today <date>       Override today's ISO date (for date-key rules)
   --dry-run            template apply: print instead of writing new notes
+  --enforce            template apply: write template-owned pinned keys into
+                       existing scope-matched notes (DEC-104; adds only)
   --list               run: list automations instead of firing one
   --trigger <t>        Telemetry trigger label (on-write|on-create|on-rename|
                        pre-commit|ci|schedule|manual) emitted with --json events

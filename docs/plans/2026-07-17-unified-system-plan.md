@@ -29,7 +29,7 @@ The main program line lives in the harness repo:
 Landed on `master` via PR #10 (squash `91b16ad`) and the telemetry follow-on:
 
 - **WS-B (property-based templates) — DONE.** `packages/core/src/templates/` (`resolveTemplate`, `resolveNamedTemplate`, `renderTemplate`): global base → one property-scoped child via the existing scope matcher, per-scope toggles that drop and unpin attributes, clock-free render. `templates:` + `automations:` blocks in `linter.yaml` with strict loader validation, draft-07 JSON schema, and commented scaffold entries.
-- **WS-C (CLI shift-left surface) — DONE (first slice).** `lappe-linter template list|show|apply|check` (new notes scaffolded; existing notes previewed, never overwritten — DEC-104) and `run <name>|--list` (honors automation failure modes: open never blocks, closed surfaces exit 1). `report`/`export` commands remain to be built.
+- **WS-C (CLI shift-left surface) — DONE.** `lappe-linter template list|show|apply|check` (new notes scaffolded; existing notes previewed by default, and with `--enforce` the template-owned pinned keys are written into scope-matched existing notes — DEC-104), `run <name>|--list` (honors automation failure modes), and `report`/`export` (telemetry rollups + checksummed bundles).
 - **WS-A (PM-plugin migration) — linter side DONE.** The template subsystem is the reconciled port target; the PM-plugin source deletion + provider stub (PR-103) is a separate cross-repo lane on its own branch.
 - **WS-D (telemetry) — lappe-linter side DONE.** Core telemetry contract `packages/core/src/telemetry/` (`template-event` v1, `run-summary` v1, `toJsonl`); CLI emits these under `--json` from `template`/`run`, with a `--trigger` label for hooks/CI. The `session-data` ingest of `template_events`/`lint_runs` (harness/session-data side of PR-106) is pending.
 
@@ -143,7 +143,9 @@ A polished, left-nav "Reports" surface inside the linter (and the same data via 
 
 Exit: Reports view shipped reading the local rollup JSON; zero network calls; renders correctly under default + community themes (uses only `--ll-*` tokens).
 
-### WS-F — harness-logs-analysis project (owner: new project; charter attached)
+### WS-F — harness-logs-analysis project (owner: new project; charter attached) — **P2 (deferred)**
+
+**Priority: P2.** Per the owner's call, the dedicated logs-analysis repo is not created now; it is tracked as a P2 backlog item (`harness/docs/backlog/harness-logs-analysis.md`). The charter (`2026-07-17-harness-logs-analysis-charter.md`) stands as the design of record; the `lappe-linter export` bundles and the session-data ingest (PR-106b) already feed the pipeline it will consume, so nothing blocks on the project existing yet.
 
 A dedicated project whose only job is analyzing the accumulated logs: cost hot spots and local maxima, rule-violation concentrations, automation candidates, template adoption, and recommendations that feed upstream (hook tightening, rule digests into CLAUDE.md via the existing `gen-rules-digest.py` pattern, template fixes). Cross-container data arrives via the session-data contract that already exists (containers append to the drop path; host launchd is the sole `sessions.db` writer). v1 export is deliberately simple/manual: `lappe-linter export` produces a checksummed, secret-scrubbed JSONL bundle dropped on the existing path. Full charter: `2026-07-17-harness-logs-analysis-charter.md`.
 
@@ -186,9 +188,9 @@ Exit: capability map doc in PM repo; provider stub shipping note-types; no cross
 ## Decisions needed
 
 - DEC-101: **Resolved** — no v8; align to harness v7 (Opus-orchestrated) per harness PR #485. Placement owned by the v7 package.
-- DEC-102: Management plane name (candidates + recommendation in the design doc) and host repo (`harness-dashboards` vs. fresh repo).
+- DEC-102: **Resolved** — the management plane is named **harness-view** (own repo `klappe-pm/harness-view`).
 - DEC-103: Management plane runtime — recommendation is local web app (Next.js/localhost) first, packaged as Electron/Tauri later; confirm.
-- DEC-104: Template apply contract for existing notes (preview-only today): which keys a template may rewrite on apply, and whether apply ever runs from automations or only interactively/CLI.
+- DEC-104: **Resolved** — `template apply` may modify existing notes, but only when the note is being linted/applied explicitly AND matches the template scope (all conditions met). Implemented behind `--enforce`: it inserts the template-owned pinned keys into a scope-matched existing note, preserving all other frontmatter and the body. A bare `apply` still previews existing notes (safe default).
 - DEC-105: Agent header contract syntax (comment block shape per language family) before WS-H implementation.
 - DEC-106: Export bundle format/signing for cross-container joins (v1: sha256 checksums inside the bundle; decide whether to add signing now or at v2 automation).
 - DEC-107: Carries forward DEC-005 (linter-styles CLI parity) — must be resolved by PR-105.
