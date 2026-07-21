@@ -31,8 +31,32 @@ export class LappeConfigService {
   // Serializes ignore-list writes: rapid checkbox toggles queue up instead of
   // racing read-modify-write cycles that would drop each other's edits.
   private ignoreWriteChain: Promise<void> = Promise.resolve();
+  // Surfaces that mirror the config (the side-by-side preview) subscribe here.
+  // UI edits persist via adapter.write, which never emits vault 'modify', so a
+  // file-watcher alone leaves those surfaces stale; every load() fans out to
+  // these listeners instead, covering UI writes and external edits alike.
+  private changeListeners = new Set<() => void>();
 
   constructor(private app: App) {}
+
+  /**
+   * Subscribe to config reloads. Fires after every load() (UI write, external
+   * edit, style change). Returns an unsubscribe function for onClose/unload.
+   */
+  onChange(listener: () => void): () => void {
+    this.changeListeners.add(listener);
+    return () => this.changeListeners.delete(listener);
+  }
+
+  private notifyChange(): void {
+    for (const listener of this.changeListeners) {
+      try {
+        listener();
+      } catch (error) {
+        logWarn(`lappe-linter: config change listener failed: ${String(error)}`);
+      }
+    }
+  }
 
   get config(): LinterConfig | null {
     return this.current;
@@ -91,11 +115,13 @@ export class LappeConfigService {
           new Notice(`lappe-linter: ${this.configPath} is invalid; scoped linting disabled.\n${summary}`, 10000);
         }
         logWarn(`lappe-linter: invalid config, linting disabled:\n${summary}`);
+        this.notifyChange();
         return;
       }
     }
 
     this.current = await this.mergeStyles(base);
+    this.notifyChange();
   }
 
   /** Read linter-styles/*.yaml and merge each file as a named profile. */
@@ -334,6 +360,31 @@ export class LappeConfigService {
   async setRuleOrder(order: string[]): Promise<void> {
     await this.writeConfigUpdate((doc) => {
       doc.setIn(['rule-order'], order);
+    });
+  }
+
+  /**
+   * A named profile's per-scope rule-order override, or [] when the profile
+   * inherits the global order. The core resolver applies the last profile in a
+   * match chain that sets rule-order (scope/resolver.ts), so this drives the
+   * per-scope half of the ordering control.
+   */
+  profileRuleOrder(name: string): string[] {
+    const order = this.current?.profiles?.[name]?.['rule-order'];
+    return Array.isArray(order) ? order.filter((id): id is string => typeof id === 'string') : [];
+  }
+
+  /**
+   * Write (or clear) a named profile's rule-order override, comment-preserving.
+   * An empty list deletes the key so the profile relinks to the global order.
+   */
+  async setProfileRuleOrder(name: string, order: string[]): Promise<void> {
+    await this.writeConfigUpdate((doc) => {
+      if (order.length === 0) {
+        doc.deleteIn(['profiles', name, 'rule-order']);
+      } else {
+        doc.setIn(['profiles', name, 'rule-order'], order);
+      }
     });
   }
 

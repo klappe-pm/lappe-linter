@@ -562,6 +562,69 @@ export class LappeTab extends Tab {
     });
   }
 
+  /**
+   * The per-scope half of the ordering control: a collapsible editor per
+   * profile. Seeds from the profile's stored order, or the effective global
+   * order when it inherits. yaml-key-sort stays locked first. Reordering writes
+   * profiles.<name>.rule-order; "Use global order" clears it so the scope
+   * relinks to the global order.
+   */
+  private renderProfileRuleOrder(container: HTMLElement, profileName: string): void {
+    const service = this.plugin.lappeConfig;
+    const LOCKED = 'yaml-key-sort';
+    const allIds = getRules().map((rule) => rule.id);
+
+    const stored = service.profileRuleOrder(profileName).filter((id) => allIds.includes(id));
+    const inherits = stored.length === 0;
+    const seed = inherits ? service.ruleOrder() : stored;
+    const effective = [LOCKED, ...seed.filter((id) => id !== LOCKED && allIds.includes(id))];
+    for (const id of allIds) {
+      if (!effective.includes(id)) {
+        effective.push(id);
+      }
+    }
+
+    const details = container.createEl('details');
+    details.createEl('summary', {text: inherits ? 'Rule order: inherits global' : 'Rule order: custom for this scope'});
+
+    new Setting(details)
+        .setDesc(inherits ?
+          'This scope runs rules in the global order. Reorder below to give it a scope-specific order.' :
+          'This scope overrides the global rule order.')
+        .addButton((button) => button.setButtonText('Alphabetical').setTooltip('Sort all but the locked first rule alphabetically for this scope').onClick(async () => {
+          const rest = effective.filter((id) => id !== LOCKED).sort((a, b) => a.localeCompare(b));
+          await service.setProfileRuleOrder(profileName, [LOCKED, ...rest]);
+          this.display();
+        }))
+        .addExtraButton((b) => b.setIcon('rotate-ccw').setTooltip('Use the global order for this scope').setDisabled(inherits).onClick(async () => {
+          await service.setProfileRuleOrder(profileName, []);
+          this.display();
+        }));
+
+    const listEl = details.createDiv();
+    listEl.style.border = '1px solid var(--background-modifier-border)';
+    listEl.style.borderRadius = '8px';
+    listEl.style.padding = '8px';
+    listEl.style.margin = '4px 0 8px';
+
+    effective.forEach((id, index) => {
+      const row = new Setting(listEl).setName(`${index + 1}. ${id}`);
+      if (id === LOCKED) {
+        row.addExtraButton((b) => b.setIcon('lock').setTooltip('This rule always runs first').setDisabled(true));
+        row.settingEl.style.opacity = '0.8';
+        return;
+      }
+      row.addExtraButton((b) => b.setIcon('chevron-up').setTooltip('Move up').setDisabled(index <= 1).onClick(async () => {
+        await service.setProfileRuleOrder(profileName, moveItem(effective, index, index - 1));
+        this.display();
+      }));
+      row.addExtraButton((b) => b.setIcon('chevron-down').setTooltip('Move down').setDisabled(index === effective.length - 1).onClick(async () => {
+        await service.setProfileRuleOrder(profileName, moveItem(effective, index, index + 1));
+        this.display();
+      }));
+    });
+  }
+
   /** Enable/disable toggles for every registered core rule. */
   private displayRuleToggles(): void {
     const service = this.plugin.lappeConfig;
@@ -705,13 +768,15 @@ export class LappeTab extends Tab {
           .join(' | ');
       const overrides = Object.keys(profile.rules ?? {});
       const inheritance = overrides.length ? `; overrides ${overrides.join(', ')}` : ' (inherits everything)';
-      const row = new Setting(this.contentEl.createDiv())
+      const profileEl = this.contentEl.createDiv();
+      const row = new Setting(profileEl)
           .setName(name)
           .setDesc(`${summary || 'linter-profile override only'}${inheritance}`);
       row.addExtraButton((b) => b.setIcon('trash').setTooltip('Delete profile').onClick(async () => {
         await service.deleteProfile(name);
         this.display();
       }));
+      this.renderProfileRuleOrder(profileEl, name);
     }
 
     const noteTypes = Object.keys(config?.['note-types'] ?? {});
@@ -745,15 +810,6 @@ export class LappeTab extends Tab {
 
     const fieldsEl = container.createDiv();
 
-    new Setting(container)
-        .setName('Scope types')
-        .setDesc('Check the types this profile matches; a file must satisfy every checked type.');
-    const typesEl = container.createDiv();
-    typesEl.style.display = 'flex';
-    typesEl.style.flexWrap = 'wrap';
-    typesEl.style.gap = '10px';
-    typesEl.style.marginBottom = '8px';
-
     const renderField = (scopeKey: string) => {
       const scope = SCOPE_TYPES.find((t) => t.key === scopeKey);
       if (scope == null) {
@@ -779,20 +835,95 @@ export class LappeTab extends Tab {
       }
     };
 
+    // Multi-select dropdown of scope types. Selecting a type reveals its value
+    // field; the menu closes when you click outside it. A file must satisfy
+    // every selected type (AND) to match the profile.
+    const selectedTypes = new Set<string>();
+    const picker = container.createDiv({cls: 'lappe-scope-picker'});
+    picker.style.position = 'relative';
+    picker.style.marginBottom = '8px';
+    const trigger = picker.createEl('button', {cls: 'lappe-scope-picker-trigger'});
+    trigger.type = 'button';
+    trigger.style.width = '100%';
+    trigger.style.textAlign = 'left';
+
+    const menu = picker.createDiv({cls: 'lappe-scope-picker-menu'});
+    menu.style.position = 'absolute';
+    menu.style.zIndex = '20';
+    menu.style.left = '0';
+    menu.style.right = '0';
+    menu.style.marginTop = '4px';
+    menu.style.maxHeight = '260px';
+    menu.style.overflowY = 'auto';
+    menu.style.border = '1px solid var(--background-modifier-border)';
+    menu.style.borderRadius = '8px';
+    menu.style.background = 'var(--background-primary)';
+    menu.style.padding = '4px';
+    menu.style.display = 'none';
+
+    const refreshTrigger = () => {
+      const labels = SCOPE_TYPES.filter((t) => selectedTypes.has(t.key)).map((t) => t.label);
+      trigger.setText(labels.length ? `Scope types: ${labels.join(', ')} ▾` : 'Select scope types ▾');
+    };
+    refreshTrigger();
+
+    let onDocClick: ((event: MouseEvent) => void) | null = null;
+    const closeMenu = () => {
+      menu.style.display = 'none';
+      if (onDocClick) {
+        document.removeEventListener('click', onDocClick, true);
+        onDocClick = null;
+      }
+    };
+    const openMenu = () => {
+      menu.style.display = 'block';
+      // Capture phase so the outside-click closes the menu before other
+      // handlers consume the event; scoped to this picker only.
+      onDocClick = (event: MouseEvent) => {
+        if (!picker.contains(event.target as Node)) {
+          closeMenu();
+        }
+      };
+      document.addEventListener('click', onDocClick, true);
+    };
+    trigger.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (menu.style.display === 'none') {
+        openMenu();
+      } else {
+        closeMenu();
+      }
+    });
+
     for (const scope of SCOPE_TYPES) {
-      const label = typesEl.createEl('label');
-      label.style.display = 'flex';
-      label.style.alignItems = 'center';
-      label.style.gap = '4px';
-      const checkbox = label.createEl('input', {type: 'checkbox'});
-      label.createEl('span', {text: scope.label});
-      checkbox.addEventListener('change', () => {
-        if (checkbox.checked) {
-          renderField(scope.key);
-        } else {
+      const row = menu.createDiv({cls: 'lappe-scope-picker-option'});
+      row.style.display = 'flex';
+      row.style.alignItems = 'center';
+      row.style.gap = '8px';
+      row.style.padding = '4px 6px';
+      row.style.cursor = 'pointer';
+      row.style.borderRadius = '4px';
+      const check = row.createSpan();
+      check.style.width = '1em';
+      row.createSpan({text: scope.label});
+      const paint = () => {
+        const on = selectedTypes.has(scope.key);
+        check.setText(on ? '✓' : '');
+        row.style.background = on ? 'var(--background-modifier-hover)' : '';
+      };
+      paint();
+      row.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (selectedTypes.has(scope.key)) {
+          selectedTypes.delete(scope.key);
           selections.delete(scope.key);
           fieldsEl.querySelector(`.lappe-scope-field-${scope.key}`)?.remove();
+        } else {
+          selectedTypes.add(scope.key);
+          renderField(scope.key);
         }
+        paint();
+        refreshTrigger();
       });
     }
 
