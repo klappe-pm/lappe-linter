@@ -1,5 +1,4 @@
 import {Options} from './rules';
-import {LinterConfigPreviewSettings} from './lappe/linter-config-core';
 import {LintCommand} from './ui/linter-components/custom-command-option';
 import {CustomReplace} from './ui/linter-components/custom-replace-option';
 import {FileToIgnore} from './ui/linter-components/files-to-ignore-option';
@@ -51,9 +50,6 @@ export interface LinterSettings {
   // Vault-relative path to the telemetry JSONL the Reports tab rolls up
   // (the spool the lint/template hooks append to). Empty = not configured.
   reportsSourcePath?: string;
-  // Settings for the two-pane linter + base-template config view. Seeded from
-  // DEFAULT_LINTER_PREVIEW_SETTINGS on load so the view renders out of the box.
-  linterConfigPreview: LinterConfigPreviewSettings;
 }
 
 export type LinterSettingsKeys = NestedKeyOf<LinterSettings>
