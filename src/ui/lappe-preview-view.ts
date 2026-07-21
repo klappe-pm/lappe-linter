@@ -5,24 +5,17 @@ import {PREVIEW_SAMPLE, PREVIEW_SAMPLE_PATH} from '../lappe/preview-sample';
 
 export const LAPPE_PREVIEW_VIEW_TYPE = 'lappe-linter-preview';
 
-type PreviewMode = 'linter' | 'base';
-
 /**
- * Non-modal preview workspace with two modes. "Linter" keeps the real rendered
- * Markdown note on the left and the effective Lappe settings on the right.
- * "Base template" renders the resolved property template (global base refined
- * by the selected scoped template) beside its inheritance chain and pinned
- * keys, so the template subsystem is inspectable in the plugin, not only the
- * CLI. The view owns one live config listener so edits to linter.yaml are
- * reflected without closing the surface.
+ * Non-modal preview workspace: the real rendered Markdown note stays on the
+ * left while the effective Lappe settings stay visible on the right. The
+ * view owns one live config listener so edits to linter.yaml are reflected
+ * without closing the settings surface.
  */
 export class LappePreviewView extends ItemView {
   private detach: (() => void) | null = null;
   private noteEl: HTMLElement;
   private settingsEl: HTMLElement;
   private renderToken = 0;
-  private mode: PreviewMode = 'linter';
-  private selectedTemplate = 'global';
 
   constructor(leaf: WorkspaceLeaf, private plugin: LinterPlugin) {
     super(leaf);
@@ -39,7 +32,6 @@ export class LappePreviewView extends ItemView {
   async onOpen(): Promise<void> {
     this.contentEl.empty();
     this.contentEl.addClass('lappe-preview-workspace');
-    this.renderModeTabs(this.contentEl);
     const wrapper = this.contentEl.createDiv();
     wrapper.style.display = 'grid';
     wrapper.style.gridTemplateColumns = 'minmax(0, 1.5fr) minmax(280px, 1fr)';
@@ -64,30 +56,6 @@ export class LappePreviewView extends ItemView {
     this.contentEl.empty();
   }
 
-  private renderModeTabs(parent: HTMLElement): void {
-    const tabs = parent.createDiv({cls: 'lappe-preview-mode-tabs'});
-    tabs.style.display = 'flex';
-    tabs.style.gap = '8px';
-    tabs.style.padding = '12px 16px 0';
-    const makeTab = (mode: PreviewMode, label: string) => {
-      const button = tabs.createEl('button', {text: label});
-      button.toggleClass('mod-cta', this.mode === mode);
-      button.addEventListener('click', () => {
-        if (this.mode === mode) {
-          return;
-        }
-        this.mode = mode;
-        for (const child of Array.from(tabs.children)) {
-          child.toggleClass('mod-cta', child === button);
-        }
-        void this.render();
-      });
-      return button;
-    };
-    makeTab('linter', 'Linter');
-    makeTab('base', 'Base template');
-  }
-
   private panel(parent: HTMLElement, title: string): HTMLElement {
     const panel = parent.createDiv();
     panel.style.minWidth = '0';
@@ -101,18 +69,13 @@ export class LappePreviewView extends ItemView {
     const config = this.plugin.lappeConfig?.config;
     this.noteEl.empty();
     this.settingsEl.empty();
+    new Setting(this.noteEl).setName('Rendered Markdown').setHeading();
     if (config == null) {
-      new Setting(this.noteEl).setName('Rendered Markdown').setHeading();
       this.noteEl.createEl('p', {text: 'linter.yaml is invalid or not loaded. Fix the file and reload the preview.'});
       new Setting(this.settingsEl).setName('Configuration unavailable').setDesc('The preview is fail-closed until linter.yaml parses.');
       return;
     }
-    if (this.mode === 'base') {
-      this.renderBaseTemplate();
-      return;
-    }
 
-    new Setting(this.noteEl).setName('Rendered Markdown').setHeading();
     try {
       const result = lappeLintText({text: PREVIEW_SAMPLE, path: PREVIEW_SAMPLE_PATH, config, today: '2026-07-10'});
       await MarkdownRenderer.render(this.plugin.app, result.text, this.noteEl, PREVIEW_SAMPLE_PATH, this);
@@ -124,61 +87,6 @@ export class LappePreviewView extends ItemView {
       this.noteEl.createEl('p', {text: `Preview failed: ${String(error)}`});
       this.settingsEl.createEl('p', {text: 'Fix the configuration or inspect the Debug tab for details.'});
     }
-  }
-
-  /**
-   * Base-template mode: render the resolved template (base + selected scope) as
-   * literal note text so the frontmatter block stays visible, and list its
-   * inheritance chain, pinned keys, and key order in the settings pane.
-   */
-  private renderBaseTemplate(): void {
-    const templates = this.plugin.lappeTemplates;
-    new Setting(this.noteEl).setName('Rendered template').setHeading();
-    if (!templates.hasTemplates()) {
-      this.noteEl.createEl('p', {text: 'No templates are configured. Add a templates: block to linter.yaml.'});
-      new Setting(this.settingsEl).setName('No templates').setDesc('Configure templates.global (and optional by-scope) in linter.yaml.');
-      return;
-    }
-
-    const names = ['global', ...templates.scopedNames()];
-    if (!names.includes(this.selectedTemplate)) {
-      this.selectedTemplate = 'global';
-    }
-    const resolved = templates.resolveNamed(this.selectedTemplate);
-    if (resolved == null) {
-      this.noteEl.createEl('p', {text: `Unknown template "${this.selectedTemplate}".`});
-      return;
-    }
-    const rendered = templates.render(resolved, this.selectedTemplate === 'global' ? 'Example note' : this.selectedTemplate);
-    const pre = this.noteEl.createEl('pre');
-    pre.style.whiteSpace = 'pre-wrap';
-    pre.createEl('code', {text: rendered});
-
-    new Setting(this.settingsEl)
-        .setName('Template')
-        .setDesc('Preview the base or a scoped template.')
-        .addDropdown((dropdown) => {
-          for (const name of names) {
-            dropdown.addOption(name, name === 'global' ? 'global (base)' : name);
-          }
-          dropdown.setValue(this.selectedTemplate);
-          dropdown.onChange((value) => {
-            this.selectedTemplate = value;
-            void this.render();
-          });
-        });
-    new Setting(this.settingsEl)
-        .setName('Inheritance chain')
-        .setDesc(resolved.chain.join(' → '));
-    new Setting(this.settingsEl)
-        .setName('Pinned keys')
-        .setDesc(resolved.pinnedKeys.length ? resolved.pinnedKeys.join(', ') : 'none');
-    new Setting(this.settingsEl)
-        .setName('Key order')
-        .setDesc(resolved.keyOrder.length ? resolved.keyOrder.join(' → ') : 'house ranking');
-    new Setting(this.settingsEl)
-        .setName('Apply')
-        .setDesc('Use "Create note from property template" to scaffold, or "Apply property template to the active note" to add missing pinned keys.');
   }
 
   private renderSettingsSummary(renderedText: string, profileChain: string[], violationCount: number): void {

@@ -1,17 +1,8 @@
 # PM-plugin → lappe-linter migration plan (WS-A)
 
 - Plan ID: `pm-plugin-linter-migration-v1`
-- Status: `DONE`
+- Status: `draft_for_review`
 - Parent: `docs/plans/2026-07-17-unified-system-plan.md`
-
-## Resolution (2026-07-21)
-
-Both lanes are complete; verified against `origin/master` (lappe-linter) and `origin/main` (product-management).
-
-- Step 1 (lappe-linter core, PR-102): landed in PR #10. The `templates` subsystem (`packages/core/src/templates/`), config schema/loader/scaffold, provider API (`packages/core/src/providers/`), CLI `template` commands, and tests are all present.
-- Step 1.3 gap closed 2026-07-21: the subsystem existed only in core + CLI and was never wired into the Obsidian plugin, so the built bundle users run did not contain it. Fixed on branch `feat/plugin-template-surface`: `LappeTemplateService`, "Create note from property template" and "Apply property template to the active note" commands, and a "Base template" mode in the preview view, with tests.
-- Step 2 (product-management, PR-103): already complete on `origin/main` (PR #38 and predecessors). `grep -ri linter-config src` returns nothing, `styles.css` has no `.pm-config-*`, the `linterConfigPreview` settings migration is in `src/main.ts`, and the sanctioned provider stub (`src/linter-provider.ts`) plus its test (`test/linter-provider.test.ts`) exist. The local primary checkout was stale (PR #33), which made the severing look undone.
-- Acceptance: provider fixtures are exercised on both sides (`packages/core/__tests__/providers/providers.test.ts`, PM `test/linter-provider.test.ts`).
 
 ## Why
 

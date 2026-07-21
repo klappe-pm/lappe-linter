@@ -22,8 +22,6 @@ import {ChangeSpec} from '@codemirror/state';
 import {downloadMisspellings, readInMisspellingsFile} from './utils/auto-correct-misspellings';
 import {kitchenSinkFixture, lintText as lappeLintText, registerAllRules as registerLappeRules, ruleFixtures, testFilesReadme} from '@lappe-linter/core';
 import {LappeConfigService} from './lappe/config-service';
-import {LappeTemplateService} from './lappe/template-service';
-import {CreateNoteFromTemplateModal} from './ui/modals/create-note-from-template-modal';
 import {ribbonFallback} from './lappe/ribbon-action';
 import {shouldLintOnRename} from './lappe/rename-trigger';
 import {LappePreviewView, LAPPE_PREVIEW_VIEW_TYPE} from './ui/lappe-preview-view';
@@ -78,7 +76,6 @@ export default class LinterPlugin extends Plugin {
   settings: LinterSettings;
   settingsTab: SettingTab;
   lappeConfig: LappeConfigService;
-  lappeTemplates: LappeTemplateService;
   private eventRefs: EventRef[] = [];
   private momentLocale: string;
   private isEnabled: boolean = true;
@@ -125,7 +122,6 @@ export default class LinterPlugin extends Plugin {
       void this.lappeConfig.load().then(() => this.maybeShowFirstRunNotice());
     });
     this.lappeConfig.register(this);
-    this.lappeTemplates = new LappeTemplateService(this.app, this);
     this.addLappeCommands();
 
     this.addCommands();
@@ -642,37 +638,6 @@ export default class LinterPlugin extends Plugin {
       name: 'Generate lappe-linter test files',
       callback: () => {
         void this.generateLappeTestFiles();
-      },
-    });
-    this.addCommand({
-      id: 'lappe-create-note-from-template',
-      name: 'Create note from property template',
-      callback: () => {
-        if (!this.lappeTemplates.hasTemplates()) {
-          new Notice('lappe-linter: no templates configured in linter.yaml.');
-          return;
-        }
-        new CreateNoteFromTemplateModal(this.app, this.lappeTemplates.scopedNames(), (path) => {
-          void this.lappeTemplates.createNote(path).then((file) => {
-            if (file != null) {
-              void this.app.workspace.getLeaf(false).openFile(file);
-            }
-          });
-        }).open();
-      },
-    });
-    this.addCommand({
-      id: 'lappe-apply-template-to-active-file',
-      name: 'Apply property template to the active note',
-      checkCallback: (checking) => {
-        const file = this.app.workspace.getActiveFile();
-        const applicable = file != null && this.isMarkdownFile(file) && this.lappeTemplates.hasTemplates();
-        if (checking) {
-          return applicable;
-        }
-        if (applicable && file != null) {
-          void this.lappeTemplates.applyToExisting(file);
-        }
       },
     });
   }
