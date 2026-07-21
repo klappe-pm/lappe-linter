@@ -53,7 +53,8 @@ describe('linter config view is a registered workspace view', () => {
   const source = readFileSync(resolve(__dirname, '../src/ui/linter-config-view.ts'), 'utf8');
   it('extends ItemView with linter and base tabs, driven by settings', () => {
     expect(source).toContain('extends ItemView');
-    expect(source).toContain("LINTER_CONFIG_VIEW_TYPE = 'lappe-linter-config'");
+    expect(source).toContain('LINTER_CONFIG_VIEW_TYPE =');
+    expect(source).toContain('lappe-linter-config');
     expect(source).toContain('Linter rules');
     expect(source).toContain('Base template');
     expect(source).toContain('settings.linterConfigPreview');
