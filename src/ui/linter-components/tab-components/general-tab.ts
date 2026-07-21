@@ -3,9 +3,7 @@ import {Tab} from './tab';
 import {App} from 'obsidian';
 import {moment} from 'obsidian';
 import {getTextInLanguage} from '../../../lang/helpers';
-import {NormalArrayFormats, SpecialArrayFormats, TagSpecificArrayFormats} from '../../..//utils/yaml';
 import {DropdownRecordInfo, DropdownSetting} from '../../../ui/components/dropdown-setting';
-import {NumberInputSetting} from '../../../ui/components/number-input-setting';
 import {ToggleSetting} from '../../../ui/components/toggle-setting';
 import {FolderIgnoreOption} from '../folder-ignore-option';
 import {FilesToIgnoreOption} from '../files-to-ignore-option';
@@ -78,53 +76,12 @@ export class GeneralTab extends Tab {
       await this.plugin.setOrUpdateMomentInstance();
     }));
 
-    const yamlAliasDropdownRecordInfo: DropdownRecordInfo = {
-      isForEnum: true,
-      values: [
-        NormalArrayFormats.MultiLine,
-        NormalArrayFormats.SingleLine,
-        SpecialArrayFormats.SingleStringCommaDelimited,
-        SpecialArrayFormats.SingleStringToSingleLine,
-        SpecialArrayFormats.SingleStringToMultiLine,
-      ],
-      descriptions: [],
-    };
-
-    tempDiv = this.contentEl.createDiv();
-    this.addSettingSearchInfoForGeneralSettings(new DropdownSetting(tempDiv, 'tabs.general.yaml-aliases-section-style.name', 'tabs.general.yaml-aliases-section-style.description', 'commonStyles.aliasArrayStyle', this.plugin, yamlAliasDropdownRecordInfo));
-
-    const yamlTagDropdownRecordInfo: DropdownRecordInfo = {
-      isForEnum: true,
-      values: [
-        NormalArrayFormats.MultiLine,
-        NormalArrayFormats.SingleLine,
-        SpecialArrayFormats.SingleStringToSingleLine,
-        SpecialArrayFormats.SingleStringToMultiLine,
-        TagSpecificArrayFormats.SingleLineSpaceDelimited,
-        TagSpecificArrayFormats.SingleStringSpaceDelimited,
-        SpecialArrayFormats.SingleStringCommaDelimited,
-      ],
-      descriptions: [],
-    };
-
-    tempDiv = this.contentEl.createDiv();
-    this.addSettingSearchInfoForGeneralSettings(new DropdownSetting(tempDiv, 'tabs.general.yaml-tags-section-style.name', 'tabs.general.yaml-tags-section-style.description', 'commonStyles.tagArrayStyle', this.plugin, yamlTagDropdownRecordInfo));
-
-    const defaultEscapeChars = ['"', '\''];
-    const escapeCharDropdownRecordInfo: DropdownRecordInfo = {
-      isForEnum: false,
-      values: defaultEscapeChars,
-      descriptions: defaultEscapeChars,
-    };
-
-    tempDiv = this.contentEl.createDiv();
-    this.addSettingSearchInfoForGeneralSettings(new DropdownSetting(tempDiv, 'tabs.general.default-escape-character.name', 'tabs.general.default-escape-character.description', 'commonStyles.escapeCharacter', this.plugin, escapeCharDropdownRecordInfo));
-
-    tempDiv = this.contentEl.createDiv();
-    this.addSettingSearchInfoForGeneralSettings(new ToggleSetting(tempDiv, 'tabs.general.remove-unnecessary-escape-chars-in-multi-line-arrays.name', 'tabs.general.remove-unnecessary-escape-chars-in-multi-line-arrays.description', 'commonStyles.removeUnnecessaryEscapeCharsForMultiLineArrays', this.plugin));
-
-    tempDiv = this.contentEl.createDiv();
-    this.addSettingSearchInfoForGeneralSettings(new NumberInputSetting(tempDiv, 'tabs.general.number-of-dollar-signs-to-indicate-math-block.name', 'tabs.general.number-of-dollar-signs-to-indicate-math-block.description', 'commonStyles.minimumNumberOfDollarSignsToBeAMathBlock', this.plugin));
+    // The legacy "YAML Common Style" cluster (alias/tag array styles, escape
+    // character, escape-char cleanup, math-block dollar signs) is intentionally
+    // not surfaced here: the redesign moved YAML formatting to the dedicated
+    // YAML tab (dec-005), and re-exposing these controls is the duplication the
+    // recovered spec asked to remove. The underlying commonStyles.* settings
+    // keep their compiled defaults; only the redundant UI is gone.
 
     const folderIgnoreEl = this.contentEl.createDiv();
     const folderIgnore = new FolderIgnoreOption(folderIgnoreEl, this.plugin.settings.foldersToIgnore, this.app, () => {

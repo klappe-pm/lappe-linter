@@ -50,12 +50,14 @@ export class LappePreviewView extends ItemView {
     this.settingsEl = this.panel(wrapper, 'Current settings');
     await this.render();
 
-    const ref = this.plugin.app.vault.on('modify', (file) => {
-      if (file.path === 'linter.yaml' || file.extension === 'yaml' || file.extension === 'yml') {
-        void this.render();
-      }
+    // Subscribe to config reloads rather than the vault 'modify' event: UI edits
+    // in the Lappe tab (and this view's own controls) persist through
+    // adapter.write, which never fires 'modify', so a file-watcher would leave
+    // the preview stale. The config service notifies after every load(), which
+    // also covers external linter.yaml edits (git pull, hand edit).
+    this.detach = this.plugin.lappeConfig.onChange(() => {
+      void this.render();
     });
-    this.detach = () => this.plugin.app.vault.offref(ref);
   }
 
   onClose(): void {
