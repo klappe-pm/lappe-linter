@@ -281,3 +281,152 @@ textarea.full-width {
 .disabled-list-entry {
   color: var(--text-faint);
 }
+
+/* Linter config view: two-pane linter + base-template config surface.
+   Ported from the product-management plugin (linting belongs in lappe-linter);
+   classes renamed lappe-* to avoid collision when both plugins are enabled. */
+.lappe-lc-view {
+  padding: var(--size-4-4);
+  overflow-y: auto;
+}
+
+.lappe-lc-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-2-2);
+  margin: 0 0 var(--size-4-4) 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.lappe-lc-tab {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+  padding: var(--size-2-2) var(--size-4-2);
+  cursor: pointer;
+}
+
+.lappe-lc-tab.is-active {
+  color: var(--text-normal);
+  border-color: var(--interactive-accent);
+}
+
+.lappe-lc-tab:focus-visible {
+  outline: 2px solid var(--interactive-accent);
+  outline-offset: 2px;
+}
+
+.lappe-config-preview {
+  height: 100%;
+}
+
+.lappe-config-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: var(--size-4-4);
+  align-items: stretch;
+  min-height: 0;
+}
+
+.lappe-config-pane {
+  min-width: 0;
+}
+
+.lappe-config-preview-pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-3);
+}
+
+.lappe-config-pane-header h2 {
+  margin: 0 0 var(--size-2-1) 0;
+}
+
+.lappe-config-pane-header p,
+.lappe-config-help {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.lappe-config-rendered-note {
+  flex: 1;
+  min-height: 520px;
+  margin: 0;
+  padding: var(--size-4-4);
+  overflow: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-family: var(--font-monospace);
+  font-size: var(--font-ui-small);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.lappe-config-controls-pane {
+  overflow: auto;
+  padding-bottom: var(--size-4-4);
+}
+
+.lappe-config-section {
+  margin-bottom: var(--size-4-5);
+  padding-bottom: var(--size-4-3);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.lappe-config-section h3 {
+  margin: 0 0 var(--size-4-2) 0;
+  font-size: var(--font-ui-medium);
+}
+
+.lappe-config-field {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.45fr) minmax(0, 0.55fr);
+  gap: var(--size-4-2);
+  align-items: center;
+  margin-bottom: var(--size-2-3);
+}
+
+.lappe-config-field label {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
+
+.lappe-config-input,
+.lappe-config-select,
+.lappe-config-textarea {
+  width: 100%;
+  min-width: 0;
+}
+
+.lappe-config-checkbox {
+  justify-self: start;
+}
+
+.lappe-config-scope-row {
+  padding: var(--size-4-2);
+  margin-bottom: var(--size-2-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+}
+
+.lappe-config-textarea {
+  min-height: 220px;
+  resize: vertical;
+  font-family: var(--font-monospace);
+}
+
+@media (max-width: 960px) {
+  .lappe-config-shell,
+  .lappe-config-field {
+    grid-template-columns: 1fr;
+  }
+
+  .lappe-config-rendered-note {
+    min-height: 360px;
+  }
+}
