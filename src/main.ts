@@ -22,13 +22,9 @@ import {ChangeSpec} from '@codemirror/state';
 import {downloadMisspellings, readInMisspellingsFile} from './utils/auto-correct-misspellings';
 import {kitchenSinkFixture, lintText as lappeLintText, registerAllRules as registerLappeRules, ruleFixtures, testFilesReadme} from '@lappe-linter/core';
 import {LappeConfigService} from './lappe/config-service';
-import {LappeTemplateService} from './lappe/template-service';
-import {CreateNoteFromTemplateModal} from './ui/modals/create-note-from-template-modal';
 import {ribbonFallback} from './lappe/ribbon-action';
 import {shouldLintOnRename} from './lappe/rename-trigger';
 import {LappePreviewView, LAPPE_PREVIEW_VIEW_TYPE} from './ui/lappe-preview-view';
-import {LinterConfigView, LINTER_CONFIG_VIEW_TYPE} from './ui/linter-config-view';
-import {mergeLinterPreviewSettings} from './lappe/linter-config-core';
 
 // https://github.com/liamcain/obsidian-calendar-ui/blob/03ceecbf6d88ef260dadf223ee5e483d98d24ffc/src/localization.ts#L20-L43
 const langToMomentLocale = {
@@ -80,7 +76,6 @@ export default class LinterPlugin extends Plugin {
   settings: LinterSettings;
   settingsTab: SettingTab;
   lappeConfig: LappeConfigService;
-  lappeTemplates: LappeTemplateService;
   private eventRefs: EventRef[] = [];
   private momentLocale: string;
   private isEnabled: boolean = true;
@@ -121,22 +116,17 @@ export default class LinterPlugin extends Plugin {
     await this.loadSettings();
 
     this.registerView(LAPPE_PREVIEW_VIEW_TYPE, (leaf) => new LappePreviewView(leaf, this));
-    this.registerView(LINTER_CONFIG_VIEW_TYPE, (leaf) => new LinterConfigView(leaf, this));
 
     this.lappeConfig = new LappeConfigService(this.app);
     this.app.workspace.onLayoutReady(() => {
       void this.lappeConfig.load().then(() => this.maybeShowFirstRunNotice());
     });
     this.lappeConfig.register(this);
-    this.lappeTemplates = new LappeTemplateService(this.app, this);
     this.addLappeCommands();
 
     this.addCommands();
 
     this.addLappeRibbonIcon();
-    this.addRibbonIcon('panel-left', 'Lappe Linter: open linter config', () => {
-      void this.activateLinterConfigView();
-    });
 
     this.registerEventsAndSaveCallback();
 
@@ -165,9 +155,6 @@ export default class LinterPlugin extends Plugin {
   async loadSettings() {
     const data = await this.loadData();
     this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
-    // Deep-seed the linter config view settings from defaults so the view
-    // renders out of the box, even for data.json written before this key.
-    this.settings.linterConfigPreview = mergeLinterPreviewSettings(this.settings.linterConfigPreview);
     if (typeof this.settings.suppressMessageWhenNoChange !== 'boolean') {
       this.settings.suppressMessageWhenNoChange = false;
     }
@@ -653,69 +640,6 @@ export default class LinterPlugin extends Plugin {
         void this.generateLappeTestFiles();
       },
     });
-    this.addCommand({
-      id: 'lappe-create-note-from-template',
-      name: 'Create note from property template',
-      callback: () => {
-        if (!this.lappeTemplates.hasTemplates()) {
-          new Notice('lappe-linter: no templates configured in linter.yaml.');
-          return;
-        }
-        new CreateNoteFromTemplateModal(this.app, this.lappeTemplates.scopedNames(), (path) => {
-          void this.lappeTemplates.createNote(path).then((file) => {
-            if (file != null) {
-              void this.app.workspace.getLeaf(false).openFile(file);
-            }
-          });
-        }).open();
-      },
-    });
-    this.addCommand({
-      id: 'lappe-apply-template-to-active-file',
-      name: 'Apply property template to the active note',
-      checkCallback: (checking) => {
-        const file = this.app.workspace.getActiveFile();
-        const applicable = file != null && this.isMarkdownFile(file) && this.lappeTemplates.hasTemplates();
-        if (checking) {
-          return applicable;
-        }
-        if (applicable && file != null) {
-          void this.lappeTemplates.applyToExisting(file);
-        }
-      },
-    });
-    this.addCommand({
-      id: 'lappe-open-linter-config',
-      name: 'Open linter config',
-      icon: 'panel-left',
-      callback: () => {
-        void this.activateLinterConfigView();
-      },
-    });
-  }
-
-  /**
-   * Open (or reveal) the two-pane linter + base-template config view in the
-   * main workspace. Reuses an existing leaf of the type if one is open.
-   */
-  async activateLinterConfigView(): Promise<void> {
-    const {workspace} = this.app;
-    let leaf = workspace.getLeavesOfType(LINTER_CONFIG_VIEW_TYPE)[0] ?? null;
-    if (leaf == null) {
-      leaf = workspace.getLeaf(true);
-      await leaf.setViewState({type: LINTER_CONFIG_VIEW_TYPE, active: true});
-    }
-    void workspace.revealLeaf(leaf);
-  }
-
-  /** Re-render every open linter config view after a settings change. */
-  refreshLinterConfigViews(): void {
-    for (const leaf of this.app.workspace.getLeavesOfType(LINTER_CONFIG_VIEW_TYPE)) {
-      const view = leaf.view;
-      if (view instanceof LinterConfigView) {
-        view.render();
-      }
-    }
   }
 
   /**
