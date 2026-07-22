@@ -1,8 +1,8 @@
 /**
  * A rich sample note exercising every surface the settings touch: frontmatter,
- * H1-H3, paragraphs, bullet and numbered lists, bold/italic, code, quotes,
- * tables, and a callout. Kept deliberately messy so the lint result visibly
- * differs from the input. Used by the live preview modal; kept pure and
+ * H1-H3, paragraphs, bullet and numbered lists, bold/italic/underscore, code,
+ * quotes, tables, and a callout. Kept deliberately messy so the lint result
+ * visibly differs from the input. Used by the live preview view; kept pure and
  * Obsidian-free so the preview lint path is unit-testable.
  */
 export const PREVIEW_SAMPLE = [
@@ -29,7 +29,7 @@ export const PREVIEW_SAMPLE = [
   '',
   '### a sub heading',
   '',
-  'Some **bold** and *italic* text.',
+  'Some **bold**, *italic*, and _underscore_ emphasis.',
   '',
   '> a quote',
   '> across lines',
