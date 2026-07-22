@@ -1,0 +1,55 @@
+# linter.yaml is the control plane for lappe-linter: the single git-tracked
+# source of truth for rule configuration, profiles, and note-type schemas.
+# The Obsidian settings UI is a view over this file; edits here win.
+# Canonical filename: linter.yaml at the vault root. lappe-linter.yaml is an
+# accepted alias; when both exist, linter.yaml wins (dec-002).
+
+version: 1 # config schema version; only 1 is valid, do not change
+
+defaults:
+  rules: # rules applied to every file; each key is a rule id, set enabled true/false
+    yaml-key-sort:
+      enabled: true # sorts frontmatter keys; set false to leave key order alone
+      priority-keys: [preset, domain, category, sub-category, types, date-created, date-revised, links] # keys sort in this order; aliases and tags always follow last
+    yaml-timestamp:
+      enabled: true # mandatory timestamps (dec-005): date-created on first lint, date-revised only when content changed; dates yyyy-MM-dd
+    alphabetize-property-values:
+      enabled: true # sorts the values of list properties (aliases, tags, links); never the keys
+    h1-matches-stem:
+      enabled: true # first H1 is kept equal to the filename stem, inserted when missing
+    kebab-case-filename:
+      enabled: true # reports filenames that are not kebab-case; rename.mode below controls fixing
+    header-case:
+      enabled: true # every heading level is kebab-case; UPPERCASE and sentence-case are not valid styles
+      h1: kebab-case
+      h2: kebab-case
+      h3: kebab-case
+      h4: kebab-case
+      h5: kebab-case
+      h6: kebab-case
+    paragraph-spacing:
+      enabled: true # one blank line between blocks
+      blank-lines: 1
+    list-style:
+      enabled: true # dash bullets, tight lists (no blank line between items)
+      marker: '-'
+      tighten: true
+    join-paragraph-lines:
+      enabled: true # remove artificial line breaks (pasted/email/AI/window-width wraps) so prose wraps naturally; preserves lists, quotes, tables, headings, code, math, and intentional breaks
+
+profiles: {} # named per-scope overrides; a file matching a profile gets its rules on top of defaults
+
+note-types: {} # frontmatter schemas per note type
+
+templates: {} # property-based templates
+
+automations: [] # rule/automation bindings deciding when and how linting runs
+
+code-checks: {} # declarative code linting over fenced code blocks (dec-006)
+
+rename:
+  mode: flag # filename rule behavior: off = disabled, flag = report only, rename = fix filenames and update links
+
+ignore:
+  folders: [] # vault-relative folders the linter never touches
+  files: [] # vault-relative files the linter never touches
